@@ -35,7 +35,7 @@ import { px, size } from "../../../ui/size"
 import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../../ui/animation/Animations"
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
-import { SelectorItem } from "../../../ui/base/DropDownSelector"
+import { SelectorItem, SelectorItemList } from "../../../ui/base/DropDownSelector"
 import { getInboxRuleActionTypeNameMapping, getInboxRuleConditionTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { applyRuleWithProgress } from "./InboxRuleSettingsViewer"
@@ -214,62 +214,101 @@ export async function show(
 			)
 		}
 
-		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number, allConditions: InboxRuleConditionField[]) => {
-			const isFirstCondition = conditionIndex === 0
-			const conditionLabel: TranslationKey | null = isFirstCondition ? null : "and_label"
-			const conditionInput = getRuleConditionValueInputByType(condition)
+		const renderRow = (
+			field: InboxRuleConditionField | InboxRuleActionField,
+			input: Children | null,
+			index: number,
+			renderRemove: boolean,
+			getSelectableFields: () => SelectorItemList<string>,
+			changeHandler: (field: InboxRuleConditionType | InboxRuleActionType) => unknown,
+			removeHandler: (index: number) => unknown,
+			additionalLine: Children | null = null,
+		): Children => {
+			const andLabel: Children = index === 0 ? null : m(".smaller.no-wrap.mr-16.ml-8", lang.getTranslationText("and_label"))
 
 			return m(
-				".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16",
+				"",
 				{
 					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
-					key: condition.key,
+					key: field.key,
 				},
 				[
-					m(".flex.items-center", [
-						conditionLabel ? m(".smaller.no-wrap.mr-16.ml-8", lang.getTranslationText(conditionLabel)) : null,
-						m(DropDownSelectorNew, {
-							items: selectableInboxRuleConditions(condition.type()),
-							selectedValue: condition.type(),
-							selectionChangedHandler: (newValue: InboxRuleConditionType) => {
-								condition.valid = null
-								condition.type(newValue)
+					m(
+						".flex.row-gap-8.mt-8",
+						{
+							style: {
+								"flex-flow": isNotNull(input) ? "row wrap" : undefined,
 							},
-						}),
-					]),
-					m(".flex", [
-						conditionInput,
-						allConditions.length > 1
-							? m(
-									".ml-4",
-									m(IconButton, {
-										icon: Icons.X,
-										size: ButtonSize.Large,
-										style: {
-											fill: theme.on_surface_variant,
-										},
-										label: "delete_action",
-										click: () => {
-											inboxRuleConditions.splice(conditionIndex, 1)
-										},
+						},
+						[
+							m(
+								".flex.center-vertically",
+								{
+									style: {
+										flex: "1 1 0",
+										"min-width": px(200),
+									},
+								},
+								[
+									andLabel,
+									m(DropDownSelectorNew, {
+										items: getSelectableFields(),
+										selectedValue: field.type(),
+										selectionChangedHandler: changeHandler,
 									}),
-								)
-							: null,
-					]),
+								],
+							),
+							m(
+								".flex",
+								{ style: isNotNull(input) ? { flex: "2 1 0", "min-width": "fit-content" } : undefined },
+								isNotNull(input) ? m(".ml-8.flex-grow", input) : null,
+								renderRemove
+									? m(
+											".ml-4",
+											m(IconButton, {
+												icon: Icons.X,
+												size: ButtonSize.Large,
+												style: {
+													fill: theme.on_surface_variant,
+												},
+												label: "delete_action",
+												click: () => {
+													removeHandler(1)
+												},
+											}),
+										)
+									: null,
+							),
+						],
+					),
+					additionalLine,
 				],
 			)
 		}
 
+		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number, allConditions: InboxRuleConditionField[]) => {
+			const conditionInput = getRuleConditionValueInputByType(condition)
+			const selectionHandler = () => selectableInboxRuleConditions(condition.type())
+			const changeHandler = (newValue: InboxRuleConditionType) => {
+				condition.valid = null
+				condition.type(newValue)
+			}
+			const removeHandler = () => {
+				inboxRuleConditions.splice(conditionIndex, 1)
+			}
+			return renderRow(condition, conditionInput, conditionIndex, allConditions.length > 1, selectionHandler, changeHandler, removeHandler)
+		}
+
 		const renderAddConditionRow = (): Children => {
 			return m(
-				".flex.items-center.row-gap-8.mt-16",
+				".flex.center-vertically.row-gap-8.mt-8",
 				{
 					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 				},
 				[
-					m(".flex.items-center.mr-16.ml-8.smaller", lang.getTranslationText("and_label")),
+					m(".flex.center-vertically.mr-16.ml-8.smaller", lang.getTranslationText("and_label")),
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
@@ -297,77 +336,37 @@ export async function show(
 		}
 
 		const renderActionRow = (ruleAction: InboxRuleActionField, actionIndex: number, allActions: InboxRuleActionField[]) => {
-			const actionLabel: TranslationKey | null = actionIndex === 0 ? null : "and_label"
-			const ruleValueInput = getRuleActionValueInputByType(ruleAction)
+			const actionInput = getRuleActionValueInputByType(ruleAction, targetLabels, targetFolders)
+			const selectionHandler = () => {
+				return allRuleActions.filter((rule) => rule.value === ruleAction.type() || availableRuleActions.has(rule))
+			}
+			const changeHandler = (newValue: InboxRuleActionType) => {
+				ruleAction.type(newValue)
+				ruleAction.valueFolder(defaultActionOfType(newValue))
+			}
+			const removeHandler = () => {
+				inboxRuleActions.splice(actionIndex, 1)
+			}
 
-			return m(
-				"",
-				{
-					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
-					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
-					key: ruleAction.key,
-				},
-				[
-					m(".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16", [
-						m(
-							".flex.items-center",
-							{
-								style: {
-									maxWidth: ruleValueInput == null ? "35%" : undefined,
-								},
-							},
-							[
-								actionLabel ? m(".smaller.lowercase.no-wrap.mr-16.ml-8", lang.getTranslationText(actionLabel)) : null,
-								m(DropDownSelectorNew, {
-									items: allRuleActions.filter((rule) => rule.value === ruleAction.type() || availableRuleActions.has(rule)),
-									selectedValue: ruleAction.type(),
-									selectionChangedHandler: (newValue: InboxRuleActionType) => {
-										ruleAction.type(newValue)
-										ruleAction.valueFolder(defaultActionOfType(newValue))
+			const additionalLine =
+				ruleAction.type() === InboxRuleActionType.LABEL && (ruleAction.valueLabels()?.length ?? 0)
+					? m(
+							".flex.wrap.ml-48.mt-8.mr-between-8.row-gap-8",
+							assertNotNull(ruleAction.valueLabels()).map((value) =>
+								m(Label, {
+									text: prependParentLabelNamesToLabel(value, labels),
+									color: value.color ?? theme.primary,
+									cancelable: true,
+									cancelAction: () => {
+										const newValue = assertNotNull(ruleAction.valueLabels()).filter((label) => !isSameIdTuple(label._id, value._id))
+										ruleAction.valueLabels(newValue)
 									},
 								}),
-							],
-						),
-						m(".flex", [
-							ruleValueInput !== null
-								? [m(".mlr-8", ""), ruleValueInput(ruleAction.type() === InboxRuleActionType.LABEL ? targetLabels : targetFolders)]
-								: null,
-							allActions.length > 1
-								? m(
-										".ml-4",
-										m(IconButton, {
-											icon: Icons.X,
-											size: ButtonSize.Large,
-											style: {
-												fill: theme.on_surface_variant,
-											},
-											label: "delete_action",
-											click: () => {
-												inboxRuleActions.splice(actionIndex, 1)
-											},
-										}),
-									)
-								: null,
-						]),
-					]),
-					ruleAction.type() === InboxRuleActionType.LABEL && (ruleAction.valueLabels()?.length ?? 0)
-						? m(
-								".flex.wrap.ml-48.mt-16.mr-between-8.row-gap-8",
-								assertNotNull(ruleAction.valueLabels()).map((value) =>
-									m(Label, {
-										text: prependParentLabelNamesToLabel(value, labels),
-										color: value.color ?? theme.primary,
-										cancelable: true,
-										cancelAction: () => {
-											const newValue = assertNotNull(ruleAction.valueLabels()).filter((label) => !isSameIdTuple(label._id, value._id))
-											ruleAction.valueLabels(newValue)
-										},
-									}),
-								),
-							)
-						: null,
-				],
-			)
+							),
+						)
+					: null
+
+			return renderRow(ruleAction, actionInput, actionIndex, allActions.length > 1, selectionHandler, changeHandler, removeHandler, additionalLine)
 		}
 
 		const renderAddActionRow = (): Children => {
@@ -375,13 +374,13 @@ export async function show(
 				return null
 			}
 			return m(
-				".flex.items-center.row-gap-8.mt-16",
+				".flex.center-vertically.row-gap-8.mt-8",
 				{
 					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 				},
 				[
-					m(".flex.items-center.mr-16.ml-8.smaller", lang.getTranslationText("and_label")),
+					m(".flex.center-vertically.mr-16.ml-8.smaller", lang.getTranslationText("and_label")),
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
@@ -418,10 +417,10 @@ export async function show(
 				]),
 				renderName(),
 				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleConditions_label")),
-				inboxRuleConditions.map(renderConditionRow),
+				m("", inboxRuleConditions.map(renderConditionRow)),
 				renderAddConditionRow(),
 				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleActions_label")),
-				inboxRuleActions.map(renderActionRow),
+				m("", inboxRuleActions.map(renderActionRow)),
 				renderAddActionRow(),
 				m(
 					".flex-end.wrap.mt-24.gap-16",
@@ -585,26 +584,20 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 		case InboxRuleConditionType.RECIPIENT_CC_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_BCC_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_ANY_EQUALS:
-			return [
-				m(".mlr-8", ""),
-				m(TextField, {
-					label: "emailSenderPlaceholder_label",
-					autocapitalize: Autocapitalize.none,
-					value: ruleCondition.value(),
-					...validatedTextFieldProps,
-				}),
-			]
+			return m(TextField, {
+				label: "emailSenderPlaceholder_label",
+				autocapitalize: Autocapitalize.none,
+				value: ruleCondition.value(),
+				...validatedTextFieldProps,
+			})
 		case InboxRuleConditionType.SUBJECT_CONTAINS:
 		case InboxRuleConditionType.MAIL_HEADER_CONTAINS:
-			return [
-				m(".mlr-8", ""),
-				m(TextField, {
-					label: "value_label",
-					autocapitalize: Autocapitalize.none,
-					value: ruleCondition.value(),
-					...validatedTextFieldProps,
-				}),
-			]
+			return m(TextField, {
+				label: "value_label",
+				autocapitalize: Autocapitalize.none,
+				value: ruleCondition.value(),
+				...validatedTextFieldProps,
+			})
 		case InboxRuleConditionType.HAS_ATTACHMENT:
 		case InboxRuleConditionType.HAS_NO_ATTACHMENT:
 			ruleCondition.value("")
@@ -614,46 +607,41 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 	}
 }
 
-function getRuleActionValueInputByType(ruleAction: InboxRuleActionField) {
+function getRuleActionValueInputByType(ruleAction: InboxRuleActionField, labels: TargetMailSet[], targetFolders: TargetMailSet[]) {
 	switch (ruleAction.type()) {
 		case InboxRuleActionType.MOVE:
-			return (targetFolders: TargetMailSet[]) =>
-				m(DropDownSelectorNew, {
-					items: targetFolders,
-					selectedValue: ruleAction.valueFolder(),
-					selectedValueDisplay:
-						ruleAction.valueFolder() == null
-							? lang.getTranslationText("deletedFolder_label")
-							: getMailSetName(assertNotNull(ruleAction.valueFolder())),
-					selectionChangedHandler: (value: MailSet) => {
-						ruleAction.valid = true
-						ruleAction.valueFolder(value)
-					},
-					class: ruleAction.valid === false ? "error-text-field" : undefined,
-					helpLabel: ruleAction.valid === false ? () => lang.getTranslationText("pleaseSelectFolder_msg") : undefined,
-				})
+			return m(DropDownSelectorNew, {
+				items: targetFolders,
+				selectedValue: ruleAction.valueFolder(),
+				selectedValueDisplay:
+					ruleAction.valueFolder() == null ? lang.getTranslationText("deletedFolder_label") : getMailSetName(assertNotNull(ruleAction.valueFolder())),
+				selectionChangedHandler: (value: MailSet) => {
+					ruleAction.valid = true
+					ruleAction.valueFolder(value)
+				},
+				class: ruleAction.valid === false ? "error-text-field" : undefined,
+				helpLabel: ruleAction.valid === false ? () => lang.getTranslationText("pleaseSelectFolder_msg") : undefined,
+			})
 		case InboxRuleActionType.LABEL:
-			return (labels: TargetMailSet[]) =>
-				m(LabelsDropDownSelector, {
-					label: "selectLabel_action",
-					items: labels.map((label) => ({
-						...label,
-						applied: isNotNull(ruleAction.valueLabels()) && assertNotNull(ruleAction.valueLabels()).some((l) => isSameId(l._id, label.value._id)),
-					})),
-					icon: {
-						icon: Icons.LabelFilled,
-						color: theme.on_surface_variant,
-					},
-					onLabelsApplied: ruleAction.valueLabels,
-					onModalClosed: () => {
-						if (ruleAction.valid === false) {
-							ruleAction.valid = !!ruleAction.valueLabels()?.length
-						}
-					},
-					class: ruleAction.valid === false ? "error-text-field" : undefined,
-					helpLabel: ruleAction.valid === false ? () => lang.getTranslationText("labelMustBeSelected_msg") : undefined,
-				})
-
+			return m(LabelsDropDownSelector, {
+				label: "selectLabel_action",
+				items: labels.map((label) => ({
+					...label,
+					applied: isNotNull(ruleAction.valueLabels()) && assertNotNull(ruleAction.valueLabels()).some((l) => isSameId(l._id, label.value._id)),
+				})),
+				icon: {
+					icon: Icons.LabelFilled,
+					color: theme.on_surface_variant,
+				},
+				onLabelsApplied: ruleAction.valueLabels,
+				onModalClosed: () => {
+					if (ruleAction.valid === false) {
+						ruleAction.valid = !!ruleAction.valueLabels()?.length
+					}
+				},
+				class: ruleAction.valid === false ? "error-text-field" : undefined,
+				helpLabel: ruleAction.valid === false ? () => lang.getTranslationText("labelMustBeSelected_msg") : undefined,
+			})
 		case InboxRuleActionType.EXCLUDE_SPAM:
 		case InboxRuleActionType.READ:
 			return null
