@@ -28,13 +28,11 @@ abstract class CommonNotificationsHandler(private val localNotificationsFacade: 
 										  private val sseStorage: SseStorage,
 										  private val alarmNotificationsManager: AlarmNotificationsManager,
 										  private val defaultClient: OkHttpClient,
-										  private val suspensionHandler: SuspensionHandler) {
-
+										  private val suspensionHandler: SuspensionHandler): INotificationsHandler
+{
 	protected val json = Json { ignoreUnknownKeys = true }
 
-	abstract fun onNewNotificationAvailable(sseInfo: SseInfo?): Job
-
-	fun onConnect(): Boolean {
+	override fun onConnect(): Boolean {
 		if (hasNotificationTTLExpired()) {
 			Log.d(TAG, "Notification TTL expired - resetting stored state")
 			alarmNotificationsManager.unscheduleAlarms(null)
@@ -216,7 +214,7 @@ abstract class CommonNotificationsHandler(private val localNotificationsFacade: 
 		return lastMissedNotificationCheckTime != null && System.currentTimeMillis() - lastMissedNotificationCheckTime.time > MISSED_NOTIFICATION_TTL
 	}
 
-	fun onNotAuthorized(userId: String) {
+	override fun onNotAuthorized(userId: String) {
 		// If we get notAuthorized, then user removed push identifier and we should try the next one.
 		// It will be done automatically when we remove the user from DB because there's already an observer for users
 		// in PushNotificationService which restarts the connection.
