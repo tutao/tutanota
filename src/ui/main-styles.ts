@@ -3572,7 +3572,6 @@ export class MainStyles {
 					"grid-template-columns": "110px 1fr;",
 					"grid-template-rows": "auto auto 1fr;",
 				},
-
 				".event-banner-grid-organizer": {
 					display: "grid",
 					"grid-template-areas": `
@@ -3582,21 +3581,6 @@ export class MainStyles {
 					"grid-template-columns": "110px 1fr;",
 					"grid-template-rows": "auto 1fr;",
 					"max-width": px(900),
-				},
-
-				".inbox-rule-wrapping-row": {
-					display: "flex",
-					"flex-flow": "row wrap",
-					"align-items": "flex-start",
-				},
-				".inbox-rule-wrapping-row > *": {
-					"min-width": px(200),
-				},
-				".inbox-rule-wrapping-row > *:first-child": {
-					flex: "1 0 35%",
-				},
-				".inbox-rule-wrapping-row > *:last-child": {
-					flex: "1 0 65%",
 				},
 				".error-text-field": {
 					"border-bottom": `3px solid ${theme.error}`,
