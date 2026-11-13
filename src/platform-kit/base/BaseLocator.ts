@@ -72,6 +72,7 @@ import { HttpClientJavascript } from "../http-client/HttpClientJavascript"
 import { InstanceKeyFacade } from "./base-crypto/InstanceKeyFacade"
 import { InstanceKeyProviderMaker } from "./base-crypto/InstanceKeyProviderMaker"
 import { FormerKeyResolver } from "./base-crypto/FormerKeyResolver"
+import { ServiceEncryptionParamProvider } from "./base-crypto/ServiceEncryptionParamProvider"
 
 export type BaseLocator = {
 	random: Randomizer
@@ -294,7 +295,8 @@ export async function createBaseLocator({
 	const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
 	const formerKeyResolver = new FormerKeyResolver(cachingEntityClient, keyEncryption)
-	keyLoader = new KeyLoaderFacade(keyCache, user, cachingEntityClient, cacheManagement, cryptoWrapper, formerKeyResolver, keyEncryption)
+	const serviceEncryptionParamProvider = new ServiceEncryptionParamProvider(keyEncryption)
+	keyLoader = new KeyLoaderFacade(keyCache, user, cachingEntityClient, cacheManagement, cryptoWrapper, formerKeyResolver, serviceEncryptionParamProvider)
 
 	const publicIdentityKeyProvider = new PublicIdentityKeyProvider(
 		serviceExecutor,
@@ -323,7 +325,16 @@ export async function createBaseLocator({
 		publicEncryptionKeyProvider,
 		() => adminKeyLoader,
 	)
-	adminKeyLoader = new AdminKeyLoaderFacade(user, cachingEntityClient, keyLoader, cacheManagement, asymmetricCrypto, cryptoWrapper, keyAuthenticationFacade)
+	adminKeyLoader = new AdminKeyLoaderFacade(
+		user,
+		cachingEntityClient,
+		keyLoader,
+		cacheManagement,
+		asymmetricCrypto,
+		cryptoWrapper,
+		keyAuthenticationFacade,
+		serviceEncryptionParamProvider,
+	)
 
 	// Declared before crypto because it's captured by the lazy callback inside CryptoFacade
 	let keyRotation: KeyRotationFacade

@@ -1,15 +1,28 @@
 import { EnvProvider, ProgrammingError, TutanotaError } from "@tutao/app-env"
-import { assertNotNull, KeyVersion, lazyAsync } from "@tutao/utils"
+import { assertNotNull, KeyVersion, lazyAsync, Nullable } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import { AesKey, cryptoUtils, CryptoWrapper, PublicKeyIdentifierType, VersionedAes256Key, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import {
+	AeadCipherVersion,
+	AesKey,
+	cryptoUtils,
+	CryptoWrapper,
+	KeyEncryption,
+	PublicKeyIdentifierType,
+	SessionKeyDecryptor,
+	VersionedAes256Key,
+	VersionedEncryptedKey,
+	VersionedKey,
+} from "@tutao/crypto"
 import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
 import { CacheManager } from "./persistence/CacheManager"
-import { elementIdToId, idToElementId } from "@tutao/meta"
+import { elementIdToId, Entity, idToElementId } from "@tutao/meta"
 import { isNull } from "../../utils/Utils"
+import { ServiceEncryptionParams } from "../../instance-pipeline/RestClientOptions"
+import { ServiceEncryptionParamProvider } from "./ServiceEncryptionParamProvider"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -22,6 +35,7 @@ export class AdminKeyLoaderFacade {
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
+		private readonly serviceEncryptionParamProvider: ServiceEncryptionParamProvider,
 	) {}
 
 	async getGroupKeyViaUser(groupId: Id, version: KeyVersion, viaUser: Id): Promise<AesKey> {
@@ -184,5 +198,38 @@ export class AdminKeyLoaderFacade {
 			},
 			givenUserGroupKeyMac.tag,
 		)
+	}
+
+	public async assembleServiceEncryptionParamsForPut(
+		ownerGroup: string,
+		viaUser: string | null,
+		entity: Entity,
+		aeadCipherVersion: AeadCipherVersion = AeadCipherVersion.WithInstanceKey,
+	): Promise<ServiceEncryptionParams> {
+		const ownerKeyVersion = cryptoUtils.parseKeyVersion(entity._ownerKeyVersion ?? "0")
+		const ownerKeyToDecryptSessionKey: VersionedKey = {
+			object:
+				viaUser !== null
+					? await this.getGroupKeyViaUser(ownerGroup, ownerKeyVersion, viaUser)
+					: await this.getGroupKeyViaAdminEncGKey(ownerGroup, ownerKeyVersion),
+			version: ownerKeyVersion,
+		}
+		const resolveCurrentOwnerKey = () =>
+			viaUser !== null ? this.getCurrentGroupKeyViaUser(ownerGroup, viaUser) : this.getCurrentGroupKeyViaAdminEncGKey(ownerGroup)
+		return this.serviceEncryptionParamProvider.assembleServiceEncryptionParamsForVersionedGroupKey(
+			ownerKeyToDecryptSessionKey,
+			resolveCurrentOwnerKey,
+			aeadCipherVersion,
+		)
+	}
+
+	public async assembleServiceEncryptionParamsForPost(
+		ownerGroup: string,
+		viaUser: string | null,
+		aeadCipherVersion: AeadCipherVersion = AeadCipherVersion.WithInstanceKey,
+	): Promise<ServiceEncryptionParams> {
+		const currentKey =
+			viaUser !== null ? await this.getCurrentGroupKeyViaUser(ownerGroup, viaUser) : await this.getCurrentGroupKeyViaAdminEncGKey(ownerGroup)
+		return this.serviceEncryptionParamProvider.assembleServiceEncryptionParamsForCurrentGroupKey(currentKey, aeadCipherVersion)
 	}
 }
