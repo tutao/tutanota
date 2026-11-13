@@ -95,7 +95,6 @@ import {
 	handleSendUpdatesClick,
 } from "./EventDetailsView.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
-import { calendarLocator } from "../../calendarLocator.js"
 import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
@@ -550,7 +549,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			return null
 		}
 
-		if (!this.viewModel.eventPreviewModel && calendarLocator.syncTracker.isSyncDone) {
+		if (!this.viewModel.eventPreviewModel) {
 			this.exitEventDetails()
 			return null
 		}
@@ -625,7 +624,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
 
 					const query = `contactId=${stringToBase64(contact._id.join("/"))}`
-					calendarLocator.systemFacade.openMailApp(stringToBase64(query))
+					locator.systemFacade.openMailApp(stringToBase64(query))
 				},
 				onWriteMail: (to: PartialRecipient) => simulateMailToClick(to.address),
 				extendedActions: true,
