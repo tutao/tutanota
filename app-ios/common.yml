@@ -142,27 +142,15 @@ targets:
       - path: "TutanotaSharedFramework"
         headerVisibility: "public"
         # Exclude TUTBigNum.h so we change it's visiblity to 'project' in another source
-        excludes: [ "Crypto/TUTBigNum.h", "*.md", "Sql/sqlite3.c" ]
+        excludes: [ "Crypto/TUTBigNum.h", "*.md" ]
       - path: "TutanotaSharedFramework/Crypto"
         includes: [ "TUTBigNum.h" ]
         headerVisibility: "project"
-      - path: "TutanotaSharedFramework/Sql"
-        # Don't show warnings for vendored code
-        includes: [ "sqlite3.c" ]
-        compilerFlags: "-w"
     settings:
       base:
         PRODUCT_NAME: "TutanotaSharedFramework"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaSharedFramework"
         INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
-        GCC_PREPROCESSOR_DEFINITIONS: [ "SQLITE_HAS_CODEC=1", "SQLITE_ENABLE_FTS5=1", "$(inherited)" ]
-        OTHER_CFLAGS:
-          [
-            "-DSQLITE_HAS_CODEC",
-            "-DSQLITE_TEMP_STORE=3",
-            "-DNDEBUG",
-            "-DSQLCIPHER_CRYPTO_CC",
-          ]
         APPLICATION_EXTENSION_API_ONLY: "YES"
         ENABLE_USER_SCRIPT_SANDBOXING: "YES"
         SKIP_INSTALL: "YES"
