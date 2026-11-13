@@ -102,21 +102,13 @@ export async function runDevBuild({ stage, host, clean, networkDebugging, debugg
 
 	const extendedDomainConfigs = updateDomainConfigForHostname(host)
 
-	const isBuildForDesktop = ["Linux", "Win32", "Darwin"].includes(mode)
 	await runStep("Build Webpart", async () => {
-		if (isBuildForDesktop) {
-			// When building for desktop, also make the web part ready,
-			// helpful when testing locally with desktop client & dev wants to check something on browser
-			await prepareAssetsAndWriteWorkerBootstrap({
-				stage,
-				host,
-				version,
-				domainConfigs: extendedDomainConfigs,
-				mode: "Browser",
-				networkDebugging,
-				buildDir,
-			})
+		/** @type {EnvMode[]} */
+		const modes = ["Browser", "Android", "Ios", "Linux", "Darwin", "Win32"]
+		for (const mode of modes) {
+			await prepareAssetsAndWriteWorkerBootstrap({ stage, mode, host, version, domainConfigs, networkDebugging, buildDir })
 		}
+
 		await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, app, mode, networkDebugging, debuggable })
 	})
 
@@ -124,6 +116,7 @@ export async function runDevBuild({ stage, host, clean, networkDebugging, debugg
 		await buildPlugins(buildDir, debuggable)
 	})
 
+	const isBuildForDesktop = ["Linux", "Win32", "Darwin"].includes(mode)
 	if (isBuildForDesktop) {
 		await runStep("Run desktop build", async () => {
 			const desktopEnv = createEnv({
