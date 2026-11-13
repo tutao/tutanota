@@ -219,7 +219,7 @@ class PushNotificationService : LifecycleJobService() {
 	) : SseListener {
 
 		private val tutanotaNotificationsHandler =
-			TutanotaNotificationsHandler(
+			CalendarNotificationsHandler(
 				notificationsFacade,
 				sseStorage,
 				nativeCredentialsFacade,
