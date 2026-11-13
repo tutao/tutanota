@@ -7,7 +7,7 @@ import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmModel.calculateAlarmTime
-import de.tutao.tutashared.push.LocalErrorNotificationsFacade
+import de.tutao.tutashared.push.ILocalNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import org.junit.Before
@@ -53,7 +53,7 @@ class AlarmNotificationsManagerTest {
 			sseStorage,
 			crypto,
 			systemAlarmFacade,
-			Mockito.mock(LocalErrorNotificationsFacade::class.java),
+			Mockito.mock(ILocalNotificationsFacade::class.java),
 			fakeDateProvider,
 			timeZone
 		)

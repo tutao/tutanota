@@ -33,7 +33,7 @@ import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
-import de.tutao.tutashared.push.LocalErrorNotificationsFacade
+import de.tutao.tutashared.push.ILocalNotificationsFacade
 import de.tutao.tutashared.push.NotificationInfo
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
@@ -52,7 +52,7 @@ private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
 class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
-	LocalErrorNotificationsFacade, FileNotificationSender {
+	ILocalNotificationsFacade, FileNotificationSender {
 	companion object {
 		private const val TAG = "LocalNotifications"
 	}
@@ -277,7 +277,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		notificationManager.notify(1000, notification)
 	}
 
-	fun createNotificationChannels() {
+	override fun createNotificationChannels() {
 		val mailNotificationChannel = NotificationChannel(
 			EMAIL_NOTIFICATION_CHANNEL_ID,
 			context.getString(R.string.pushNewMail_msg),
