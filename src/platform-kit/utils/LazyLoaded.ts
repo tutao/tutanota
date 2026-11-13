@@ -12,7 +12,7 @@ enum LoadState {
  */
 
 export class LazyLoaded<T> {
-	private state = LoadState.NotLoaded
+	private state: LoadState = LoadState.NotLoaded
 	private promise: Promise<T> | null = null
 	private value: T | null = null
 
