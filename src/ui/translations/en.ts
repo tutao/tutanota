@@ -956,7 +956,7 @@ export default {
 		"inboxRuleInvalidEmailAddress_msg": "Email address or domain is not valid.",
 		"inboxRuleMailHeaderContains_action": "Header contains",
 		"inboxRuleManagement_label": "Inbox Rule Management",
-		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. These are applied top-to-bottom and only one rule can apply per email. More information can be found <a target=\\\"_blank\\\" rel=\\\"noopener noreferrer\\\" href=\\\"https://tuta.com/support/howto#inbox-rules\\\">here</a>.",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. These are applied top-to-bottom and only one rule can apply per email. More information can be found <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">here</a>.",
 		"inboxRuleRecipientEquals_action": "Recipient is",
 		"inboxRulesAppliedSuccessfully_msg": "Inbox Rules applied successfully",
 		"inboxRuleSenderEquals_action": "Sender is",

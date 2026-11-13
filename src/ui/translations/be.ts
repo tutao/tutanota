@@ -1323,7 +1323,7 @@ export default {
 		"noMails_msg": "Няма паведамленняў.",
 		"noMoreSimilarContacts_msg": "Падобных кантактаў больш не знойдзена.",
 		"nonConfidential_action": "Неканфідэнцыйна",
-		"nonConfidentialStatus_msg": "Гэты ліст будзе дасланы без скразнога зашыфраваным.",
+		"nonConfidentialStatus_msg": "Гэты ліст будзе дасланы без скразнога шыфравання.",
 		"noNews_msg": "Няма навін.",
 		"noPermission_title": "Няма дазволу",
 		"noPreSharedPassword_msg": "Увядзіце ўзгоднены пароль для кожнага вонкавага атрымальніка.",

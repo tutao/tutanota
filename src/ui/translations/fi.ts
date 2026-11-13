@@ -956,7 +956,7 @@ export default {
 		"inboxRuleInvalidEmailAddress_msg": "Sähköpostiosoite tai verkkotunnus ei ole oikein.",
 		"inboxRuleMailHeaderContains_action": "Otsakkeet sisältävät",
 		"inboxRuleManagement_label": "Käsittelysääntöjen hallinta",
-		"inboxRuleManagement_text": "Saapuvien viestien käsittelysääntöjä sovelletaan postilaatikkoosi saapuviin viesteihin. Niitä sovelletaan ylhäältä alaspäin, mutta vain yhtä sääntöä sovelletaan sähköpostiviestiin kerrallaan. Lue lisätietoja <a target=\\\"_blank\\\" rel=\\\"noopener noreferrer\\\" href=\\\"https://tuta.com/support/howto#inbox-rules\\\">täältä</a>.",
+		"inboxRuleManagement_text": "Saapuvien viestien käsittelysääntöjä sovelletaan postilaatikkoosi saapuviin viesteihin. Niitä sovelletaan ylhäältä alaspäin, mutta vain yhtä sääntöä sovelletaan sähköpostiviestiin kerrallaan. Lue lisätietoja <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">täältä</a>.",
 		"inboxRuleRecipientEquals_action": "Vastaanottaja tai kopio",
 		"inboxRulesAppliedSuccessfully_msg": "Käsittelysääntöjä sovellettiin onnistuneesti",
 		"inboxRuleSenderEquals_action": "Lähettäjä",

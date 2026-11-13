@@ -956,7 +956,7 @@ export default {
 		"inboxRuleInvalidEmailAddress_msg": "Η διεύθυνση email ή το όνομα τομέα δεν είναι έγκυρο.",
 		"inboxRuleMailHeaderContains_action": "Η κεφαλίδα περιέχει",
 		"inboxRuleManagement_label": "Διαχείριση κανόνων εισερχομένων",
-		"inboxRuleManagement_text": "Οι κανόνες εισερχομένων ισχύουν για τα νέα μηνύματα που φτάνουν στα Εισερχόμενά σας. Ελέγχονται ένας ένας, με τη σειρά της λίστας, από πάνω προς τα κάτω, και σε κάθε μήνυμα εφαρμόζεται μόνο ο πρώτος κανόνας που ταιριάζει. Περισσότερες πληροφορίες θα βρείτε <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\\\">εδώ</a>.",
+		"inboxRuleManagement_text": "Οι κανόνες εισερχομένων ισχύουν για τα νέα μηνύματα που φτάνουν στα Εισερχόμενά σας. Ελέγχονται ένας ένας, με τη σειρά της λίστας, από πάνω προς τα κάτω, και σε κάθε μήνυμα εφαρμόζεται μόνο ο πρώτος κανόνας που ταιριάζει. Περισσότερες πληροφορίες θα βρείτε <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">εδώ</a>.",
 		"inboxRuleRecipientEquals_action": "Ο παραλήπτης είναι",
 		"inboxRulesAppliedSuccessfully_msg": "Οι κανόνες εισερχομένων εφαρμόστηκαν με επιτυχία",
 		"inboxRuleSenderEquals_action": "Από/Αποστολέας",
