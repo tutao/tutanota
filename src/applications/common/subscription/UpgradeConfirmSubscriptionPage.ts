@@ -140,7 +140,11 @@ export class UpgradeConfirmSubscriptionPage implements ClassComponent<OrderConfi
 											} else {
 												data.options.paymentInterval(PaymentInterval.Yearly)
 											}
-											attrs.onPaymentIntervalChanged()
+											// We don't need to update the interval on the accounting info
+											// for external payment methods because there is no payment method set yet
+											if (!isExternalPaymentMethod(data.paymentData.paymentMethod)) {
+												attrs.onPaymentIntervalChanged()
+											}
 										},
 									})
 								},
