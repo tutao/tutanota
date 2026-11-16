@@ -283,11 +283,7 @@ export async function loadEventsAroundInvite(
 	if (hasNewPaidPlan) {
 		await eventsRepository.loadBirthdaysFromContacts()
 	}
-	if (forceReload) {
-		await eventsRepository.forceLoadEventsAt(yearMonthPairsToLoad)
-	} else {
-		await eventsRepository.loadMonthsIfNeeded(yearMonthPairsToLoad, new AbortController().signal, null)
-	}
+	await eventsRepository.loadMonthsIfNeeded(yearMonthPairsToLoad, null, null, forceReload)
 	const events = eventsRepository.getDaysToEvents()() // Short and long events
 
 	for (const iCalEvent of iCalContents.events) {

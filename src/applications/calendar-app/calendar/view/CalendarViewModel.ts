@@ -446,15 +446,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (hasNewPaidPlan) {
 				await this.eventsRepository.loadBirthdaysFromContacts()
 			}
-			await this.loadMonthsIfNeeded(
+			await this.eventsRepository.loadMonthsIfNeeded(
 				// Year-month pairs provided in order of priority: the selected month should be loaded first
 				[
 					[selectedYear, selectedMonth],
 					[nextYear, nextMonth],
 					[previousYear, previousMonth],
 				],
-				progressMonitor,
 				this.abortController.signal,
+				progressMonitor,
 				isForceReload,
 			)
 		} finally {
@@ -896,15 +896,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	getCalendarInfosCreateIfNeeded(): $Promisable<ReadonlyMap<Id, CalendarInfo>> {
 		return this.calendarModel.getCalendarInfosCreateIfNeeded()
-	}
-
-	loadMonthsIfNeeded(
-		yearMonthPairs: [number, number][],
-		progressMonitor: ProgressMonitorInterface,
-		canceled: AbortSignal,
-		isForceReload: boolean,
-	): Promise<void> {
-		return this.eventsRepository.loadMonthsIfNeeded(yearMonthPairs, canceled, progressMonitor, undefined, isForceReload)
 	}
 
 	private doRedraw() {

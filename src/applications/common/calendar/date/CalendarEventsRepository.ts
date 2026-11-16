@@ -51,7 +51,6 @@ export type DaysToEvents = Map<number, EventWrapper[]>
 export class CalendarEventsRepository {
 	/** timestamps of the beginning of months that we already loaded */
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
-	private pendingLoadRequest: Promise<void> = Promise.resolve()
 	private calendarMemberships: string[]
 	private monthYYYYMMToLoadedCalendarIds = new Map<number, string[]>()
 	private birthdaysLoadedFromContacts = false
@@ -114,59 +113,23 @@ export class CalendarEventsRepository {
 		return this.logins.getUserController().isInternalUser() && (await this.logins.getUserController().isNewPaidPlan())
 	}
 
-	async forceLoadEventsAt(yearMonthPairs: [number, number][]): Promise<void> {
-		for (const [year, month] of yearMonthPairs) {
-			try {
-				let calendarInfos = await this.calendarModel.getCalendarInfos()
-				await this.loadMonth(year, month, calendarInfos)
-			} catch (e) {
-				this.monthYYYYMMToLoadedCalendarIds.delete(encodeYYYYMM(year, month))
-				throw e
-			}
-		}
-	}
-
 	async loadMonthsIfNeeded(
 		yearMonthPairs: [number, number][],
-		canceled: AbortSignal,
+		abortSignal: AbortSignal | null,
 		progressMonitor: ProgressMonitorInterface | null,
-		calendarToLoad?: string,
-		isForceReload: boolean = false,
+		forceLoad: boolean = false,
 	): Promise<void> {
-		if (isForceReload) {
-			this.pendingLoadRequest = Promise.resolve()
-		}
-		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
-			for (const [year, month] of yearMonthPairs) {
-				if (canceled.aborted) return
+		const calendarInfos = await this.calendarModel.getCalendarInfos()
 
-				if (isForceReload) {
-					let calendarInfos = await this.calendarModel.getCalendarInfos()
-					await this.loadMonth(year, month, calendarInfos)
-				} else if (!this.isCalendarLoadedForMonth(year, month, calendarToLoad)) {
-					try {
-						let calendarInfos = await this.calendarModel.getCalendarInfos()
+		for (const [year, month] of yearMonthPairs) {
+			if (abortSignal && abortSignal.aborted) return
 
-						if (calendarToLoad != null) {
-							const calendarToLoadInfo = calendarInfos.get(calendarToLoad)
-							if (calendarToLoadInfo == null) {
-								throw Error("Trying to load a calendar that doesn't exists")
-							}
-
-							calendarInfos = new Map<string, CalendarInfo>([[calendarToLoad, calendarToLoadInfo]])
-						}
-
-						await this.loadMonth(year, month, calendarInfos)
-					} catch (e) {
-						this.monthYYYYMMToLoadedCalendarIds.delete(year * 100 + month)
-						throw e
-					}
-				}
-				progressMonitor?.workDone(1)
+			let monthNeedsLoad = forceLoad || !this.monthYYYYMMToLoadedCalendarIds.has(encodeYYYYMM(year, month))
+			if (monthNeedsLoad) {
+				await this.loadMonth(year, month, calendarInfos)
 			}
-		})
-		this.pendingLoadRequest = promiseForThisLoadRequest
-		await promiseForThisLoadRequest
+			progressMonitor?.workDone(1)
+		}
 	}
 
 	private addOrUpdateEvent(calendarInfo: CalendarInfo | null, eventWrapper: EventWrapper) {
@@ -360,13 +323,22 @@ export class CalendarEventsRepository {
 			const newCalendars = updatedMemberships.filter((membership) => !this.calendarMemberships.includes(membership.group))
 			const removedCalendars = this.calendarMemberships.filter((membership) => !updatedMemberships.some((it) => it.group === membership))
 
-			const yearMonthPairsToLoaded: [number, number][] = []
-			for (const yyyymm of this.monthYYYYMMToLoadedCalendarIds.keys()) {
-				yearMonthPairsToLoaded.push(decodeYYYYMM(yyyymm))
+			// Load events from the new calendars and add them to the event map by calling loadMonth on all for each
+			// loaded month, with the calendarInfos of the new calendars.
+			const calendarInfos = await this.calendarModel.getCalendarInfos()
+			const newCalendarInfos: Map<string, CalendarInfo> = new Map()
+			for (const newCalendar of newCalendars) {
+				const calendarInfo = calendarInfos.get(newCalendar.group)
+				if (calendarInfo) {
+					newCalendarInfos.set(newCalendar.group, calendarInfo)
+				} else {
+					console.warn(`${TAG} Calendar with group id="${newCalendar.group}" not in calendar infos: skipping!`)
+				}
 			}
-			await Promise.all(
-				newCalendars.map((calendar) => this.loadMonthsIfNeeded(yearMonthPairsToLoaded, new AbortController().signal, null, calendar.group)),
-			)
+			for (const yyyymm of this.monthYYYYMMToLoadedCalendarIds.keys()) {
+				const [year, month] = decodeYYYYMM(yyyymm)
+				await this.loadMonth(year, month, newCalendarInfos)
+			}
 
 			for (const calendar of removedCalendars) {
 				this.removeEventForCalendar(calendar)
@@ -377,7 +349,15 @@ export class CalendarEventsRepository {
 	}
 
 	private async loadMonth(year: number, month: number, calendarInfos: ReadonlyMap<string, CalendarInfo>) {
-		const eventsMap = await this.calendarFacade.updateEventMap(getMonthRange(year, month), calendarInfos, this.daysToEvents(), this.zone)
+		let eventsMap: DaysToEvents
+		try {
+			eventsMap = await this.calendarFacade.updateEventMap(getMonthRange(year, month), calendarInfos, this.daysToEvents(), this.zone)
+		} catch (e) {
+			// If we fail update the event map with new events, then mark the month as not loaded, so we can retry again
+			// in the future.
+			this.monthYYYYMMToLoadedCalendarIds.delete(encodeYYYYMM(year, month))
+			throw e
+		}
 
 		// Add birthday events for the month to the event map
 		const birthdayEventsInMonth = this.monthToBirthdayEventProgenitors[month]
