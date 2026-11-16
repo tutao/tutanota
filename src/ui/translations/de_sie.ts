@@ -760,6 +760,7 @@ export default {
 		"exportFinished_label": "Export beendet",
 		"exportingEmails_label": "E-Mails werden exportiert:  {count}",
 		"exportingEmailsFailure_label": "{count} E-Mails fehlgeschlagen",
+		"exportPreserveFolderStructure_label": "Ordnerstruktur beibehalten",
 		"exportMailbox_label": "Mailbox exportieren",
 		"exportRunningElsewhere_label": "Der Export wird möglicherweise in einem anderen Fenster ausgeführt.",
 		"exportUsers_action": "Benutzer exportieren",

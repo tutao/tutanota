@@ -85,7 +85,14 @@ export class DesktopExportFacade implements ExportFacade {
 		})
 	}
 
-	async startMailboxExport(userId: string, mailboxId: string, mailBagId: string, mailId: string): Promise<void> {
+	async startMailboxExport(
+		userId: string,
+		mailboxId: string,
+		mailBagId: string,
+		mailId: string,
+		exportFolderStructure: boolean,
+		folderPaths: ReadonlyArray<ReadonlyArray<string>>,
+	): Promise<void> {
 		if (this.desktopExportLock.acquireLock(userId) === LockResult.AlreadyLocked) {
 			throw new ExportError(`Export is locked for user: ${userId}`, ExportErrorReason.LockedForUser)
 		}
@@ -105,17 +112,34 @@ export class DesktopExportFacade implements ExportFacade {
 		const folderName = `TutaExport-${formatSortableDate(new Date(this.dateProvider.now()))}`
 		const fullPath = await this.pickUniqueFileName(path.join(directory, folderName))
 		await this.fs.promises.mkdir(fullPath)
+		if (exportFolderStructure) {
+			for (const folderPath of folderPaths) {
+				await this.fs.promises.mkdir(this.resolveExportSubdirectory(fullPath, folderPath), { recursive: true })
+			}
+		}
 		await this.mailboxExportPersistence.setStateForUser({
 			type: "running",
 			userId,
 			mailboxId,
 			exportDirectoryPath: fullPath,
+			shouldExportFolderStructure: exportFolderStructure,
 			mailBagId,
 			mailId,
 			exportedMails: 0,
 			failedCount: 0,
 			failedMailIds: [],
 		})
+	}
+
+	private resolveExportSubdirectory(root: string, folderPath: ReadonlyArray<string>): string {
+		const segments = folderPath.map((segment) => {
+			const sanitized = sanitizeFilename(segment)
+			if (sanitized === "" || sanitized === "." || sanitized === "..") {
+				return "_"
+			}
+			return sanitized
+		})
+		return path.join(root, ...segments)
 	}
 
 	private async pickUniqueFileName(path: string): Promise<string> {
@@ -172,15 +196,19 @@ export class DesktopExportFacade implements ExportFacade {
 		}
 	}
 
-	async saveMailboxExport(bundle: MailBundle, userId: string, mailBagId: string, mailId: string): Promise<void> {
+	async saveMailboxExport(bundle: MailBundle, userId: string, mailBagId: string, mailId: string, folderPath: ReadonlyArray<string>): Promise<void> {
 		const exportState = await this.mailboxExportPersistence.getStateForUser(userId)
 		if (exportState == null || exportState.type !== "running") {
 			throw new ProgrammingError("Export is not running")
 		}
 		const filename = generateExportFileName(elementIdPart(bundle.mailId), bundle.subject, new Date(bundle.sentOn), "eml")
-		const fullPath = path.join(exportState.exportDirectoryPath, filename)
+		const targetDirectory = this.resolveExportSubdirectory(exportState.exportDirectoryPath, folderPath)
+		const fullPath = path.join(targetDirectory, filename)
 		const file = mailToEmlFile(bundle, filename)
 		try {
+			if (folderPath.length > 0) {
+				await this.fs.promises.mkdir(targetDirectory, { recursive: true })
+			}
 			await this.fs.promises.writeFile(fullPath, file.data)
 		} catch (e) {
 			if (e.code === "ENOENT" || e.code === "EPERM") {
@@ -196,6 +224,7 @@ export class DesktopExportFacade implements ExportFacade {
 			mailBagId,
 			mailId,
 			exportDirectoryPath: exportState.exportDirectoryPath,
+			shouldExportFolderStructure: exportState.shouldExportFolderStructure,
 			mailboxId: exportState.mailboxId,
 			exportedMails: exportState.exportedMails + 1,
 			failedCount: exportState.failedCount,
@@ -220,6 +249,7 @@ export class DesktopExportFacade implements ExportFacade {
 			mailBagId,
 			mailId: elementIdPart(lastMailId),
 			exportDirectoryPath: exportState.exportDirectoryPath,
+			shouldExportFolderStructure: exportState.shouldExportFolderStructure,
 			mailboxId: exportState.mailboxId,
 			exportedMails: exportState.exportedMails,
 			failedCount: exportState.failedCount + mailId.length,

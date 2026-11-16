@@ -25,7 +25,14 @@ interface MailExportSettingsAttrs {
 
 export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 	private selectedMailbox: MailboxDetail | null = null
+	private preserveFolderStructure: boolean = false
 	private controllerSubscription: Stream<void> | null = null
+
+	private async chooseAndStartExport(controller: MailExportController) {
+		const mailbox = this.selectedMailbox
+		if (mailbox == null) return
+		await controller.startExport(mailbox, this.preserveFolderStructure)
+	}
 
 	oncreate(vnode: Vnode<MailExportSettingsAttrs>) {
 		this.controllerSubscription = vnode.attrs.mailExportController.state.map(m.redraw)
@@ -57,6 +64,20 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				disabled: state.type === "exporting",
 				helpLabel: () => emptyLabel,
 			} satisfies DropDownSelectorAttrs<MailboxDetail>),
+			m(DropDownSelector, {
+				label: "exportPreserveFolderStructure_label",
+				items: [
+					{ name: lang.get("yes_label"), value: true },
+					{ name: lang.get("no_label"), value: false },
+				],
+				selectedValue: this.preserveFolderStructure,
+				selectionChangedHandler: (preserve) => {
+					this.preserveFolderStructure = preserve
+				},
+				dropdownWidth: 300,
+				disabled: state.type === "exporting",
+				helpLabel: () => emptyLabel,
+			} satisfies DropDownSelectorAttrs<boolean>),
 			this.renderState(vnode.attrs.mailExportController),
 		]
 	}
@@ -132,9 +153,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					width: "flex",
 					label: "export_action",
 					onclick: () => {
-						if (this.selectedMailbox) {
-							controller.startExport(this.selectedMailbox)
-						}
+						this.chooseAndStartExport(controller)
 					},
 				}),
 			),
@@ -204,9 +223,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					label: "retry_action",
 					click: () => {
 						controller.cancelExport()
-						if (this.selectedMailbox) {
-							controller.startExport(this.selectedMailbox)
-						}
+						this.chooseAndStartExport(controller)
 					},
 					type: ButtonType.Secondary,
 				}),

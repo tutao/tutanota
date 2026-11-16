@@ -58,7 +58,7 @@
 			"ret": "MailboxExportState?"
 		},
 		"startMailboxExport": {
-			"doc": "Pick a directory for storing the export data and persist the export state",
+			"doc": "Pick a directory for storing the export data and persist the export state. If exportFolderStructure is set, folderPaths (relative paths of segments) are created up front.",
 			"arg": [
 				{
 					"userId": "string"
@@ -71,6 +71,12 @@
 				},
 				{
 					"mailId": "string"
+				},
+				{
+					"exportFolderStructure": "boolean"
+				},
+				{
+					"folderPaths": "List<List<string>>"
 				}
 			],
 			"ret": "void"
@@ -89,6 +95,9 @@
 				},
 				{
 					"mailId": "string"
+				},
+				{
+					"folderPath": "List<string>"
 				}
 			],
 			"ret": "void"
@@ -109,11 +118,19 @@
 			"ret": "void"
 		},
 		"clearExportState": {
-			"arg": [{ "userId": "string" }],
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
 			"ret": "void"
 		},
 		"openExportDirectory": {
-			"arg": [{ "userId": "string" }],
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
 			"ret": "void"
 		}
 	}

@@ -56,22 +56,23 @@ o.spec("DesktopExportFacade", function () {
 				userId,
 				mailboxId: "",
 				exportDirectoryPath: "",
+				shouldExportFolderStructure: false,
 				exportedMails: 0,
 				mailId: "",
 				mailBagId: "",
 			})
-			await o(() => facade.startMailboxExport(userId, "", "", "")).asyncThrows(ExportError)
+			await o(() => facade.startMailboxExport(userId, "", "", "", false, [])).asyncThrows(ExportError)
 		})
 
 		o.test("if export is locked for user it throws an ExportError", async function () {
 			when(desktopExportLock.acquireLock(userId)).thenReturn(LockResult.AlreadyLocked)
-			await o(() => facade.startMailboxExport(userId, "", "", "")).asyncThrows(ExportError)
+			await o(() => facade.startMailboxExport(userId, "", "", "", false, [])).asyncThrows(ExportError)
 		})
 
 		o.test("if no directory is selected it throws an error", async function () {
 			when(persistence.getStateForUser(userId)).thenResolve(null)
 			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: [] })
-			await o(() => facade.startMailboxExport(userId, "", "", "")).asyncThrows(CancelledError)
+			await o(() => facade.startMailboxExport(userId, "", "", "", false, [])).asyncThrows(CancelledError)
 			verify(desktopExportLock.unlock(userId))
 		})
 
@@ -82,7 +83,7 @@ o.spec("DesktopExportFacade", function () {
 			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: [selectedDirectory] })
 			when(fsPromises.stat(finalExportDirectoryPath)).thenReject(enoentError())
 
-			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId)
+			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, false, [])
 
 			verify(fsPromises.mkdir(finalExportDirectoryPath))
 			verify(
@@ -91,6 +92,7 @@ o.spec("DesktopExportFacade", function () {
 					userId,
 					mailboxId,
 					exportDirectoryPath: finalExportDirectoryPath,
+					shouldExportFolderStructure: false,
 					mailBagId,
 					mailId,
 					exportedMails: 0,
@@ -106,7 +108,7 @@ o.spec("DesktopExportFacade", function () {
 			const exportDirectoryPath = "path/TutaExport-2024-12-05"
 			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: [selectedDirectory] })
 			when(fsPromises.stat(exportDirectoryPath)).thenReject(enoentError())
-			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId)
+			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, false, [])
 			verify(fsPromises.mkdir(exportDirectoryPath))
 			verify(
 				persistence.setStateForUser({
@@ -114,6 +116,7 @@ o.spec("DesktopExportFacade", function () {
 					userId,
 					mailboxId,
 					exportDirectoryPath,
+					shouldExportFolderStructure: false,
 					mailBagId,
 					mailId,
 					exportedMails: 0,
@@ -121,6 +124,23 @@ o.spec("DesktopExportFacade", function () {
 					failedMailIds: [],
 				}),
 			)
+		})
+	})
+
+	o.spec("startMailboxExport with folder structure", function () {
+		o.test("it creates the folders up front and persists the flag", async function () {
+			when(persistence.getStateForUser(userId)).thenResolve(null)
+			const exportDirectoryPath = "path/TutaExport-2024-12-05"
+			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: ["path"] })
+			when(fsPromises.stat(exportDirectoryPath)).thenReject(enoentError())
+
+			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, true, [["Inbox"], ["Custom", "Sub/../folder"], ["..", "x"]])
+
+			verify(fsPromises.mkdir(exportDirectoryPath))
+			verify(fsPromises.mkdir(path.join(exportDirectoryPath, "Inbox"), { recursive: true }))
+			verify(fsPromises.mkdir(path.join(exportDirectoryPath, "Custom", "Sub_.._folder"), { recursive: true }))
+			verify(fsPromises.mkdir(path.join(exportDirectoryPath, ".._", "x"), { recursive: true }))
+			verify(persistence.setStateForUser(matchers.contains({ type: "running", shouldExportFolderStructure: true })))
 		})
 	})
 
@@ -139,6 +159,7 @@ o.spec("DesktopExportFacade", function () {
 				mailId,
 				mailBagId,
 				exportDirectoryPath,
+				shouldExportFolderStructure: false,
 				exportedMails: 42,
 				failedCount: 0,
 				failedMailIds: [],
@@ -166,6 +187,7 @@ o.spec("DesktopExportFacade", function () {
 				mailId,
 				mailBagId,
 				exportDirectoryPath,
+				shouldExportFolderStructure: false,
 				exportedMails: 42,
 				failedCount: 12,
 				failedMailIds: [["listId", "elementId"]],
@@ -208,7 +230,7 @@ o.spec("DesktopExportFacade", function () {
 		o.test("when there's no previous state it throws an error", async function () {
 			when(persistence.getStateForUser(userId)).thenResolve(null)
 
-			await o(() => facade.saveMailboxExport(mailBundleStub, userId, mailBagId, mailId)).asyncThrows(ProgrammingError)
+			await o(() => facade.saveMailboxExport(mailBundleStub, userId, mailBagId, mailId, [])).asyncThrows(ProgrammingError)
 		})
 
 		o.test("when there's mail bundle without attachments it writes the file", async function () {
@@ -219,12 +241,13 @@ o.spec("DesktopExportFacade", function () {
 				mailId,
 				mailBagId,
 				exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
+				shouldExportFolderStructure: false,
 				exportedMails: 42,
 				failedCount: 0,
 				failedMailIds: [],
 			}
 			when(persistence.getStateForUser(userId)).thenResolve(runningState)
-			await facade.saveMailboxExport(mailBundleStub, userId, mailBagId, mailId)
+			await facade.saveMailboxExport(mailBundleStub, userId, mailBagId, mailId, [])
 			const fileName = generateExportFileName(elementIdPart(mailBundleStub.mailId), mailBundleStub.subject, sentOn, "eml")
 			const fullPath = path.join(runningState.exportDirectoryPath, fileName)
 			const bundleData = mailToEmlFile(mailBundleStub, fileName)
@@ -238,11 +261,54 @@ o.spec("DesktopExportFacade", function () {
 					mailId,
 					mailBagId,
 					exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
+					shouldExportFolderStructure: false,
 					exportedMails: 43,
 					failedCount: 0,
 					failedMailIds: [],
 				}),
 			)
+		})
+	})
+
+	o.spec("saveMailboxExport with folder path", function () {
+		o.test("it writes the file into the folder", async function () {
+			const sentOn = new Date("2024-12-05T11:58Z")
+			const bundle: MailBundle = {
+				mailId: ["mailListId", mailId],
+				bcc: [],
+				body: "body",
+				attachments: [],
+				headers: null,
+				isDraft: false,
+				isRead: true,
+				replyTo: [],
+				sender: { address: "sender@example.com" },
+				sentOn: sentOn.getTime(),
+				cc: [],
+				receivedOn: sentOn.getTime(),
+				subject: "subject",
+				to: [],
+			}
+			const root = "test/TutaExport-2024-12-05"
+			when(persistence.getStateForUser(userId)).thenResolve({
+				type: "running",
+				userId,
+				mailboxId,
+				mailId,
+				mailBagId,
+				exportDirectoryPath: root,
+				shouldExportFolderStructure: true,
+				exportedMails: 0,
+				failedCount: 0,
+				failedMailIds: [],
+			})
+
+			await facade.saveMailboxExport(bundle, userId, mailBagId, mailId, ["Custom", "Sub"])
+
+			const fileName = generateExportFileName(elementIdPart(bundle.mailId), bundle.subject, sentOn, "eml")
+			const dir = path.join(root, "Custom", "Sub")
+			verify(fsPromises.mkdir(dir, { recursive: true }))
+			verify(fsPromises.writeFile(path.join(dir, fileName), mailToEmlFile(bundle, fileName).data))
 		})
 	})
 
@@ -261,6 +327,7 @@ o.spec("DesktopExportFacade", function () {
 				mailId,
 				mailBagId,
 				exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
+				shouldExportFolderStructure: false,
 				exportedMails: 42,
 				failedCount: 0,
 				failedMailIds: [],
@@ -278,6 +345,7 @@ o.spec("DesktopExportFacade", function () {
 					mailId,
 					mailBagId,
 					exportDirectoryPath: "test/innerFolder/TutaExport-2024-12-05",
+					shouldExportFolderStructure: false,
 					exportedMails: 42,
 					failedCount: 1,
 					failedMailIds: [mailIdTuple],
@@ -306,6 +374,7 @@ o.spec("DesktopExportFacade", function () {
 				userId,
 				mailboxId: "",
 				exportDirectoryPath: "",
+				shouldExportFolderStructure: false,
 				exportedMails: 0,
 				mailId: "",
 				mailBagId: "",

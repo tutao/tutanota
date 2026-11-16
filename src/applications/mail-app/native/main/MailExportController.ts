@@ -15,7 +15,9 @@ import { ExportError, ExportErrorReason } from "../../../common/api/common/error
 import { MailModel } from "../../mail/model/MailModel"
 import { isOfflineError } from "../../../../platform-kit/rest-client/error"
 import { BlobServerUrl } from "@tutao/entities/storage"
-import { MailBag } from "@tutao/entities/tutanota"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
+import { getMailSetName } from "../../mail/model/MailUtils.js"
+import { Mail, MailBag } from "@tutao/entities/tutanota"
 import { MailboxExportState } from "../../../../entities/tutanota/Utils"
 
 EnvProvider.assertMainOrNode()
@@ -48,6 +50,7 @@ export class MailExportController {
 	public expanded = stream<boolean>(false)
 	private servers?: BlobServerUrl[]
 	private serverIndex: number = 0
+	private exportedFoldersFolderSystem: FolderSystem | null = null
 
 	constructor(
 		private readonly mailExportFacade: MailExportFacade,
@@ -70,12 +73,21 @@ export class MailExportController {
 	/**
 	 * Start exporting the mailbox for the user
 	 * @param mailboxDetail
+	 * @param shouldExportFolderStructure if true, replicate folder structure when exporting, if false, all goes to one directory.
 	 */
-	async startExport(mailboxDetail: MailboxDetail) {
+	async startExport(mailboxDetail: MailboxDetail, shouldExportFolderStructure: boolean = false) {
 		const allMailBags = [assertNotNull(mailboxDetail.mailbox.currentMailBag), ...mailboxDetail.mailbox.archivedMailBags]
 
+		this.exportedFoldersFolderSystem = shouldExportFolderStructure ? await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id) : null
 		try {
-			await this.exportFacade.startMailboxExport(this.userId, elementIdToId(mailboxDetail.mailbox._id), allMailBags[0]._id, GENERATED_MAX_ID)
+			await this.exportFacade.startMailboxExport(
+				this.userId,
+				elementIdToId(mailboxDetail.mailbox._id),
+				allMailBags[0]._id,
+				GENERATED_MAX_ID,
+				shouldExportFolderStructure,
+				this.exportedFoldersFolderSystem ? this.getAllFolderPaths(this.exportedFoldersFolderSystem) : [],
+			)
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				console.log("Export start cancelled")
@@ -247,7 +259,7 @@ export class MailExportController {
 							return
 						}
 
-						await this.exportFacade.saveMailboxExport(mailBundle, this.userId, mailBag._id, getElementId(mail))
+						await this.exportFacade.saveMailboxExport(mailBundle, this.userId, mailBag._id, getElementId(mail), this.getFolderPathForMail(mail))
 						exportedWithoutFailureCount++
 					} catch (e) {
 						if (e instanceof SuspensionError) {
@@ -325,6 +337,15 @@ export class MailExportController {
 			this._state({ ...currentState, paused: true })
 		}
 		await delay(timeToWait)
+	}
+
+	private getAllFolderPaths(folderSystem: FolderSystem): string[][] {
+		return folderSystem.getIndentedList().map(({ mailSet }) => folderSystem.getPathToFolder(mailSet._id).map(getMailSetName))
+	}
+
+	private getFolderPathForMail(mail: Mail): string[] {
+		const folder = this.exportedFoldersFolderSystem?.getFolderByMail(mail)
+		return folder && this.exportedFoldersFolderSystem ? this.exportedFoldersFolderSystem.getPathToFolder(folder._id).map(getMailSetName) : []
 	}
 
 	private getServerUrl(): string {
