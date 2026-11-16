@@ -184,6 +184,10 @@ export class EnvProvider {
 		return this.env.paymentSetup
 	}
 
+	public isExternalPaymentSetup(): boolean {
+		return this.env.paymentSetup === PaymentSetup.Playstore || this.env.paymentSetup === PaymentSetup.Appstore
+	}
+
 	public isApp(): boolean {
 		return this.env.mode === Mode.App
 	}

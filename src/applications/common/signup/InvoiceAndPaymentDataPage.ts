@@ -71,7 +71,7 @@ class InvoiceAndPaymentDataPage implements ClassComponent<WizardStepComponentAtt
 			renderChild: () => this.renderPaymentMethodForm(ctx, value.form, value.paymentMethod),
 		}))
 
-		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`, [
+		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16.pb-16" : ""}`, [
 			ctx.viewModel.upgradeType !== UpgradeType.Switch && [
 				m(
 					`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
@@ -126,7 +126,11 @@ class InvoiceAndPaymentDataPage implements ClassComponent<WizardStepComponentAtt
 			case PaymentDataInput.CreditCard:
 				return this.renderCreditCardForm(ctx)
 			case PaymentDataInput.Other:
-				return this.renderOtherPaymentForm(ctx)
+				return this.renderOtherPaymentForm()
+			case PaymentDataInput.GooglePlay:
+				return this.renderGooglePaymentForm(ctx)
+			case PaymentDataInput.AppStore:
+				return this.renderAppstorePaymentForm(ctx)
 			default:
 				throw new ProgrammingError(`unknown payment method: ${method}`)
 		}
@@ -227,7 +231,7 @@ class InvoiceAndPaymentDataPage implements ClassComponent<WizardStepComponentAtt
 		void showProgressDialog("updatePaymentDataBusy_msg", progress)
 	}
 
-	private renderOtherPaymentForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
+	private renderOtherPaymentForm(): Children {
 		return m(`.flex.col${this.formGap}`, [
 			m(
 				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
@@ -243,6 +247,59 @@ class InvoiceAndPaymentDataPage implements ClassComponent<WizardStepComponentAtt
 							if (choice) {
 								windowFacade.openLink("https://digitalgoods.proxysto.re/brand/tuta")
 							}
+						},
+					}),
+				]),
+			),
+		])
+	}
+
+	private renderGooglePaymentForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
+		return m(`.flex.col${this.formGap}`, [
+			m(
+				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
+				m("", [
+					m(".h4.pb-8", "Google"),
+					m(".small.pb-8", lang.getTranslationText("googlePaymentMethod_msg")),
+					m(PrimaryButton, {
+						size: "md",
+						label: "continue_action",
+						width: Styles.get().isMobileLayout() ? "full" : "flex",
+						onclick: async () => {
+							const result = await Dialog.confirm(lang.getTranslation("switchToGooglePayment_msg"))
+							if (result) {
+								ctx.goNext()
+							}
+						},
+						style: {
+							"margin-left": "auto",
+						},
+					}),
+				]),
+			),
+		])
+	}
+
+	private renderAppstorePaymentForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
+		return m(`.flex.col${this.formGap}`, [
+			m(
+				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
+				m("", [
+					m(".h4.pb-8", "App Store"),
+					//FIXME translations
+					m(".small.pb-8", lang.getTranslationText("applePaymentMethod_msg")),
+					m(PrimaryButton, {
+						size: "md",
+						label: "continue_action",
+						width: Styles.get().isMobileLayout() ? "full" : "flex",
+						onclick: async () => {
+							const result = await Dialog.confirm(lang.getTranslation("switchToApplePayment_msg"))
+							if (result) {
+								ctx.goNext()
+							}
+						},
+						style: {
+							"margin-left": "auto",
 						},
 					}),
 				]),

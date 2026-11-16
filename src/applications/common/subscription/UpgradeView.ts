@@ -7,7 +7,6 @@ import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { UpgradeViewModel } from "./UpgradeViewModel"
 import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage"
 import { upgrade } from "./SubscriptionConfirmationUtils"
-import { EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { px } from "../../../ui/size"
 import { DialogHeaderBar } from "../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../ui/base/Button"
@@ -16,6 +15,7 @@ import { Styles } from "../../../ui/styles"
 import { DefaultAnimationTime } from "../../../ui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
 import { assertNotNull } from "@tutao/utils"
+import { getVisiblePaymentMethods } from "./utils/PaymentUtils"
 
 export interface UpgradeViewAttrs {
 	viewModel: UpgradeViewModel
@@ -148,7 +148,15 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 					{
 						title: "Payment",
 						content: InvoiceAndPaymentDataPage,
-						isEnabled: () => EnvProvider.get().getPaymentSetup() === PaymentSetup.Default,
+						isEnabled: () => {
+							const visiblePaymentMethods = getVisiblePaymentMethods({
+								isBusiness: viewModel.options.businessUse(),
+								isBankTransferAllowed: !viewModel.firstMonthForFreeOfferActive,
+								accountingInfo: viewModel.accountingInfo,
+								upgradeType: viewModel.upgradeType,
+							})
+							return visiblePaymentMethods.length > 1
+						},
 					},
 					{ title: "Order Confirmation", content: this.ConfirmationPage },
 				],

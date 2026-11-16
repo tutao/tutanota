@@ -176,6 +176,8 @@ export const enum PaymentDataInput {
 	Paypal,
 	CreditCard,
 	Other,
+	AppStore,
+	GooglePlay,
 }
 
 export type ExternalPaymentMethodType = Exclude<

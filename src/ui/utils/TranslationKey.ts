@@ -2589,3 +2589,7 @@ export type TranslationKeyType =
 	| "migrationProtonStartTLSError_msg"
 	| "feedbackForUs_label"
 	| "feedbackNoReply_msg"
+	| "googlePaymentMethod_msg"
+	| "applePaymentMethod_msg"
+	| "switchToGooglePayment_msg"
+	| "switchToApplePayment_msg"

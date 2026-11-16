@@ -16,14 +16,14 @@ import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import m from "mithril"
 import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button"
 import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, CreditCard, InvoiceInfoTypeRef } from "@tutao/entities/sys"
-import { AvailablePlanType, PaymentDataInput, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
+import { AvailablePlanType, isExternalPaymentMethod, PaymentDataInput, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import {
 	EntityUpdateData,
 	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { getClientType, PaymentDataResultType } from "@tutao/app-env"
+import { EnvProvider, getClientType, PaymentDataResultType, PaymentSetup } from "@tutao/app-env"
 import { Country, CountryType } from "../../gui/CountryList"
 import { idToElementId } from "@tutao/meta"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
@@ -281,6 +281,9 @@ export function validatePaymentData({
 	}
 }
 
+/**
+ * Return all visible payment methods that are selectable for the user
+ **/
 export function getVisiblePaymentMethods({
 	isBusiness,
 	isBankTransferAllowed,
@@ -295,17 +298,23 @@ export function getVisiblePaymentMethods({
 	name: string
 	value: { paymentMethod: PaymentMethodType; form: PaymentDataInput }
 }> {
-	const availablePaymentMethods = [
-		{
+	const isFreeAccount = locator.logins.getUserController().isFreeAccount()
+	const currentPaymentMethod = accountingInfo?.paymentMethod
+	const availablePaymentMethods = []
+	// Only show credit cards for users that have no payment method and are not on an app
+	// Or have a non-external payment method already set
+	if ((!currentPaymentMethod && !EnvProvider.get().isExternalPaymentSetup()) || !isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType)) {
+		availablePaymentMethods.push({
 			name: lang.get("paymentMethodCreditCard_label"),
 			value: { paymentMethod: PaymentMethodType.CreditCard, form: PaymentDataInput.CreditCard },
-		},
-		{
+		})
+		availablePaymentMethods.push({
 			name: "PayPal",
 			value: { paymentMethod: PaymentMethodType.Paypal, form: PaymentDataInput.Paypal },
-		},
-	]
+		}) // Only shown when upgrading and not on external payment setup
+	}
 
+	// ** Bank Transfers **
 	// show bank transfer in case of business use, even if it is not available for the selected country
 	if ((isBusiness && isBankTransferAllowed) || accountingInfo?.paymentMethod === PaymentMethodType.Invoice) {
 		availablePaymentMethods.push({
@@ -314,6 +323,7 @@ export function getVisiblePaymentMethods({
 		})
 	}
 
+	// ** Account Balance **
 	// show account balance only if this is the current payment method
 	if (accountingInfo?.paymentMethod === PaymentMethodType.AccountBalance) {
 		availablePaymentMethods.push({
@@ -321,13 +331,40 @@ export function getVisiblePaymentMethods({
 			value: { paymentMethod: PaymentMethodType.AccountBalance, form: PaymentDataInput.AccountBalance },
 		})
 	}
-	if (upgradeType !== "Signup") {
+
+	// Show Google or Apple only if the payment setup is Google/Apple
+	// and the user don't have an external payment method already set
+	if (
+		EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore &&
+		!isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType) &&
+		isFreeAccount
+	) {
+		// ** Google Play Store **
+		availablePaymentMethods.push({
+			name: "Google",
+			value: { paymentMethod: PaymentMethodType.GooglePlay, form: PaymentDataInput.GooglePlay },
+		})
+	} else if (
+		EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore &&
+		!isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType) &&
+		isFreeAccount
+	) {
+		// ** App Store **
+		availablePaymentMethods.push({
+			name: "App Store",
+			value: { paymentMethod: PaymentMethodType.AppStore, form: PaymentDataInput.AppStore },
+		})
+	}
+	if (
+		(upgradeType !== "Signup" && !currentPaymentMethod && !EnvProvider.get().isExternalPaymentSetup()) ||
+		!isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType)
+	) {
+		// ** Other Payment Methods **
 		availablePaymentMethods.push({
 			name: lang.getTranslationText("alternativePaymentMethods_label"),
 			value: { paymentMethod: PaymentMethodType.AccountBalance, form: PaymentDataInput.Other },
 		})
 	}
-
 	return availablePaymentMethods
 }
 

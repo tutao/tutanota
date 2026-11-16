@@ -2596,6 +2596,10 @@ export default {
 		"accessGone_msg": "This account has been deactivated at the account owner's request.",
 		"migrationProtonStartTLSError_msg": "We could not establish connection to the IMAP server.\nIf you are migrating from Proton using Proton Mail Bridge, please make sure to set the IMAP connection mode to SSL.\nYou can do this under Advanced Settings -> Connection Mode in Proton Mail Bridge.",
 		"feedbackForUs_label": "Have some feedback?",
-		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and share with the team"
+		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and share with the team",
+		"googlePaymentMethod_msg": "You can checkout with using Google Play Store as your payment method",
+		"switchToGooglePayment_msg": "If you switch to Google as your payment method the prices for your subscription will change and you can't switch back to other payment methods. \n\nDo you want to continue?",
+		"switchToApplePayment_msg": "If you switch to App Store as your payment method the prices for your subscription will change and you can't switch back to other payment methods. \n\nDo you want to continue?",
+		"applePaymentMethod_msg": "You can checkout with using the Apple App Store as your payment method"
 	}
 }
