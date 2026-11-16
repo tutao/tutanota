@@ -3,9 +3,10 @@ import { assertNotNull, first, getFirstOrThrow } from "../../../../platform-kit/
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { ExpandedInboxRule, Header, InboxRule, Mail, MailDetails, MailSet, TutanotaProperties } from "@tutao/entities/tutanota"
-import { MailSetKind, ReplyType, SystemFolderType } from "../../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, MailSetKind, ReplyType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { EntityIdEncoding, isSameId, isSameSingleId, sortCompareByReverseId } from "../../../../platform-kit/meta"
 import { isFolderReadOnly, MOVE_SYSTEM_FOLDERS } from "../MailUtils"
+import { CustomerServerProperties } from "@tutao/entities/sys"
 
 export type MailSetInfo = { level: number; mailSet: MailSet }
 
@@ -180,6 +181,10 @@ export function getExistingInboxRuleForType(inboxRules: ExpandedInboxRule[], cle
 
 export function getExistingLegacyInboxRuleForType(props: TutanotaProperties, cleanValue: string, type: string): InboxRule | null {
 	return props.inboxRules.find((rule) => type === rule.type && cleanValue === rule.value) ?? null
+}
+
+export function getExistingSpamRuleForType(props: CustomerServerProperties, email: string, field: InboxRuleConditionType | null) {
+	return props.emailSenderList.find((rule) => rule.value === email && (rule.field === field || field === InboxRuleConditionType.RECIPIENT_ANY_EQUALS)) ?? null
 }
 
 export function allInSameMailbox(mails: readonly Mail[]): boolean {
