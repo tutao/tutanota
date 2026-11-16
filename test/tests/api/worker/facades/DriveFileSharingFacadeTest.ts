@@ -87,7 +87,7 @@ o.spec("DriveFileSharingFacade", function () {
 
 			const fileGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 
-			domainConfig.apiUrl = "http://testcase"
+			domainConfig.driveFileShareBaseUrl = "http://testcase/drivefile"
 
 			const share = createTestEntity(DriveFileShareTypeRef, {
 				_id: shareId,
@@ -140,7 +140,7 @@ o.spec("DriveFileSharingFacade", function () {
 
 			const fileGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 
-			domainConfig.apiUrl = "http://testcase"
+			domainConfig.driveFileShareBaseUrl = "http://testcase/drivefile"
 
 			const share = createTestEntity(DriveFileShareTypeRef, {
 				_id: shareId,

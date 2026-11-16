@@ -34,6 +34,7 @@ o.spec("ReferralLinkNews", function () {
 		referralBaseUrl: "https://app.test.tuta.com/signup",
 		websiteBaseUrl: "https://tuta.com",
 		websocketUrl: "",
+		driveFileShareBaseUrl: "",
 	}
 
 	o.beforeEach(function () {

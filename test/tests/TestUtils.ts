@@ -198,6 +198,7 @@ export const domainConfigStub: DomainConfig = {
 	legacyWebauthnMobileUrl: "",
 	websiteBaseUrl: "",
 	websocketUrl: "",
+	driveFileShareBaseUrl: "",
 }
 
 export function makePopulatedClientModelInfo(): ClientModelInfo {

@@ -1,8 +1,8 @@
 /**
  * Domain configurations: different parameters depending on which URLs the app is running on.
  *
- * @type DomainConfigMap
- * */
+ * @type import("../src/platform-kit/app-env/Env.ts").DomainConfigMap
+ */
 export const domainConfigs = {
 	"mail.tutanota.com": {
 		firstPartyDomain: true,
@@ -19,6 +19,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "https://app.tuta.com/giftcard",
 		referralBaseUrl: "https://app.tuta.com/signup",
 		websiteBaseUrl: "https://tutanota.com",
+		driveFileShareBaseUrl: "https://mail.tutanota.com/drivefile",
 	},
 	"test.tutanota.com": {
 		firstPartyDomain: true,
@@ -35,6 +36,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "https://app.test.tuta.com/giftcard",
 		referralBaseUrl: "https://app.test.tuta.com/signup",
 		websiteBaseUrl: "https://tutanota.com",
+		driveFileShareBaseUrl: "https://app.test.tuta.com/drivefile",
 	},
 	"app.local.tutanota.com": {
 		firstPartyDomain: true,
@@ -51,6 +53,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "https://app.local.tuta.com:9000/giftcard",
 		referralBaseUrl: "https://app.local.tuta.com:9000/signup",
 		websiteBaseUrl: "https://local.tutanota.com:9000",
+		driveFileShareBaseUrl: "https://app.local.tuta.com:9000/drivefile",
 	},
 	"app.tuta.com": {
 		firstPartyDomain: true,
@@ -67,6 +70,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "https://app.tuta.com/giftcard",
 		referralBaseUrl: "https://app.tuta.com/signup",
 		websiteBaseUrl: "https://tuta.com",
+		driveFileShareBaseUrl: "https://app.tuta.com/drivefile",
 	},
 	"app.test.tuta.com": {
 		firstPartyDomain: true,
@@ -83,6 +87,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "https://app.test.tuta.com/giftcard",
 		referralBaseUrl: "https://app.test.tuta.com/signup",
 		websiteBaseUrl: "https://test.tuta.com",
+		driveFileShareBaseUrl: "https://app.test.tuta.com/drivefile",
 	},
 	"app.local.tuta.com": {
 		firstPartyDomain: true,
@@ -99,6 +104,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "https://app.local.tuta.com:9000/giftcard",
 		referralBaseUrl: "https://app.local.tuta.com:9000/signup",
 		websiteBaseUrl: "https://local.tuta.com:9000",
+		driveFileShareBaseUrl: "https://app.local.tuta.com/drivefile",
 	},
 	localhost: {
 		firstPartyDomain: true,
@@ -115,6 +121,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "http://localhost:9000/giftcard",
 		referralBaseUrl: "http://localhost:9000/signup",
 		websiteBaseUrl: "https://tuta.com",
+		driveFileShareBaseUrl: "https://localhost:9000/drivefile",
 	},
 	"{hostname}": {
 		firstPartyDomain: false,
@@ -131,5 +138,34 @@ export const domainConfigs = {
 		giftCardBaseUrl: "https://app.tuta.com/giftcard",
 		referralBaseUrl: "https://app.tuta.com/signup",
 		websiteBaseUrl: "https://tuta.com",
+		driveFileShareBaseUrl: "{protocol}//{hostname}/drivefile",
 	},
+}
+
+/**
+ * @param url {URL}
+ * @return import("../src/platform-kit/app-env/Env.ts").DomainConfig
+ */
+export function domainConfigForUrl(url) {
+	const { protocol, hostname } = url
+	const port = parseInt(url.port)
+	// the URL object does not include the port if it is the schema's default
+	const uri = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`
+	return {
+		firstPartyDomain: true,
+		partneredDomainTransitionUrl: uri,
+		apiUrl: uri,
+		websocketUrl: uri.replace(/^http/, "ws"), // replaces http: with ws: and https: with wss:
+		paymentUrl: `${uri}/braintree.html`,
+		webauthnUrl: `${uri}/webauthn`,
+		legacyWebauthnUrl: `${uri}/webauthn`,
+		webauthnMobileUrl: `${uri}/webauthnmobile`,
+		legacyWebauthnMobileUrl: `${uri}/webauthnmobile`,
+		webauthnRpId: hostname,
+		u2fAppId: `${uri}/u2f-appid.json`,
+		giftCardBaseUrl: `${uri}/giftcard`,
+		referralBaseUrl: `${uri}/signup`,
+		websiteBaseUrl: "https://tuta.com",
+		driveFileShareBaseUrl: `${uri}/drivefile`,
+	}
 }

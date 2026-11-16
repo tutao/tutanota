@@ -218,8 +218,7 @@ export class DriveFileSharingFacade {
 	/** Obtain share info for a publicly shared {@link DriveFile}. Must be a member of the file group. */
 	async getShareInfoForManagement(file: DriveFile): Promise<DriveShareInfo> {
 		const shareId = idToElementId(assertNotNull(file.share, "file is not shared"))
-		// FIXME: I feel like there must be something more semantically useful than apiUrl, but couldn't find anything.
-		const appUrl = this.domainConfig.apiUrl
+		const fileShareBase = this.domainConfig.driveFileShareBaseUrl
 
 		const share = await this.entityClient.load(DriveFileShareTypeRef, shareId)
 		if (share.groupKeyVersion !== file._ownerKeyVersion) {
@@ -245,7 +244,7 @@ export class DriveFileSharingFacade {
 				salt: uint8ArrayToBase64(salt),
 			})
 
-			const publicLink = `${appUrl}/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
+			const publicLink = `${fileShareBase}/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
 			return { share, publicLink, password }
 		} else {
 			// share is publicly available without a password
@@ -257,7 +256,7 @@ export class DriveFileSharingFacade {
 				shareKey: keyToBase64(shareKey),
 			})
 
-			const publicLink = `${appUrl}/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
+			const publicLink = `${fileShareBase}/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
 			return { share, publicLink }
 		}
 	}

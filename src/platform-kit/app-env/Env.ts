@@ -85,6 +85,8 @@ export type DomainConfig = {
 	referralBaseUrl: string
 	/** Base URL for requesting any information from de website */
 	websiteBaseUrl: string
+	/** Base URL for shared Drive files */
+	driveFileShareBaseUrl: string
 }
 
 export const enum Mode {

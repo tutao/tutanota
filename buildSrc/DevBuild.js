@@ -7,7 +7,7 @@ import { preludeEnvPlugin } from "./env.js"
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
-import { domainConfigs } from "./DomainConfigs.js"
+import { domainConfigForUrl, domainConfigs } from "./DomainConfigs.js"
 import { rolldown } from "rolldown"
 import { resolveLibs, tsImportAliases } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
@@ -66,7 +66,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 
 	/**
 	 * @param host {string|null}
-	 * @return {DomainConfigMap}
+	 * @return {import("../src/platform-kit/app-env/Env.ts").DomainConfigMap}
 	 */
 	function updateDomainConfigForHostname(host) {
 		// Non-webapp builds default to local hostname, make sure we add a domain config for it and not fall back on generic whitelabel one
@@ -75,28 +75,9 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 		}
 
 		const url = new URL(host)
-		const { protocol, hostname } = url
-		const port = parseInt(url.port)
-		// the URL object does not include the port if it is the schema's default
-		const uri = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`
 		return {
 			...domainConfigs,
-			[url.hostname]: {
-				firstPartyDomain: true,
-				partneredDomainTransitionUrl: uri,
-				apiUrl: uri,
-				websocketUrl: uri.replace(/^http/, "ws"), // replaces http: with ws: and https: with wss:
-				paymentUrl: `${uri}/braintree.html`,
-				webauthnUrl: `${uri}/webauthn`,
-				legacyWebauthnUrl: `${uri}/webauthn`,
-				webauthnMobileUrl: `${uri}/webauthnmobile`,
-				legacyWebauthnMobileUrl: `${uri}/webauthnmobile`,
-				webauthnRpId: hostname,
-				u2fAppId: `${uri}/u2f-appid.json`,
-				giftCardBaseUrl: `${uri}/giftcard`,
-				referralBaseUrl: `${uri}/signup`,
-				websiteBaseUrl: "https://tuta.com",
-			},
+			[url.hostname]: domainConfigForUrl(url),
 		}
 	}
 
