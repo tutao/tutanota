@@ -2624,3 +2624,4 @@ export type TranslationKeyType =
 	| "inboxRuleManagement_text"
 	| "inboxRuleExplainer_msg"
 	| "emptyString_msg"
+	| "editSpamRule_action"

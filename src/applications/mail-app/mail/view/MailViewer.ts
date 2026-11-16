@@ -4,7 +4,7 @@ import stream from "mithril/stream"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { CancelledError, EnvProvider, FeatureType } from "../../../../platform-kit/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
+import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, isNotNull, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icon, progressIcon } from "../../../../ui/base/Icon"
@@ -27,13 +27,13 @@ import { PinchZoom } from "../../../../ui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../../ui/cards.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { createNewContact, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { getExistingInboxRuleForType, getExistingLegacyInboxRuleForType } from "../model/MailUtils.js"
+import { getExistingInboxRuleForType, getExistingLegacyInboxRuleForType, getExistingSpamRuleForType } from "../model/MailUtils.js"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { File, Mail } from "@tutao/entities/tutanota"
 import { InboxRuleConditionType, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../../entities/tutanota/Utils"
-import { createEmailSenderListElement } from "@tutao/entities/sys"
+import { createEmailSenderListElement, EmailSenderListElement } from "@tutao/entities/sys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { getElementId } from "@tutao/meta"
@@ -657,7 +657,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							defaultInboxRuleField,
 						)
 						buttons.push({
-							label: rule ? "editInboxRule_action" : "addInboxRule_action",
+							label: isNotNull(rule) ? "editInboxRule_action" : "addInboxRule_action",
 							click: async () => {
 								const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
 								if (mailboxDetails == null) {
@@ -675,7 +675,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							defaultInboxRuleField,
 						)
 						buttons.push({
-							label: rule ? "editInboxRule_action" : "addInboxRule_action",
+							label: isNotNull(rule) ? "editInboxRule_action" : "addInboxRule_action",
 							click: async () => {
 								const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
 								if (mailboxDetails == null) {
@@ -690,9 +690,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 
 				if (this.viewModel.canCreateSpamRule()) {
+					const props = await locator.customerFacade.loadCustomerServerProperties()
+					const existingSpamRule = getExistingSpamRuleForType(props, mailAddress.address, defaultInboxRuleField)
 					buttons.push({
-						label: "addSpamRule_action",
-						click: () => this.addSpamRule(defaultInboxRuleField, mailAddress.address),
+						label: isNotNull(existingSpamRule) ? "editSpamRule_action" : "addSpamRule_action",
+						click: () => this.addSpamRule(defaultInboxRuleField, mailAddress.address, existingSpamRule),
 					})
 				}
 			}
@@ -701,7 +703,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return buttons
 	}
 
-	private addSpamRule(defaultInboxRuleField: InboxRuleConditionType | null, address: string) {
+	private addSpamRule(defaultInboxRuleField: InboxRuleConditionType | null, address: string, existingSpamRule: EmailSenderListElement | null) {
 		const folder = this.viewModel.mailModel.getMailFolderForMail(this.viewModel.mail)
 
 		const spamRuleType = folder && folder.folderType === MailSetKind.SPAM ? SpamRuleType.WHITELIST : SpamRuleType.BLACKLIST
@@ -732,12 +734,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		import("../../settings/AddSpamRuleDialog").then(async ({ showAddSpamRuleDialog }) => {
 			const value = address.trim().toLowerCase()
 			showAddSpamRuleDialog(
-				createEmailSenderListElement({
-					value,
-					type: spamRuleType,
-					field: spamRuleField,
-					hashedValue: await locator.worker.getWorkerInterface().cryptoFacade.sha256(value),
-				}),
+				createEmailSenderListElement(
+					existingSpamRule ?? {
+						value,
+						type: spamRuleType,
+						field: spamRuleField,
+						hashedValue: await locator.worker.getWorkerInterface().cryptoFacade.sha256(value),
+					},
+				),
 			)
 		})
 	}
