@@ -114,7 +114,7 @@ o.spec("DriveFileSharingFacade", function () {
 			entityRestClientMock.addElementInstances(share)
 			const originalLoad = entityClient.load.bind(entityClient)
 			const fakeLoad = func<EntityClient["load"]>()
-			when(fakeLoad(DriveFileShareTypeRef, shareId)).thenDo((...args) => originalLoad(...args))
+			when(fakeLoad(DriveFileShareTypeRef, shareId, matchers.anything())).thenDo((...args) => originalLoad(...args))
 			entityClient.load = fakeLoad
 			when(cryptoWrapper.decryptString(fileGroupKey.object, matchers.anything())).thenReturn(decryptedPassword)
 			when(cryptoWrapper.encryptKey(matchers.anything(), matchers.anything())).thenReturn(encryptedShareKey)

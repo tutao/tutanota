@@ -27,6 +27,7 @@ import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { keyboardEventFrom } from "../../../../ui/base/GuiUtils"
 import { LazyComponent } from "../../../common/gui/LazyComponent"
+import { CacheMode } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 type ShareDialogState = "busy" | "done"
 
@@ -69,7 +70,7 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 			private expirationDate: Date | null = shareInfo.share.expirationDate ?? null
 
 			async reloadShare() {
-				shareInfo = await driveFileSharingFacade.getShareInfoForManagement(file)
+				shareInfo = await driveFileSharingFacade.getShareInfoForManagement(file, CacheMode.WriteOnly)
 				state = "done"
 				m.redraw()
 			}

@@ -37,7 +37,11 @@ import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto
 import { DomainConfig, ProgrammingError } from "@tutao/app-env"
 import { Argon2idFacade } from "../../../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
-import { CacheMode, DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import {
+	CacheMode,
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	DEFAULT_EXTRA_SERVICE_PARAMS,
+} from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { DataFile } from "../../../../../../entities/tutanota/Utils"
 import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { BlobServerAccessInfo, createBlobServerAccessInfo } from "@tutao/entities/storage"
@@ -216,11 +220,11 @@ export class DriveFileSharingFacade {
 	}
 
 	/** Obtain share info for a publicly shared {@link DriveFile}. Must be a member of the file group. */
-	async getShareInfoForManagement(file: DriveFile): Promise<DriveShareInfo> {
+	async getShareInfoForManagement(file: DriveFile, cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<DriveShareInfo> {
 		const shareId = idToElementId(assertNotNull(file.share, "file is not shared"))
 		const fileShareBase = this.domainConfig.driveFileShareBaseUrl
 
-		const share = await this.entityClient.load(DriveFileShareTypeRef, shareId)
+		const share = await this.entityClient.load(DriveFileShareTypeRef, shareId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode })
 		if (share.groupKeyVersion !== file._ownerKeyVersion) {
 			throw new ProgrammingError("Group Key version for file and share do not match")
 		}
