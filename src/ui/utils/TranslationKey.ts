@@ -2640,3 +2640,4 @@ export type TranslationKeyType =
 	| "fileLoadingError_msg"
 	| "fileExpirationDate_msg"
 	| "emptyString_msg"
+	| "editSpamRule_action"
