@@ -540,6 +540,7 @@ export type UserParams = {
 	alarmInfoList: null | UserAlarmInfoListType
 	plugins: null | UserPlugins
 	userMigrationInfos: null | Id
+	companyEmailSignature: null | Id
 }
 
 export type User = {
@@ -571,6 +572,7 @@ export type User = {
 	alarmInfoList: null | UserAlarmInfoListType
 	plugins: null | UserPlugins
 	userMigrationInfos: null | Id
+	companyEmailSignature: null | Id
 
 	//== some entities have these and some don't
 
@@ -932,6 +934,7 @@ export type CustomerInfoParams = {
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
 	storeNotificationLog: null | Id
+	companyEmailSignatureTemplate: null | Id
 }
 
 export type CustomerInfo = {
@@ -980,6 +983,7 @@ export type CustomerInfo = {
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
 	storeNotificationLog: null | Id
+	companyEmailSignatureTemplate: null | Id
 
 	//== some entities have these and some don't
 
@@ -11763,5 +11767,453 @@ export type UserMigrationServicePostOut = {
 	// === these are not present in metamodel
 	_type: TypeRef<UserMigrationServicePostOut>
 	_original: Nullable<UserMigrationServicePostOut>
+	isAdapter: false
+}
+export const CompanyEmailSignatureTemplateTypeRef: TypeRef<CompanyEmailSignatureTemplate> = new TypeRef("sys", 2986)
+
+export function createCompanyEmailSignatureTemplate(values: CompanyEmailSignatureTemplateParams): CompanyEmailSignatureTemplate {
+	return Object.assign(create(typeModels[CompanyEmailSignatureTemplateTypeRef.typeId], CompanyEmailSignatureTemplateTypeRef), values)
+}
+
+export type CompanyEmailSignatureTemplateParams = {
+	signatureTemplate: string
+}
+
+export type CompanyEmailSignatureTemplate = {
+	// == values
+
+	_id: ElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	signatureTemplate: string
+
+	// == associations
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignatureTemplate>
+	_errors: Object
+	_original: Nullable<CompanyEmailSignatureTemplate>
+	isAdapter: false
+}
+export const CompanyEmailSignatureTemplateTransferAggregatedTypeTypeRef: TypeRef<CompanyEmailSignatureTemplateTransferAggregatedType> = new TypeRef("sys", 2996)
+
+export function createCompanyEmailSignatureTemplateTransferAggregatedType(
+	values: CompanyEmailSignatureTemplateTransferAggregatedTypeParams,
+): CompanyEmailSignatureTemplateTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[CompanyEmailSignatureTemplateTransferAggregatedTypeTypeRef.typeId], CompanyEmailSignatureTemplateTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type CompanyEmailSignatureTemplateTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	signatureTemplate: string
+}
+
+export type CompanyEmailSignatureTemplateTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	signatureTemplate: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignatureTemplateTransferAggregatedType>
+	_original: Nullable<CompanyEmailSignatureTemplateTransferAggregatedType>
+	isAdapter: false
+}
+export const CompanyEmailSignatureManagementPostInTypeRef: TypeRef<CompanyEmailSignatureManagementPostIn> = new TypeRef("sys", 3002)
+
+export function createCompanyEmailSignatureManagementPostIn(values: CompanyEmailSignatureManagementPostInParams): CompanyEmailSignatureManagementPostIn {
+	return Object.assign(create(typeModels[CompanyEmailSignatureManagementPostInTypeRef.typeId], CompanyEmailSignatureManagementPostInTypeRef), values)
+}
+
+export type CompanyEmailSignatureManagementPostInParams = {
+	companyEmailSignatureTemplate: CompanyEmailSignatureTemplateTransferAggregatedType
+}
+
+export type CompanyEmailSignatureManagementPostIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	companyEmailSignatureTemplate: CompanyEmailSignatureTemplateTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignatureManagementPostIn>
+	_errors: Object
+	_original: Nullable<CompanyEmailSignatureManagementPostIn>
+	isAdapter: false
+}
+export const CompanyEmailSignatureManagementPostOutTypeRef: TypeRef<CompanyEmailSignatureManagementPostOut> = new TypeRef("sys", 3005)
+
+export function createCompanyEmailSignatureManagementPostOut(values: CompanyEmailSignatureManagementPostOutParams): CompanyEmailSignatureManagementPostOut {
+	return Object.assign(create(typeModels[CompanyEmailSignatureManagementPostOutTypeRef.typeId], CompanyEmailSignatureManagementPostOutTypeRef), values)
+}
+
+export type CompanyEmailSignatureManagementPostOutParams = {
+	companyEmailSignatureTemplate: Id
+}
+
+export type CompanyEmailSignatureManagementPostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	companyEmailSignatureTemplate: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignatureManagementPostOut>
+	_original: Nullable<CompanyEmailSignatureManagementPostOut>
+	isAdapter: false
+}
+export const CompanyEmailSignatureManagementDeleteInTypeRef: TypeRef<CompanyEmailSignatureManagementDeleteIn> = new TypeRef("sys", 3008)
+
+export function createCompanyEmailSignatureManagementDeleteIn(values: CompanyEmailSignatureManagementDeleteInParams): CompanyEmailSignatureManagementDeleteIn {
+	return Object.assign(create(typeModels[CompanyEmailSignatureManagementDeleteInTypeRef.typeId], CompanyEmailSignatureManagementDeleteInTypeRef), values)
+}
+
+export type CompanyEmailSignatureManagementDeleteInParams = {}
+
+export type CompanyEmailSignatureManagementDeleteIn = {
+	// == values
+
+	_format: NumberString
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignatureManagementDeleteIn>
+	_original: Nullable<CompanyEmailSignatureManagementDeleteIn>
+	isAdapter: false
+}
+export const CompanyEmailSignatureTypeRef: TypeRef<CompanyEmailSignature> = new TypeRef("sys", 3012)
+
+export function createCompanyEmailSignature(values: CompanyEmailSignatureParams): CompanyEmailSignature {
+	return Object.assign(create(typeModels[CompanyEmailSignatureTypeRef.typeId], CompanyEmailSignatureTypeRef), values)
+}
+
+export type CompanyEmailSignatureParams = {
+	name: null | string
+	email: null | string
+	phoneNumber: null | string
+	mobileNumber: null | string
+	role: null | string
+	department: null | string
+	address: null | string
+	custom1: null | string
+	custom2: null | string
+	signatureTemplate: string
+}
+
+export type CompanyEmailSignature = {
+	// == values
+
+	_id: ElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	name: null | string
+	email: null | string
+	phoneNumber: null | string
+	mobileNumber: null | string
+	role: null | string
+	department: null | string
+	address: null | string
+	custom1: null | string
+	custom2: null | string
+	signatureTemplate: string
+
+	// == associations
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignature>
+	_errors: Object
+	_original: Nullable<CompanyEmailSignature>
+	isAdapter: false
+}
+export const CompanyEmailSignatureTransferAggregatedTypeTypeRef: TypeRef<CompanyEmailSignatureTransferAggregatedType> = new TypeRef("sys", 3031)
+
+export function createCompanyEmailSignatureTransferAggregatedType(
+	values: CompanyEmailSignatureTransferAggregatedTypeParams,
+): CompanyEmailSignatureTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[CompanyEmailSignatureTransferAggregatedTypeTypeRef.typeId], CompanyEmailSignatureTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type CompanyEmailSignatureTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	name: null | string
+	email: null | string
+	signatureTemplate: string
+}
+
+export type CompanyEmailSignatureTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	name: null | string
+	email: null | string
+	signatureTemplate: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignatureTransferAggregatedType>
+	_original: Nullable<CompanyEmailSignatureTransferAggregatedType>
+	isAdapter: false
+}
+export const UpdateCompanyEmailSignatureTransferAggregatedTypeTypeRef: TypeRef<UpdateCompanyEmailSignatureTransferAggregatedType> = new TypeRef("sys", 3039)
+
+export function createUpdateCompanyEmailSignatureTransferAggregatedType(
+	values: UpdateCompanyEmailSignatureTransferAggregatedTypeParams,
+): UpdateCompanyEmailSignatureTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[UpdateCompanyEmailSignatureTransferAggregatedTypeTypeRef.typeId], UpdateCompanyEmailSignatureTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type UpdateCompanyEmailSignatureTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	signatureTemplate: string
+}
+
+export type UpdateCompanyEmailSignatureTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	signatureTemplate: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UpdateCompanyEmailSignatureTransferAggregatedType>
+	_original: Nullable<UpdateCompanyEmailSignatureTransferAggregatedType>
+	isAdapter: false
+}
+export const CompanyEmailSignaturePostInTypeRef: TypeRef<CompanyEmailSignaturePostIn> = new TypeRef("sys", 3045)
+
+export function createCompanyEmailSignaturePostIn(values: CompanyEmailSignaturePostInParams): CompanyEmailSignaturePostIn {
+	return Object.assign(create(typeModels[CompanyEmailSignaturePostInTypeRef.typeId], CompanyEmailSignaturePostInTypeRef), values)
+}
+
+export type CompanyEmailSignaturePostInParams = {
+	userGroup: Id
+	companyEmailSignature: CompanyEmailSignatureTransferAggregatedType
+}
+
+export type CompanyEmailSignaturePostIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	userGroup: Id
+	companyEmailSignature: CompanyEmailSignatureTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignaturePostIn>
+	_errors: Object
+	_original: Nullable<CompanyEmailSignaturePostIn>
+	isAdapter: false
+}
+export const CompanyEmailSignaturePostOutTypeRef: TypeRef<CompanyEmailSignaturePostOut> = new TypeRef("sys", 3049)
+
+export function createCompanyEmailSignaturePostOut(values: CompanyEmailSignaturePostOutParams): CompanyEmailSignaturePostOut {
+	return Object.assign(create(typeModels[CompanyEmailSignaturePostOutTypeRef.typeId], CompanyEmailSignaturePostOutTypeRef), values)
+}
+
+export type CompanyEmailSignaturePostOutParams = {
+	companyEmailSignature: Id
+}
+
+export type CompanyEmailSignaturePostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	companyEmailSignature: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignaturePostOut>
+	_original: Nullable<CompanyEmailSignaturePostOut>
+	isAdapter: false
+}
+export const CompanyEmailSignaturePutInTypeRef: TypeRef<CompanyEmailSignaturePutIn> = new TypeRef("sys", 3052)
+
+export function createCompanyEmailSignaturePutIn(values: CompanyEmailSignaturePutInParams): CompanyEmailSignaturePutIn {
+	return Object.assign(create(typeModels[CompanyEmailSignaturePutInTypeRef.typeId], CompanyEmailSignaturePutInTypeRef), values)
+}
+
+export type CompanyEmailSignaturePutInParams = {
+	userGroup: Id
+	companyEmailSignature: Id
+	companyEmailSignatureWithNewTemplate: UpdateCompanyEmailSignatureTransferAggregatedType
+}
+
+export type CompanyEmailSignaturePutIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	userGroup: Id
+	companyEmailSignature: Id
+	companyEmailSignatureWithNewTemplate: UpdateCompanyEmailSignatureTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignaturePutIn>
+	_errors: Object
+	_original: Nullable<CompanyEmailSignaturePutIn>
 	isAdapter: false
 }
