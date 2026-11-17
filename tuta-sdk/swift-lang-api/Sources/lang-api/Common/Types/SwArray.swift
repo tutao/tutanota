@@ -1,3 +1,17 @@
+extension Sequence {
+  func asyncMap<T>(
+    _ transform: (Element) async throws -> T
+  ) async rethrows -> [T] {
+    var values = [T]()
+
+    for element in self {
+      try await values.append(transform(element))
+    }
+
+    return values
+  }
+}
+
 public final class SwArray<T>: @unchecked Sendable, Sequence {
   public typealias Element = T
   private var inner: [T]
@@ -41,6 +55,10 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     return self.inner[1]
   }
   public func third() throws -> T {
+    let x = [1,2,3]
+    for a: Int in x {
+        print(a)
+    }
     return self.inner[2]
   }
 
@@ -82,8 +100,8 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     return self.length
   }
 
-  public func map<R>(_ mapper: (T) throws -> R) rethrows -> SwArray<R> {
-    return SwArray<R>(try self.inner.map(mapper))
+  public func map<R>(_ mapper: (T) async throws -> R) async rethrows -> SwArray<R> {
+    return await SwArray<R>(try self.inner.asyncMap(mapper))
   }
 
   public func flatMap<R>(_ mapper: (T) throws -> SwArray<R>) rethrows -> SwArray<R> {
