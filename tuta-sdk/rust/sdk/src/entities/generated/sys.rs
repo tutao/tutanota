@@ -6384,19 +6384,8 @@ pub struct PartnerManagedCustomer {
 	pub _format: i64,
 	#[serde(rename = "2677")]
 	pub _ownerGroup: Option<GeneratedId>,
-	#[serde(rename = "2678")]
-	#[serde(with = "serde_bytes")]
-	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2679")]
-	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2708")]
-	#[serde(with = "serde_bytes")]
-	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "2680")]
 	pub customerInfo: IdTupleGenerated,
-
-	#[serde(default)]
-	pub _errors: Errors,
 }
 
 impl Entity for PartnerManagedCustomer {
@@ -7434,6 +7423,146 @@ impl Entity for UserMigrationServicePostOut {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2982),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanyEmailSignatureTemplate {
+	#[serde(rename = "2995")]
+	pub _id: Option<GeneratedId>,
+	#[serde(rename = "2996")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2997")]
+	pub _format: i64,
+	#[serde(rename = "2998")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2999")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "3000")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "3001")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "3002")]
+	pub signatureTemplate: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanyEmailSignatureTemplate {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2993),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanyEmailSignatureTemplateTransferAggregatedType {
+	#[serde(rename = "3004")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "3005")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "3006")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "3007")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "3008")]
+	pub signatureTemplate: String,
+}
+
+impl Entity for CompanyEmailSignatureTemplateTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3003),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanyEmailSignatureManagementPostIn {
+	#[serde(rename = "3010")]
+	pub _format: i64,
+	#[serde(rename = "3011")]
+	pub companyEmailSignatureTemplate: CompanyEmailSignatureTemplateTransferAggregatedType,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanyEmailSignatureManagementPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3009),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanyEmailSignatureManagementPostOut {
+	#[serde(rename = "3013")]
+	pub _format: i64,
+	#[serde(rename = "3014")]
+	pub companyEmailSignatureTemplate: GeneratedId,
+}
+
+impl Entity for CompanyEmailSignatureManagementPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3012),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanyEmailSignatureManagementDeleteIn {
+	#[serde(rename = "3016")]
+	pub _format: i64,
+}
+
+impl Entity for CompanyEmailSignatureManagementDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3015),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CustomerGroupRoot {
+	#[serde(rename = "3020")]
+	pub _id: Option<GeneratedId>,
+	#[serde(rename = "3021")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "3022")]
+	pub _format: i64,
+	#[serde(rename = "3023")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "3024")]
+	pub companyEmailSignatureTemplate: Option<GeneratedId>,
+}
+
+impl Entity for CustomerGroupRoot {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3018),
 		}
 	}
 }

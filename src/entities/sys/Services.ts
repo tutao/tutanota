@@ -15,6 +15,9 @@ import { BrandingDomainDeleteData, BrandingDomainDeleteDataTypeRef } from "./Typ
 import { ChangeKdfPostIn, ChangeKdfPostInTypeRef } from "./TypeRefs.js"
 import { ChangePasswordPostIn, ChangePasswordPostInTypeRef } from "./TypeRefs.js"
 import { CloseSessionServicePost, CloseSessionServicePostTypeRef } from "./TypeRefs.js"
+import { CompanyEmailSignatureManagementPostIn, CompanyEmailSignatureManagementPostInTypeRef } from "./TypeRefs.js"
+import { CompanyEmailSignatureManagementPostOut, CompanyEmailSignatureManagementPostOutTypeRef } from "./TypeRefs.js"
+import { CompanyEmailSignatureManagementDeleteIn, CompanyEmailSignatureManagementDeleteInTypeRef } from "./TypeRefs.js"
 import { CreateCustomerServerPropertiesData, CreateCustomerServerPropertiesDataTypeRef } from "./TypeRefs.js"
 import { CreateCustomerServerPropertiesReturn, CreateCustomerServerPropertiesReturnTypeRef } from "./TypeRefs.js"
 import { CustomDomainCheckGetIn, CustomDomainCheckGetInTypeRef } from "./TypeRefs.js"
@@ -202,6 +205,19 @@ export const CloseSessionService_POST = new PostService<CloseSessionServicePost,
 	"sys",
 	"CloseSessionService",
 	CloseSessionServicePostTypeRef,
+	NullEntityTypeRef,
+)
+
+export const CompanyEmailSignatureManagementService_POST = new PostService<CompanyEmailSignatureManagementPostIn, CompanyEmailSignatureManagementPostOut>(
+	"sys",
+	"CompanyEmailSignatureManagementService",
+	CompanyEmailSignatureManagementPostInTypeRef,
+	CompanyEmailSignatureManagementPostOutTypeRef,
+)
+export const CompanyEmailSignatureManagementService_DELETE = new DeleteService<CompanyEmailSignatureManagementDeleteIn, NullEntity>(
+	"sys",
+	"CompanyEmailSignatureManagementService",
+	CompanyEmailSignatureManagementDeleteInTypeRef,
 	NullEntityTypeRef,
 )
 
