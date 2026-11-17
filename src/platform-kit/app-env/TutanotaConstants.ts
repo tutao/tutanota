@@ -72,8 +72,6 @@ export class TutanotaConstants {
 	public static readonly METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES = 50_000_000
 	public static readonly MAX_EXPECTED_ARCHIVE_SIZE_IN_BYTES = 250_000_000
 
-
-
 	/**
 	 * We pick a max word frequency of 2^5 so that we can compress it together
 	 * with the index (which is 2^11 =2048) into two bytes
@@ -86,6 +84,8 @@ export class TutanotaConstants {
 
 	public static readonly FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 28
 	public static readonly PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 365
+	public static readonly MAX_LABELS_PER_FREE_USER: TsInt = 3
+	public static readonly INITIAL_MAIL_INDEX_INTERVAL_DAYS: TsInt = 28
 }
 
 export type ConstType = {
@@ -504,8 +504,6 @@ export enum GroupKeyRotationType {
 	InstanceKeySharingAfterCustomerGroupRotation = "7",
 	InstanceKeySharingAfterInternalMailGroupRotation = "8",
 }
-
-export const MAX_LABELS_PER_FREE_USER = 3
 
 export enum RolloutType {
 	UserIdentityKeyCreation = "0",

@@ -1,4 +1,4 @@
-import { CancelledError, EnvProvider, TimeConstants, TutanotaConstants } from "@tutao/app-env"
+import { CancelledError, EnvProvider, ProgrammingError, TimeConstants, TutanotaConstants } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -56,7 +56,6 @@ import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbor
 
 EnvProvider.assertWorkerOrNode()
 
-export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = TimeConstants.DAY_IN_MILLIS // one day
 
 const TAG = "WebMailIndexer"

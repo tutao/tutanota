@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { CancelledError, EnvProvider, FeatureType, MAX_LABELS_PER_FREE_USER, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { CancelledError, EnvProvider, FeatureType, TutanotaConstants, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass, Thunk } from "../../../../platform-kit/utils"
 import { MailListView } from "./MailListView"
@@ -1512,7 +1512,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			!label &&
 			// free users can only have 3 labels at once
 			locator.logins.getUserController().isFreeAccount() &&
-			assertNotNull(this.mailViewModel.mailModel.getLabelsByGroupId(mailGroupId)).size >= MAX_LABELS_PER_FREE_USER
+			assertNotNull(this.mailViewModel.mailModel.getLabelsByGroupId(mailGroupId)).size >= TutanotaConstants.MAX_LABELS_PER_FREE_USER
 		) {
 			await showNotAvailableForFreeDialog(UpgradePromptType.MORE_LABELS_NEEDED)
 		} else {

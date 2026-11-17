@@ -2,6 +2,7 @@
 
 // Similar to PreparationError for File Imports
 import { TutanotaError } from "@tutao/app-env"
+import { TutanotaErrorWithData } from "@tutao/lang-api"
 
 export enum MigrationErrorCause {
 	/** The cause was somewhere not set, we do not have much information on it */
@@ -25,8 +26,11 @@ export type MigrationErrorData = {
 	code: string
 }
 
-export class MigrationError extends TutanotaError<MigrationErrorData> {
+export class MigrationError extends TutanotaError implements TutanotaErrorWithData<MigrationErrorData> {
+	public readonly data: Readonly<MigrationErrorData>
+
 	constructor(message: string, cause: MigrationErrorCause = MigrationErrorCause.UNKNOWN, code: string = "") {
-		super("MigrationError", message, { cause, code })
+		super("MigrationError", message)
+		this.data = { cause, code }
 	}
 }

@@ -1,5 +1,4 @@
 import m from "mithril"
-import { Const } from "@tutao/app-env"
 import { createSwitchAccountTypePostIn, SwitchAccountTypeService_POST } from "@tutao/entities/sys"
 import { elementIdToId } from "@tutao/meta"
 import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/enums"
@@ -21,6 +20,7 @@ import {
 	UpgradeType,
 	waitUntilCustomerInfoPlanTypeIsCorrect,
 } from "./utils/SubscriptionUtils"
+import { TutanotaConstants } from "@tutao/app-env"
 
 type SubscriptionCheckoutData = Pick<PaymentDetailsModel, "options" | "paymentData" | "customer" | "upgradeType"> & { targetPlanType: PlanType }
 
@@ -37,7 +37,7 @@ async function upgradeWithTuta(data: SubscriptionCheckoutData, referralCode: str
 		accountType: AccountType.PAID,
 		customer: null,
 		plan: data.targetPlanType,
-		date: Const.CURRENT_DATE,
+		date: TutanotaConstants.Const.CURRENT_DATE,
 		referralCode,
 		specialPriceUserSingle: null,
 		surveyData: null,

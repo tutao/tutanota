@@ -391,7 +391,7 @@ export class OfflineMailIndexer implements MailIndexer {
 					metadata.archiveId,
 					isNotNull(metadata.calculatedSize) && Number.isFinite(filterInt(metadata.calculatedSize))
 						? Math.ceil(filterInt(metadata.calculatedSize))
-						: MAX_EXPECTED_ARCHIVE_SIZE_IN_BYTES,
+						: TutanotaConstants.MAX_EXPECTED_ARCHIVE_SIZE_IN_BYTES,
 				]),
 		)
 
