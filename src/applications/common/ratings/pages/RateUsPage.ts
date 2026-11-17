@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
-import { EnvProvider, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { EnvProvider, TRUST_PILOT_LINK, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { completeRatingStage, TriggerType } from "../UserSatisfactionUtils.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { ImageWithOptionsDialog } from "../../../../ui/dialogs/ImageWithOptionsDialog"
@@ -39,7 +39,7 @@ export class RateUsPage implements Component<RateUsPageAttrs> {
 		if (this.isAndroid) {
 			windowFacade.openLink(ClientDetector.get().isCalendarApp() ? TUTA_CALENDAR_GOOGLE_PLAY_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
 		} else {
-			windowFacade.openLink("https://www.trustpilot.com/evaluate/tuta.com")
+			windowFacade.openLink(TRUST_PILOT_LINK)
 		}
 	}
 }

@@ -2601,5 +2601,6 @@ export default {
 		"applePaymentMethod_msg": "Sie können beim Bezahlen den App Store als Zahlungsmethode verwenden.",
 		"feedbackForUs_label": "Haben Sie Feedback?",
 		"feedbackNoReply_msg": "Wir antworten Ihnen nicht auf Ihre Nachricht, aber sie wird geprüft und mit dem Team geteilt.",
+		"rateOnTrustPilot_action": "Bewerte auf TrustPilot",
 	}
 }

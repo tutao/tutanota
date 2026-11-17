@@ -3,7 +3,14 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { EnvProvider, TUTA_CALENDAR_APP_STORE_URL, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import {
+	EnvProvider,
+	TRUST_PILOT_LINK,
+	TUTA_CALENDAR_APP_STORE_URL,
+	TUTA_CALENDAR_GOOGLE_PLAY_URL,
+	TUTA_MAIL_APP_STORE_URL,
+	TUTA_MAIL_GOOGLE_PLAY_URL,
+} from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { Card } from "../../../../ui/base/Card"
@@ -36,12 +43,12 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 					),
 				),
 			),
-			m(".pb-8.pt-8.flex.row.gap-8.fit-height.box-content", this.renderAppStoreLinks(vnode.attrs.dialog)),
+			m(".pb-8.pt-8.flex.col.gap-8.fit-height.box-content", this.renderAppStoreLinks(vnode.attrs.dialog)),
 		)
 	}
 
 	/**
-	 * Desktop, Web -> Rate Tuta Mail on Google Play and App Store
+	 * Desktop, Web -> Rate Tuta Mail on Google Play, App Store and TrustPilot
 	 * Tuta Mail App -> Rate Tuta Mail on Google Play and App Store
 	 * Tuta Calendar App -> Rate Tuta Calendar on Google Play and App Store
 	 */
@@ -52,11 +59,13 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 			return m.fragment({}, [
 				this.renderAppStoreLink(TUTA_CALENDAR_APP_STORE_URL, closeDialog),
 				this.renderGooglePlayLink(TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),
+				this.renderTrustPilotLink(TRUST_PILOT_LINK, closeDialog),
 			])
 		} else {
 			return m.fragment({}, [
 				this.renderAppStoreLink(TUTA_MAIL_APP_STORE_URL, closeDialog),
 				this.renderGooglePlayLink(TUTA_MAIL_GOOGLE_PLAY_URL, closeDialog),
+				this.renderTrustPilotLink(TRUST_PILOT_LINK, closeDialog),
 			])
 		}
 	}
@@ -87,6 +96,24 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 				const usageTest = locator.usageTestController.getTest("support.rating")
 				const stage = usageTest.getStage(0)
 				stage.setMetric({ name: "Result", value: "RatedGooglePlay" })
+				void stage.complete()
+
+				onClick()
+
+				windowFacade.openLink(url)
+			},
+			icon: Icons.OpenOutline,
+		})
+	}
+
+	private renderTrustPilotLink(url: string, onClick: VoidFunction) {
+		return m(SecondaryButton, {
+			label: "rateOnTrustPilot_action",
+			class: "flex-grow white-space smaller",
+			onclick: () => {
+				const usageTest = locator.usageTestController.getTest("support.rating")
+				const stage = usageTest.getStage(0)
+				stage.setMetric({ name: "Result", value: "RatedTrustPilot" })
 				void stage.complete()
 
 				onClick()

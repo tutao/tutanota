@@ -2600,6 +2600,7 @@ export default {
 		"googlePaymentMethod_msg": "You can checkout with using Google Play Store as your payment method",
 		"switchToGooglePayment_msg": "If you switch to Google as your payment method the prices for your subscription will change and you can't switch back to other payment methods. \n\nDo you want to continue?",
 		"switchToApplePayment_msg": "If you switch to App Store as your payment method the prices for your subscription will change and you can't switch back to other payment methods. \n\nDo you want to continue?",
-		"applePaymentMethod_msg": "You can checkout with using the Apple App Store as your payment method"
+		"applePaymentMethod_msg": "You can checkout with using the Apple App Store as your payment method",
+		"rateOnTrustPilot_action": "Rate on TrustPilot"
 	}
 }

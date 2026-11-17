@@ -356,8 +356,8 @@ export function getVisiblePaymentMethods({
 		})
 	}
 	if (
-		(upgradeType !== "Signup" && !currentPaymentMethod && !EnvProvider.get().isExternalPaymentSetup()) ||
-		!isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType)
+		upgradeType !== "Signup" &&
+		((!currentPaymentMethod && !EnvProvider.get().isExternalPaymentSetup()) || !isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType))
 	) {
 		// ** Other Payment Methods **
 		availablePaymentMethods.push({
