@@ -6,6 +6,7 @@ import { isInternalUser } from "../../../common/api/common/utils/UserUtils"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction.js"
 import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { SessionType } from "@tutao/app-env"
 
 /**
  * Initialize SpamClassifier if FeatureType.SpamClientClassification feature is enabled for the customer.
@@ -17,7 +18,11 @@ export class SpamClassificationPostLoginAction implements PostLoginAction {
 		private readonly syncTracker: SyncTracker,
 	) {}
 
-	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
+		if (event.sessionType === SessionType.Temporary) {
+			return
+		}
+
 		await this.customerFacade.loadCustomizations()
 		const user = assertNotNull(await this.customerFacade.getUser())
 		if (isInternalUser(user) && this.spamClassifier) {
@@ -30,7 +35,11 @@ export class SpamClassificationPostLoginAction implements PostLoginAction {
 		}
 	}
 
-	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {
+	async onFullLoginSuccess(event: LoggedInEvent): Promise<void> {
+		if (event.sessionType === SessionType.Temporary) {
+			return
+		}
+
 		await this.customerFacade.loadCustomizations()
 		const user = assertNotNull(await this.customerFacade.getUser())
 		if (isInternalUser(user) && this.spamClassifier) {

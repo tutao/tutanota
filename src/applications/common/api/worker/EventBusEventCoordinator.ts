@@ -24,6 +24,7 @@ import {
 import { idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
 import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { MailboxImporter } from "../../../mail-app/workerUtils/migration/MailboxImporter"
+import { IndexedDbConfigurationDatabase } from "./facades/lazy/IndexedDbConfigurationDatabase"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -51,8 +52,8 @@ export class EventBusEventCoordinator implements EventBusListener {
 		await this.eventController.onEntityUpdatesReceived(events, groupId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
-		if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient()) {
-			const configurationDatabase = await this.configurationDatabase()
+		if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient() && !EnvProvider.get().isOfflineStorageAvailable()) {
+			const configurationDatabase = (await this.configurationDatabase()) as IndexedDbConfigurationDatabase
 			await configurationDatabase.onEntityUpdatesReceived(events, batchId, groupId)
 			this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
 		}

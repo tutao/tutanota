@@ -31,15 +31,17 @@ export class MailLoginListener extends DefaultLoginListener {
 	}
 
 	async onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
-		if (!EnvProvider.isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
-			// index new items in background
-			console.log("initIndexer and SpamClassifier after log in")
-			await fullLoginIndexerInit(this.worker)
-		}
+		if (sessionType !== SessionType.Temporary) {
+			if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient()) {
+				// index new items in background
+				console.log("initIndexer and SpamClassifier after log in")
+				await fullLoginIndexerInit(this.worker)
+			}
 
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
-			const config = (await this.config()) as OfflineConfigurationDatabase
-			config.triggerMigrationIfNeeded()
+			if (EnvProvider.get().isOfflineStorageAvailable()) {
+				const config = (await this.config()) as OfflineConfigurationDatabase
+				config.triggerMigrationIfNeeded()
+			}
 		}
 
 		await super.onFullLoginSuccess(sessionType, cacheInfo, credentials)

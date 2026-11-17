@@ -87,10 +87,6 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 		return result == null
 	}
 
-	async onEntityUpdatesReceived(_events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<void> {
-		// no-op
-	}
-
 	async migrateFromIndexedDbConfigurationDatabase(oldDatabaseProvider: lazyAsync<IndexedDbConfigurationDatabase>, userIdProvider: lazy<Id>) {
 		// This requires a trigger from a login listener before actually activating, which creates a bit of spaghetti
 		// code where we have to call two functions to trigger the action. Sadly, we need it for a few reasons:
