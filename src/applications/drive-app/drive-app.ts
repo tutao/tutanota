@@ -49,6 +49,9 @@ const urlQueryParams = m.parseQueryString(location.search)
 
 assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
+const envProvider = EnvProvider.get()
+const clientDetector = await ClientDetector.init(envProvider, navigator.userAgent, navigator.platform, AppType.Drive)
+CheckBrowser.ensureIsSupported(clientDetector)
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
@@ -59,10 +62,6 @@ window.tutao = {
 	currentView,
 	locator: null,
 }
-
-const envProvider = EnvProvider.get()
-const checkBrowser = await CheckBrowser.init(envProvider, AppType.Drive)
-checkBrowser.ensureIsSupported()
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
 // and then the "Update WebView" message will never be show
