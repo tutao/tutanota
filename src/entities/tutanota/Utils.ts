@@ -177,9 +177,10 @@ export const enum ReportMovedMailsType {
 }
 
 export const enum EmailSignatureType {
-	EMAIL_SIGNATURE_TYPE_DEFAULT = "0",
-	EMAIL_SIGNATURE_TYPE_CUSTOM = "1",
-	EMAIL_SIGNATURE_TYPE_NONE = "2",
+	DEFAULT = "0",
+	CUSTOM = "1",
+	NONE = "2",
+	COMPANY = "3",
 }
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
