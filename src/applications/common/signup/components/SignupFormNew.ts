@@ -23,7 +23,6 @@ import { Styles } from "../../../../ui/styles"
 import { SignupViewModel } from "../models/SignupViewModel"
 import { getWhitelabelRegistrationDomains } from "../../../../ui/utils/WhitelabelUtils"
 import { PlanType } from "../../../../entities/sys/Utils"
-import { isFreeSignupOnly } from "../../misc/LoginUtils"
 
 export type SignupFormAttrs = {
 	// will return an error message that needs to be displayed in case of recoverable errors.

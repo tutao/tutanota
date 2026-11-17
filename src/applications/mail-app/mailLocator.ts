@@ -1,4 +1,4 @@
-import { AppType, EnvProvider, FeatureType, FULL_INDEXED_TIMESTAMP, METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES, ProgrammingError, TutanotaConstants } from "@tutao/app-env"
+import { AppType, EnvProvider, FeatureType, ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { MailSearchModel } from "./search/model/MailSearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -1015,7 +1015,7 @@ class MailLocator implements CommonLocator {
 
 				// skip if fully indexed already
 				const indexState = (await this.mailSearchModel()).indexState()
-				if (indexState.currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP) return
+				if (indexState.currentMailIndexTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP) return
 
 				// do not show two popups etc.
 				if (isHandlingConnectionTypeUpdated) {
@@ -1029,7 +1029,7 @@ class MailLocator implements CommonLocator {
 					const state = deviceConfig.getContinueDownloadArchivesOnMeteredConnection()
 					if (
 						isMetered &&
-						expectedDataInBytes > METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES &&
+						expectedDataInBytes > TutanotaConstants.METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES &&
 						state !== DownloadArchivesOnMeteredConnection.ACCEPTED
 					) {
 						indexerFacade.cancelMailIndexing(MailIndexingAbortReason.Cancelled)
@@ -1047,7 +1047,7 @@ class MailLocator implements CommonLocator {
 
 					if (indexState.autoRestartEnabled) {
 						// default: resume when indexing was not cancelled and just failed for another reason
-						void indexerFacade.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+						void indexerFacade.extendMailIndex(TutanotaConstants.FULL_INDEXED_TIMESTAMP)
 					}
 				} finally {
 					isHandlingConnectionTypeUpdated = false

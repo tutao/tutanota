@@ -36,18 +36,8 @@ import { InfoLink, lang, Translation } from "../../../../ui/utils/LanguageViewMo
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
-import {
-	ALLOWED_IMAGE_FORMATS,
-	CancelledError,
-	EnvProvider,
-	FeatureType,
-	MailAuthenticationStatus,
-	ProgrammingError,
-	TimeConstants,
-	TutanotaConstants,
-	UpgradePromptType,
-} from "../../../../platform-kit/app-env"
-import { isOfflineError, TooManyRequestsError } from "../../../../platform-kit/rest-client/error"
+import { EnvProvider, FeatureType, MailAuthenticationStatus, ProgrammingError, TimeConstants, TutanotaConstants, UpgradePromptType } from "@tutao/app-env"
+import { isOfflineError, TooManyRequestsError } from "@tutao/rest-client/error"
 import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../../ui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown.js"

@@ -1,5 +1,5 @@
 import { Indexer } from "../../workerUtils/index/Indexer"
-import { FULL_INDEXED_TIMESTAMP, SessionType, TutanotaConstants } from "../../../../platform-kit/app-env"
+import { SessionType, TutanotaConstants } from "../../../../platform-kit/app-env"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction.js"
 import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -21,7 +21,7 @@ export class MailIndexerPostLoginAction implements PostLoginAction {
 				priority: ListenerPriority.HIGH,
 				targetStatus: CacheSyncStatus.OnlineSyncDone,
 				onSyncStatusChange: async () => {
-					await this.indexer.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+					await this.indexer.extendMailIndex(TutanotaConstants.FULL_INDEXED_TIMESTAMP)
 				},
 			})
 		}

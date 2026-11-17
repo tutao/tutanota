@@ -5,7 +5,7 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { TextField, TextFieldAttrs } from "../../../../ui/base/TextField"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
-import { MAX_LABELS_PER_MAIL, TabIndex } from "@tutao/app-env"
+import { TutanotaConstants, TabIndex } from "@tutao/app-env"
 import { AriaRole } from "../../../../ui/AriaUtils"
 import { getElementId } from "@tutao/meta"
 import { getLabelColor } from "../../../../ui/base/Label"
@@ -241,7 +241,7 @@ class LabelsDropdown implements ModalComponent {
 	}
 
 	private isLabelLimitReached() {
-		return this.appliedLabels().length >= MAX_LABELS_PER_MAIL
+		return this.appliedLabels().length >= TutanotaConstants.MAX_LABELS_PER_MAIL
 	}
 
 	private toggleLabelState(labelState: AssignedLabel) {

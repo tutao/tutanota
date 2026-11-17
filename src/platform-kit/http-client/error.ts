@@ -172,7 +172,7 @@ export class ServiceUnavailableError extends HttpClientError {
 	}
 }
 
-export class InsufficientStorageError extends TutanotaError {
+export class InsufficientStorageError extends HttpClientError {
 	static CODE: number = 507
 
 	constructor(msg: string) {

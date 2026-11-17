@@ -280,7 +280,7 @@ export class MainStyles {
 					// The scrollbar is always there with "overflow-y": "scroll",
 					// but displays little scrollbar arrows even when there is no scroll bar, which is not visually appealing
 					// this differs from ".scroll" as there is no hyphen in front of webkit
-					"overflow-y": ClientDetector.get().overflowAuto,
+					"overflow-y": CheckBrowser.overflowAuto,
 					"webkit-overflow-scrolling": "touch",
 				},
 				".overflow-visible": {
@@ -3555,7 +3555,7 @@ export class MainStyles {
 				".event-banner-grid-guest": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title title" 
+							"sidebar title title"
 							"sidebar middle timeoverview";
 							`,
 					"grid-template-columns": "110px 2fr 3fr;",
@@ -3566,7 +3566,7 @@ export class MainStyles {
 				".event-banner-grid-guest-mobile": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title" 
+							"sidebar title"
 							"sidebar middle"
 							"sidebar timeoverview";
 							`,
@@ -3576,8 +3576,8 @@ export class MainStyles {
 				".event-banner-grid-organizer": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title" 
-							"sidebar middle"							
+							"sidebar title"
+							"sidebar middle"
 							`,
 					"grid-template-columns": "110px 1fr;",
 					"grid-template-rows": "auto 1fr;",
