@@ -278,6 +278,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
+
 								columnLayout: m(CalendarMonthView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
 									eventsForDays: this.viewModel.eventsForDays,
@@ -287,6 +288,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onNewEvent: (date) => {
 										this.createNewEventDialog(date)
 									},
+
+									onOpenEventPreview: (CalendarEvent: CalendarEvent, date: Date) => {
+										this.viewModel.updatePreviewedEvent(CalendarEvent).then(() => {
+											const eventId = base64ToBase64Url(stringToBase64(CalendarEvent._id.join("/")))
+											this.setUrl(CalendarViewType.MONTH, this.viewModel.selectedDate(), false, false, eventId)
+										})
+									},
+
 									selectedDate: this.viewModel.selectedDate(),
 									onDateSelected: (date, calendarViewType) => {
 										this.setUrl(calendarViewType, date, true)

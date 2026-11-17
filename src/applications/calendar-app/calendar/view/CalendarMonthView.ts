@@ -16,10 +16,10 @@ import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull
 import { Styles } from "../../../../ui/styles"
 import {
 	CalendarViewType,
+	getDateWithSameDayButTimeAtNearestNextHalfHour,
 	isAllDayEvent,
 	isAllDayEventByTimes,
 	isBefore,
-	getDateWithSameDayButTimeAtNearestNextHalfHour,
 } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { GroupColors } from "./CalendarView"
@@ -52,6 +52,7 @@ import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExport
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../../ui/theme"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { CalendarEvent } from "@tutao/entities/tutanota"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -61,6 +62,7 @@ type CalendarMonthAttrs = {
 	onNewEvent: (date: Date | null) => unknown
 	onEventClicked: CalendarEventBubbleClickHandler
 	onEventKeyDown: CalendarEventBubbleKeyDownHandler
+
 	onChangeMonth: (next: boolean) => unknown
 	amPmFormat: boolean
 	startOfTheWeek: WeekStart
@@ -68,6 +70,8 @@ type CalendarMonthAttrs = {
 	hiddenCalendars: ReadonlySet<Id>
 	temporaryEvents: Array<EventWrapper>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
+
+	onOpenEventPreview: (CalendarEvent: CalendarEvent, date: Date) => void
 }
 type SimplePosRect = {
 	top: number
@@ -334,6 +338,14 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 							// Open the event editor to add a new event on the day we clicked
 							const newDate = getDateWithSameDayButTimeAtNearestNextHalfHour(day.date)
 							attrs.onNewEvent(newDate)
+						} else if (eventsOnDay.length == 1) {
+							//If there is only one event on the day that was clicked, then we go to the event preview.
+							const eventsOnDay = attrs.eventsForDays.get(day.date.getTime()) ?? []
+							attrs.onOpenEventPreview(eventsOnDay[0].event, day.date)
+
+							//Modal code
+							/*const eventsOnDay = attrs.eventsForDays.get(day.date.getTime()) ?? []
+							attrs.onEventClicked(eventsOnDay[0].event, e)*/
 						} else {
 							// If there are already one or more events on the day that was clicked, then we go to the
 							// agenda view on mobile so the user can choose which event they want to view or edit
@@ -350,7 +362,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						height: px(SELECTED_DATE_INDICATOR_THICKNESS),
 					},
 				}),
-				this.renderDayHeader(day, attrs.onDateSelected), // According to ISO 8601, weeks always start on Monday. Week numbering systems for
+				this.renderDayHeader(attrs, day),
+				// According to ISO 8601, weeks always start on Monday. Week numbering systems for
 				// weeks that do not start on Monday are not strictly defined, so we only display
 				// a week number if the user's client is configured to start weeks on Monday
 				weekDayNumber === 0 && attrs.startOfTheWeek === WeekStart.MONDAY
@@ -369,20 +382,36 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		)
 	}
 
-	private renderDayHeader(
-		{ date, day, isPaddingDay }: CalendarDay,
-		onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown,
-	): Children {
+	private renderDayHeader(attrs: CalendarMonthAttrs, { date, day, isPaddingDay }: CalendarDay): Children {
 		const size = Styles.get().isDesktopLayout() ? px(22) : px(20)
+		const eventsOnDay = attrs.eventsForDays.get(date.getTime()) ?? []
 		return m(
 			".rel.click.flex.items-center.justify-center.rel.ml-4",
 			{
 				"aria-label": date.toLocaleDateString(),
 				onclick: (e: MouseEvent) => {
-					onDateSelected(
-						new Date(date),
-						ClientDetector.get().isDesktopDevice() || Styles.get().isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA,
-					)
+					const openNewEventEditor = () => {
+						attrs.onDateSelected(new Date(date), CalendarViewType.MONTH)
+						// Open the event editor to add a new event on the day we clicked
+						const newDate = getDateWithSameDayButTimeAtNearestNextHalfHour(date)
+						attrs.onNewEvent(newDate)
+					}
+
+					if (!ClientDetector.get().isDesktopDevice() && !Styles.get().isDesktopLayout()) {
+						eventsOnDay.length == 1
+							? attrs.onOpenEventPreview(eventsOnDay[0].event, date)
+							: eventsOnDay.length == 0
+								? openNewEventEditor()
+								: attrs.onDateSelected(new Date(date), CalendarViewType.AGENDA)
+					} else {
+						if (eventsOnDay.length === 0) {
+							// Change the URL to contain the ISO string for the day we clicked
+							openNewEventEditor()
+						} else {
+							attrs.onDateSelected(new Date(date), CalendarViewType.DAY)
+						}
+					}
+
 					e.stopPropagation()
 				},
 			},
