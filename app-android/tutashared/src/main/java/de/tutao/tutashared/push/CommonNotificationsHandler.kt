@@ -31,6 +31,9 @@ abstract class CommonNotificationsHandler(private val localNotificationsFacade: 
 {
 	protected val json = Json { ignoreUnknownKeys = true }
 
+	/** Override this with app-specific notification behavior in your implementation */
+	abstract override fun onNewNotificationAvailable(sseInfo: SseInfo?): Job
+
 	override fun onConnect(): Boolean {
 		if (hasNotificationTTLExpired()) {
 			Log.d(TAG, "Notification TTL expired - resetting stored state")
