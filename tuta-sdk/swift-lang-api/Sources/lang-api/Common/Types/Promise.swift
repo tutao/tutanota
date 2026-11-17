@@ -16,10 +16,6 @@ public final class Promise<T> {
     fatalError("not implemented")
   }
 
-  public static func resolve() async -> Promise<Void> {
-      return Promise<Void>(value: ())
-  }
-
   public static func resolve(_ value: Promise<T>) async -> Promise<T> {
     return value
   }
@@ -30,5 +26,11 @@ public final class Promise<T> {
 
   public func finally(_ action: () throws -> Void) async rethrows -> Promise<T> {
     fatalError("not implemented")
+  }
+}
+
+extension Promise<Void> {
+  public static func resolve() async -> Promise<Void> {
+    return Promise<Void>(value: ())
   }
 }
