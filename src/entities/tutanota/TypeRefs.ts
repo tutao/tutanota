@@ -3947,6 +3947,7 @@ export function createMailboxProperties(values: MailboxPropertiesParams): Mailbo
 
 export type MailboxPropertiesParams = {
 	reportMovedMails: NumberString
+	spamFilterBehavior: null | NumberString
 
 	mailAddressProperties: MailAddressProperties[]
 	inboxRuleOrder: IdTupleWrapper[]
@@ -3963,6 +3964,7 @@ export type MailboxProperties = {
 	reportMovedMails: NumberString
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	spamFilterBehavior: null | NumberString
 
 	// == associations
 
