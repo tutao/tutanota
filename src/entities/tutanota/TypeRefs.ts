@@ -936,17 +936,22 @@ export type TutanotaPropertiesParams = {
 	notificationMailLanguage: null | string
 	defaultSender: null | string
 	defaultUnconfidential: boolean
-	customEmailSignature: string
-	emailSignatureType: NumberString
+	customEmailSignatureLegacy: string
+	emailSignatureTypeForNewMails: NumberString
 	noAutomaticContacts: boolean
 	sendPlaintextOnly: boolean
 	lastSeenAnnouncement: NumberString
 	userKeyVersion: null | NumberString
 	defaultLabelCreated: boolean
+	emailSignatureTypeForRepliesAndForwards: null | NumberString
 
 	lastPushedMail: null | IdTuple
 	imapSyncConfig: ImapSyncConfiguration[]
 	inboxRules: InboxRule[]
+	defaultCustomEmailSignatureForNewMessages: null | IdTuple
+	defaultCustomEmailSignatureForRepliesAndForwards: null | IdTuple
+	customEmailSignatures: null | Id
+	companyEmailSignatureValues: null | CompanyEmailSignatureValues
 }
 
 export type TutanotaProperties = {
@@ -959,8 +964,8 @@ export type TutanotaProperties = {
 	notificationMailLanguage: null | string
 	defaultSender: null | string
 	defaultUnconfidential: boolean
-	customEmailSignature: string
-	emailSignatureType: NumberString
+	customEmailSignatureLegacy: string
+	emailSignatureTypeForNewMails: NumberString
 	noAutomaticContacts: boolean
 	_ownerGroup: null | Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
@@ -970,12 +975,17 @@ export type TutanotaProperties = {
 	userKeyVersion: null | NumberString
 	defaultLabelCreated: boolean
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	emailSignatureTypeForRepliesAndForwards: null | NumberString
 
 	// == associations
 
 	lastPushedMail: null | IdTuple
 	imapSyncConfig: ImapSyncConfiguration[]
 	inboxRules: InboxRule[]
+	defaultCustomEmailSignatureForNewMessages: null | IdTuple
+	defaultCustomEmailSignatureForRepliesAndForwards: null | IdTuple
+	customEmailSignatures: null | Id
+	companyEmailSignatureValues: null | CompanyEmailSignatureValues
 
 	//== some entities have these and some don't
 
@@ -3947,6 +3957,7 @@ export function createMailboxProperties(values: MailboxPropertiesParams): Mailbo
 
 export type MailboxPropertiesParams = {
 	reportMovedMails: NumberString
+	spamFilterBehavior: null | NumberString
 
 	mailAddressProperties: MailAddressProperties[]
 	inboxRuleOrder: IdTupleWrapper[]
@@ -3963,6 +3974,7 @@ export type MailboxProperties = {
 	reportMovedMails: NumberString
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	spamFilterBehavior: null | NumberString
 
 	// == associations
 
@@ -8847,5 +8859,93 @@ export type MailboxMigrationPutIn = {
 	_type: TypeRef<MailboxMigrationPutIn>
 	_errors: Object
 	_original: Nullable<MailboxMigrationPutIn>
+	isAdapter: false
+}
+export const CustomEmailSignatureTypeRef: TypeRef<CustomEmailSignature> = new TypeRef("tutanota", 2257)
+
+export function createCustomEmailSignature(values: CustomEmailSignatureParams): CustomEmailSignature {
+	return Object.assign(create(typeModels[CustomEmailSignatureTypeRef.typeId], CustomEmailSignatureTypeRef), values)
+}
+
+export type CustomEmailSignatureParams = {
+	name: string
+	value: string
+}
+
+export type CustomEmailSignature = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	name: string
+	value: string
+
+	// == associations
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomEmailSignature>
+	_errors: Object
+	_original: Nullable<CustomEmailSignature>
+	isAdapter: false
+}
+export const CompanyEmailSignatureValuesTypeRef: TypeRef<CompanyEmailSignatureValues> = new TypeRef("tutanota", 2268)
+
+export function createCompanyEmailSignatureValues(values: CompanyEmailSignatureValuesParams): CompanyEmailSignatureValues {
+	return Object.assign(create(typeModels[CompanyEmailSignatureValuesTypeRef.typeId], CompanyEmailSignatureValuesTypeRef), values)
+}
+
+export type CompanyEmailSignatureValuesParams = {
+	name: null | string
+	email: null | string
+	phoneNumber: null | string
+	mobileNumber: null | string
+	role: null | string
+	department: null | string
+	address: null | string
+	custom1: null | string
+	custom2: null | string
+}
+
+export type CompanyEmailSignatureValues = {
+	// == values
+
+	_id: Id
+	name: null | string
+	email: null | string
+	phoneNumber: null | string
+	mobileNumber: null | string
+	role: null | string
+	department: null | string
+	address: null | string
+	custom1: null | string
+	custom2: null | string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CompanyEmailSignatureValues>
+	_original: Nullable<CompanyEmailSignatureValues>
 	isAdapter: false
 }

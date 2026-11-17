@@ -743,9 +743,9 @@ pub struct TutanotaProperties {
 	#[serde(rename = "470")]
 	pub defaultUnconfidential: bool,
 	#[serde(rename = "471")]
-	pub customEmailSignature: String,
+	pub customEmailSignatureLegacy: String,
 	#[serde(rename = "472")]
-	pub emailSignatureType: i64,
+	pub emailSignatureTypeForNewMails: i64,
 	#[serde(rename = "568")]
 	pub noAutomaticContacts: bool,
 	#[serde(rename = "597")]
@@ -766,12 +766,22 @@ pub struct TutanotaProperties {
 	#[serde(rename = "1851")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2279")]
+	pub emailSignatureTypeForRepliesAndForwards: Option<i64>,
 	#[serde(rename = "221")]
 	pub lastPushedMail: Option<IdTupleGenerated>,
 	#[serde(rename = "222")]
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	#[serde(rename = "578")]
 	pub inboxRules: Vec<InboxRule>,
+	#[serde(rename = "2280")]
+	pub defaultCustomEmailSignatureForNewMessages: Option<IdTupleGenerated>,
+	#[serde(rename = "2281")]
+	pub defaultCustomEmailSignatureForRepliesAndForwards: Option<IdTupleGenerated>,
+	#[serde(rename = "2282")]
+	pub customEmailSignatures: Option<GeneratedId>,
+	#[serde(rename = "2283")]
+	pub companyEmailSignatureValues: Option<CompanyEmailSignatureValues>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -2783,6 +2793,8 @@ pub struct MailboxProperties {
 	#[serde(rename = "1846")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2256")]
+	pub spamFilterBehavior: Option<i64>,
 	#[serde(rename = "1267")]
 	pub mailAddressProperties: Vec<MailAddressProperties>,
 	#[serde(rename = "2020")]
@@ -5912,6 +5924,80 @@ impl Entity for MailboxMigrationPutIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2247),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CustomEmailSignature {
+	#[serde(rename = "2259")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "2260")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2261")]
+	pub _format: i64,
+	#[serde(rename = "2262")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2263")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2264")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2265")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2266")]
+	pub name: String,
+	#[serde(rename = "2267")]
+	pub value: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CustomEmailSignature {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2257),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanyEmailSignatureValues {
+	#[serde(rename = "2269")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2270")]
+	pub name: Option<String>,
+	#[serde(rename = "2271")]
+	pub email: Option<String>,
+	#[serde(rename = "2272")]
+	pub phoneNumber: Option<String>,
+	#[serde(rename = "2273")]
+	pub mobileNumber: Option<String>,
+	#[serde(rename = "2274")]
+	pub role: Option<String>,
+	#[serde(rename = "2275")]
+	pub department: Option<String>,
+	#[serde(rename = "2276")]
+	pub address: Option<String>,
+	#[serde(rename = "2277")]
+	pub custom1: Option<String>,
+	#[serde(rename = "2278")]
+	pub custom2: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanyEmailSignatureValues {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2268),
 		}
 	}
 }
