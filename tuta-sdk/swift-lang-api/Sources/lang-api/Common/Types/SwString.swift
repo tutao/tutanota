@@ -40,9 +40,7 @@ public final class SwString: Sendable, Equatable, Hashable {
   }
 
   public func trim() throws -> SwString {
-    try self.trimStart()
-    try self.trimEnd()
-    return self
+    return try self.trimStart().trimEnd()
   }
 
   public func trimStart() throws -> SwString {
