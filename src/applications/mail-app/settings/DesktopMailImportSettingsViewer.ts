@@ -67,7 +67,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 
 		const allowedExtensions = ["eml", "mbox"]
-		const fileUris = ClientDetector.get().isMacOS
+		const fileUris = ClientDetector.get().isMacOS()
 			? await mailLocator.fileApp.openMacImportFileChooser()
 			: await mailLocator.fileApp.openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
 		await this.fileMailImportController().onStartBtnClick(fileUris.map((fp) => fp.location))

@@ -109,7 +109,7 @@ export class WindowFacade implements IWindowFacade {
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
 		// and Cmd+Arrow to navigate a text editor
-		if (EnvProvider.get().isDesktop() && ClientDetector.get().isMacOS && window.addEventListener) {
+		if (EnvProvider.get().isDesktop() && ClientDetector.get().isMacOS() && window.addEventListener) {
 			window.addEventListener("keydown", (e) => {
 				if (!e.metaKey || e.key === "Meta") return
 

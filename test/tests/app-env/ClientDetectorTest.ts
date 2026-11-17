@@ -250,7 +250,7 @@ o.spec("ClientDetector test", function () {
 			o(ClientDetector.get().isMobileDevice()).equals(false)
 		})
 		o("ClientDetector firefox os is supported", async () => {
-			await withOverriddenEnv({ mode: Mode.App }, () => {
+			await withOverriddenEnv({ mode: Mode.Android }, () => {
 				ClientDetector.get().init("Mozilla/5.0 (Mobile rv:26.0) Gecko/26.0 Firefox/26.0", "Linux")
 				o(ClientDetector.get().browser).equals(BrowserType.FIREFOX)
 				o(ClientDetector.get().browserVersion).equals(26)
@@ -259,7 +259,7 @@ o.spec("ClientDetector test", function () {
 			})
 		})
 		o("ClientDetector firefox os tablet is supported", async () => {
-			await withOverriddenEnv({ mode: Mode.App }, () => {
+			await withOverriddenEnv({ mode: Mode.Android }, () => {
 				ClientDetector.get().init("Mozilla/5.0 (Tablet rv:26.0) Gecko/26.0 Firefox/26.0", "Linux")
 				o(ClientDetector.get().browser).equals(BrowserType.FIREFOX)
 				o(ClientDetector.get().browserVersion).equals(26)
@@ -294,7 +294,7 @@ o.spec("ClientDetector test", function () {
 
 o.spec("ClientDetector AppType test", function () {
 	o("ClientDetector detect calendar app on Android", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, () => {
+		await withOverriddenEnv({ mode: Mode.Android }, () => {
 			ClientDetector.get().init(
 				"Mozilla/5.0 (Linux Android 4.1.1 HTC Desire X Build/JRO03C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36",
 				"Linux",
@@ -307,7 +307,7 @@ o.spec("ClientDetector AppType test", function () {
 	})
 
 	o("ClientDetector detect calendar app on iPhone", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, () => {
+		await withOverriddenEnv({ mode: Mode.Ios }, () => {
 			ClientDetector.get().init(
 				"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
 				"Linux",
@@ -320,7 +320,7 @@ o.spec("ClientDetector AppType test", function () {
 	})
 
 	o("ClientDetector detect mail app on Android", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, () => {
+		await withOverriddenEnv({ mode: Mode.Android }, () => {
 			ClientDetector.get().init(
 				"Mozilla/5.0 (Linux Android 4.1.1 HTC Desire X Build/JRO03C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36",
 				"Linux",
@@ -333,7 +333,7 @@ o.spec("ClientDetector AppType test", function () {
 	})
 
 	o("ClientDetector detect mail app on iPhone", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, () => {
+		await withOverriddenEnv({ mode: Mode.Ios }, () => {
 			ClientDetector.get().init(
 				"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
 				"Linux",
@@ -346,7 +346,7 @@ o.spec("ClientDetector AppType test", function () {
 	})
 
 	o("ClientDetector throws on wrong configuration", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, () => {
+		await withOverriddenEnv({ mode: Mode.Android }, () => {
 			ClientDetector.get().init(
 				"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
 				"Linux",

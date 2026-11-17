@@ -224,7 +224,7 @@ export class EventBusClient {
 			authHeaders.accessToken +
 			(this.lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this.lastAntiphishingMarkersId : "") +
 			(env.clientName ? "&clientName=" + env.clientName : "") +
-			(env.networkDebugging ? "&network-debugging=" + "enable-network-debugging" : "")
+			(EnvProvider.get().networkDebuggingEnabled() ? "&network-debugging=" + "enable-network-debugging" : "")
 
 		// the server sends web socket messages for **missed entity events**, after a new websocket connection
 		// has been opened for all given groups, when the groupsToLastEventBatchIds query parameter is set on

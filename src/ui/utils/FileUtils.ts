@@ -1,5 +1,6 @@
-import { assertNotNull, intersection, toLowerCase } from "../../platform-kit/utils"
+import { intersection, toLowerCase } from "../../platform-kit/utils"
 import { Attachment, WebFile } from "../../entities/tutanota/Utils"
+import { EnvProvider, Mode } from "@tutao/app-env"
 
 type StringPredicate = (arg0: string) => boolean
 
@@ -51,7 +52,8 @@ export function unreserveFileName(fileName: string): string {
 	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
 	const extension = getFileExtension(fileName)
 	const baseName = getFileBaseName(fileName)
-	return env.platformId === "win32" && winReservedRe.test(baseName) ? `${baseName}_${extension}` : fileName
+	const isReservedOnWindows = EnvProvider.get().getMode() === Mode.Win32 && winReservedRe.test(baseName)
+	return isReservedOnWindows ? `${baseName}_${extension}` : fileName
 }
 
 /**
@@ -116,20 +118,6 @@ export function deduplicateFilenames(filenames: Array<string>, _taken: ReadonlyS
 	}
 
 	return out
-}
-
-/**
- * checks if the given filename is a reserved filename on the current platform
- * @param filename
- * @returns {boolean}
- * @private
- */
-export function isReservedFilename(filename: string): boolean {
-	// CON, CON.txt, COM0 etc. (windows device files)
-	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
-	// .. and .
-	const reservedRe = /^\.{1,2}$/
-	return (env.platformId === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
 
 export function isWebFile(file: Attachment | WebFile): file is WebFile {

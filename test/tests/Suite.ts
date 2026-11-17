@@ -283,6 +283,7 @@ import "./plugin-kit/plugins/nextcloud/NextcloudApiTest.js"
 
 import * as td from "testdouble"
 import { EntropySource } from "../../src/platform-kit/crypto"
+import { assert } from "../../src/platform-kit/utils"
 import { EnvProvider } from "../../src/platform-kit/app-env"
 
 export async function run({
@@ -388,15 +389,16 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		ignoreWarnings: true,
 	})
 
-	const originalEnv = structuredClone(env)
 	o.before(async function () {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 	})
 
+	o.beforeEach(() => {
+		assert(EnvProvider.isTest(), `Expecte to be test. Got: ${EnvProvider.get().getMode()}`)
+	})
+
 	o.afterEach(function () {
 		td.reset()
-		// Reset env in case any tests have fiddled with it
-		EnvProvider.overrideEnv(originalEnv)
 	})
 }

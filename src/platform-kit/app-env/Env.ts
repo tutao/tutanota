@@ -1,6 +1,4 @@
-import { ProgrammingError } from "./ProgrammingError"
 import { _isNode, _isWorker } from "./TsPlatformConstants"
-import { TypeChecks } from "./TsTypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -15,7 +13,6 @@ export type DomainConfigMap = Record<string, DomainConfig>
 export type EnvType = {
 	staticUrl: string | null // if null the url from the browser is used
 	mode: Mode
-	platformId: PlatformId | null
 	paymentSetup: PaymentSetup
 	dist: boolean
 	versionNumber: string
@@ -25,14 +22,6 @@ export type EnvType = {
 	clientName: string | null
 	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
 	shadowDomAppRoot: string | null
-}
-
-export const enum PlatformId {
-	Ios = "ios",
-	Android = "android",
-	Darwin = "darwin",
-	Linux = "linux",
-	Win32 = "win32",
 }
 
 export const enum PaymentSetup {
@@ -87,12 +76,14 @@ export type DomainConfig = {
 	websiteBaseUrl: string
 }
 
-export const enum Mode {
+export enum Mode {
 	Browser = "Browser",
-	App = "App",
+	Android = "Android",
+	Ios = "Ios",
 	Test = "Test",
-	Playground = "Playground",
-	Desktop = "Desktop",
+	Linux = "Linux",
+	Win32 = "Win32",
+	Darwin = "Darwin",
 	Admin = "Admin",
 }
 
@@ -104,28 +95,17 @@ export const enum Mode {
 const assertionsEnabled = false
 
 export class EnvProvider {
-	private static boot: boolean =
-		_isNode && !_isWorker && EnvProvider.tryInitWithGlobalEnv() != null && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
+	private static singleton: EnvProvider = new EnvProvider(env)
+	private static boot: boolean = _isNode && !_isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
-	private static singleton: EnvProvider | null = null
+	private constructor(private readonly env: EnvType) {}
 
 	public static get(): EnvProvider {
-		EnvProvider.tryInitWithGlobalEnv()
-		if (EnvProvider.singleton == null) {
-			throw new Error("global var env is not defined yet")
-		}
 		return EnvProvider.singleton
 	}
 
 	public isMainOrNode(): boolean {
 		return EnvProvider.isMainOrNode()
-	}
-
-	private static tryInitWithGlobalEnv(): EnvProvider | null {
-		if (EnvProvider.singleton == null && TypeChecks.hasProperty("env")) {
-			EnvProvider.singleton = new EnvProvider(env)
-		}
-		return EnvProvider.singleton
 	}
 
 	public getVersionNumber(): string {
@@ -136,10 +116,8 @@ export class EnvProvider {
 		return this.env.timeout
 	}
 
-	private constructor(public readonly env: EnvType) {}
-
-	public getPlatformId(): PlatformId | null {
-		return this.env.platformId
+	public getStringifiedEnv(): string {
+		return JSON.stringify(this.env)
 	}
 
 	public networkDebuggingEnabled(): boolean {
@@ -151,10 +129,10 @@ export class EnvProvider {
 	}
 
 	public isIOSApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
-			throw new ProgrammingError("PlatformId is not set!")
-		}
-		return this.isApp() && this.env.platformId === PlatformId.Ios
+		return this.env.mode === Mode.Ios
+	}
+	public isAndroidApp(): boolean {
+		return this.env.mode === Mode.Android
 	}
 
 	public isNextCloudPlugin(): boolean {
@@ -165,19 +143,15 @@ export class EnvProvider {
 		return this.env.shadowDomAppRoot != null ? this.env.shadowDomAppRoot : ""
 	}
 
+	public setPathPrefix(pathPrefix: string): void {
+		this.env.shadowDomAppRoot = pathPrefix
+	}
+
 	/**
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
 	public isAppleDevice(): boolean {
-		return this.env.platformId === PlatformId.Darwin || this.isIOSApp()
-	}
-
-	public isAndroidApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
-			throw new ProgrammingError("PlatformId is not set!")
-		}
-
-		return this.isApp() && this.env.platformId === PlatformId.Android
+		return this.env.mode === Mode.Ios || this.env.mode === Mode.Darwin
 	}
 
 	public getPaymentSetup(): PaymentSetup {
@@ -185,11 +159,11 @@ export class EnvProvider {
 	}
 
 	public isApp(): boolean {
-		return this.env.mode === Mode.App
+		return this.env.mode === Mode.Ios || this.env.mode === Mode.Android
 	}
 
 	public isDesktop(): boolean {
-		return this.env.mode === Mode.Desktop
+		return this.env.mode === Mode.Darwin || this.env.mode === Mode.Win32 || this.env.mode === Mode.Linux
 	}
 
 	public isBrowser(): boolean {
@@ -202,6 +176,10 @@ export class EnvProvider {
 
 	public isAdminClient(): boolean {
 		return this.env.mode === Mode.Admin
+	}
+
+	public getMode(): Mode {
+		return this.env.mode
 	}
 
 	isElectronClient(): boolean {
@@ -225,8 +203,7 @@ export class EnvProvider {
 	}
 
 	public static isTest(): boolean {
-		EnvProvider.tryInitWithGlobalEnv()
-		return EnvProvider.singleton?.env.mode === Mode.Test
+		return EnvProvider.get().env.mode === Mode.Test
 	}
 
 	/**
@@ -290,7 +267,17 @@ export class EnvProvider {
 		}
 	}
 
-	public static overrideEnv(env: EnvType): void {
-		;(EnvProvider.get().env satisfies EnvType) = env
+	public static async withOverriddenEnvForTest<R>(override: Partial<EnvType>, action: () => R): Promise<R> {
+		if (!EnvProvider.isTest()) {
+			throw new Error("This method is only meant for testing")
+		}
+
+		const previousEnv = structuredClone(EnvProvider.get().env)
+		;(EnvProvider.get().env satisfies EnvType) = Object.assign(EnvProvider.get().env, override)
+		try {
+			return await action()
+		} finally {
+			;(EnvProvider.get().env satisfies EnvType) = previousEnv
+		}
 	}
 }

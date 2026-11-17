@@ -57,7 +57,7 @@ import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoad
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
-import { DomainConfig, EnvProvider, EnvType, ProgrammingError } from "../../src/platform-kit/app-env"
+import { DomainConfig, EnvProvider, ProgrammingError } from "../../src/platform-kit/app-env"
 import { TypeChecks } from "../../src/platform-kit/app-env/TsTypeChecks"
 import { EventController } from "../../src/applications/common/api/main/EventController"
 import { EntityUpdateData, EntityUpdatesListener } from "../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -470,16 +470,7 @@ export function offlineMapperFromTypeModelResolver(typeModelResolver: TypeModelR
 	return new OfflineMapper(typeModelResolver)
 }
 
-export async function withOverriddenEnv<F extends (...args: any[]) => any>(override: Partial<EnvType>, action: () => ReturnType<F>) {
-	const previousEnv = structuredClone(env)
-	const newEnv = { ...previousEnv, ...override }
-	EnvProvider.overrideEnv(newEnv)
-	try {
-		return await action()
-	} finally {
-		EnvProvider.overrideEnv(previousEnv)
-	}
-}
+export const withOverriddenEnv = EnvProvider.withOverriddenEnvForTest
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)

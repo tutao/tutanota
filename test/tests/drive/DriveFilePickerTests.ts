@@ -4,7 +4,7 @@ import { NativeFileApp } from "../../../src/app-kit/native-bridge/common/FileApp
 import { object, when } from "testdouble"
 import { PosRect } from "../../../src/ui/utils/PosRect"
 import { withOverriddenEnv } from "../TestUtils"
-import { Mode } from "../../../src/platform-kit/app-env"
+import { EnvProvider, Mode } from "../../../src/platform-kit/app-env"
 
 o.spec("DriveFilePicker", function () {
 	let picker: DriveFilePicker
@@ -12,7 +12,8 @@ o.spec("DriveFilePicker", function () {
 	let rect: PosRect
 	o.beforeEach(async () => {
 		fileApp = object()
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+		await withOverriddenEnv({ mode: Mode.Linux }, () => {
+			console.log(EnvProvider.get().getMode())
 			picker = new AppFilePicker(fileApp)
 		})
 		rect = object()

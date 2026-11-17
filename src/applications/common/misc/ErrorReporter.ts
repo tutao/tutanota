@@ -9,7 +9,7 @@ import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
 import { convertTextToHtml, downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { EnvProvider, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
+import { EnvProvider, Mode, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { px } from "../../../ui/size"
 import { createLogFile } from "../api/common/Logger.js"
@@ -333,28 +333,25 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 }
 
 async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: DataFile[]) {
-	function getReportingClientType(): ErrorReportClientType {
-		if (EnvProvider.get().isBrowser()) {
-			return ErrorReportClientType.Browser
-		} else {
-			switch (env.platformId) {
-				case "ios":
-					return ErrorReportClientType.Ios
-				case "android":
-					return ErrorReportClientType.Android
-				case "darwin":
-					return ErrorReportClientType.MacOS
-				case "linux":
-					return ErrorReportClientType.Linux
-				case "win32":
-					return ErrorReportClientType.Windows
-				default:
-					return ErrorReportClientType.Linux
-			}
+	const clientType = (() => {
+		switch (EnvProvider.get().getMode()) {
+			case Mode.Browser:
+				return ErrorReportClientType.Browser
+			case Mode.Android:
+				return ErrorReportClientType.Android
+			case Mode.Ios:
+				return ErrorReportClientType.Ios
+			case Mode.Linux:
+			case Mode.Admin:
+				return ErrorReportClientType.Linux
+			case Mode.Win32:
+				return ErrorReportClientType.Windows
+			case Mode.Darwin:
+				return ErrorReportClientType.MacOS
+			case Mode.Test:
+				throw new ProgrammingError(`Not supoprted for test. Use overrideWithEnv() if you are trying to test this function`)
 		}
-	}
-
-	const clientType = getReportingClientType()
+	})()
 
 	const errorData = createReportErrorIn({
 		data: createErrorReportData({
@@ -408,16 +405,7 @@ export function clientInfoString(
 		? neverNull(typedKeys(AccountType).find((typeName) => AccountType[typeName] === locator.logins.getUserController().user.accountType))
 		: "UNKNOWN"
 
-	const client = (() => {
-		switch (env.mode) {
-			case Mode.Browser:
-			case Mode.Test:
-				return env.mode
-			default:
-				return env.platformId ?? ""
-		}
-	})()
-
+	const client: string = EnvProvider.get().getMode()
 	let message = `${lineBreak}${lineBreak} Client: ${client}`
 	message += `${lineBreak} Type: ${type}`
 	message += `${lineBreak} Tutanota version: ${env.versionNumber}`

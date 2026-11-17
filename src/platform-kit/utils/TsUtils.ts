@@ -35,6 +35,7 @@ export type DeferredObjectWithHandler<T, U> = {
 
 export abstract class TsBrand {
 	protected abstract readonly __brand: Nullable<never>
+	protected constructor() {}
 }
 
 export type BrandedType<T, B extends TsBrand> = T & { __brand: B }

@@ -150,21 +150,21 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			}),
 		).thenResolve(mockResponse)
 
-		let expectedReturn = createApplicationTypesGetOutFromResponse(mockResponse)
+		const expectedReturn = createApplicationTypesGetOutFromResponse(mockResponse)
 		when(fileFacade.writeToAppDir(anything(), anything())).thenReject(Error("writing failed simulation failed"))
 
-		let actualReturn = await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash))
+		const actualReturn = await withOverriddenEnv({ mode: Mode.Ios }, () => applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash))
 		o(actualReturn).deepEquals(expectedReturn)
 	})
 
 	o("should attempt to read but not fail on read error", async () => {
 		when(fileFacade.readDataFile(anything())).thenReject(Error("reading simulation failed"))
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => new ApplicationTypesFacade(object(), fileFacade, serverModelInfo))
+		await withOverriddenEnv({ mode: Mode.Android }, () => new ApplicationTypesFacade(object(), fileFacade, serverModelInfo))
 		// did not throw
 	})
 
-	for (const targetEnv of [Mode.App, Mode.Admin, Mode.Test, Mode.Browser, Mode.Desktop, Mode.Playground]) {
-		const shouldPersist = targetEnv === Mode.Desktop || targetEnv === Mode.App
+	for (const targetEnv of [Mode.Android, Mode.Ios, Mode.Admin, Mode.Test, Mode.Browser, Mode.Win32, Mode.Darwin, Mode.Linux]) {
+		const shouldPersist = [Mode.Android, Mode.Ios, Mode.Win32, Mode.Darwin, Mode.Linux].includes(targetEnv)
 
 		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
 			when(
@@ -207,7 +207,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			}),
 		).thenResolve(mockResponse)
 
-		await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+		await withOverriddenEnv({ mode: Mode.Darwin }, async () => {
 			const newServerModel = await new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).getServerApplicationTypesJson("new-server-hash")
 			o(newServerModel).deepEquals(mockModel)
 		})

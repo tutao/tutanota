@@ -14,7 +14,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 		private readonly arrayValue: Nullable<Array<ParsedValue<NestedObject>>>,
 		private readonly nestedObj: Nullable<NestedObject>,
 	) {
-		let nonNullCount = (isNotNull(stringValue) ? 1 : 0) + (isNotNull(arrayValue) ? 1 : 0) + (isNotNull(nestedObj) ? 1 : 0)
+		const nonNullCount = (isNotNull(stringValue) ? 1 : 0) + (isNotNull(arrayValue) ? 1 : 0) + (isNotNull(nestedObj) ? 1 : 0)
 		assert(nonNullCount <= 1, "At most one non-null value")
 		if (isNotNull(this.arrayValue)) {
 			assert(
