@@ -9,6 +9,7 @@ import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -23,6 +24,9 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
+/** Contains basic notification functionality that is likely to be shared among apps.
+ * No default implementation is provided for onNewNotificationAvailable because we expect it to be quite different
+ * in each app. */
 abstract class CommonNotificationsHandler(private val localNotificationsFacade: ILocalNotificationsFacade,
 										  private val sseStorage: SseStorage,
 										  private val alarmNotificationsManager: AlarmNotificationsManager,
@@ -47,6 +51,7 @@ abstract class CommonNotificationsHandler(private val localNotificationsFacade: 
 		return true
 	}
 
+	/** Downloads missed notifications in response to SSE message.  Contains retry logic and error handling. */
 	protected suspend fun downloadMissedNotification(sseInfo: SseInfo): String? {
 		var triesLeft = 3
 		// We try to download limited number of times. If it fails then  we are probably offline

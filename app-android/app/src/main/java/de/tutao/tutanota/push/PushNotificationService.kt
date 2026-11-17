@@ -24,7 +24,7 @@ import de.tutao.tutashared.push.IPushNotificationJobState
 import de.tutao.tutashared.push.LooperThread
 import de.tutao.tutashared.push.NetworkObserver
 import de.tutao.tutashared.push.PushNotificationServiceStateIndicator
-import de.tutao.tutashared.push.PushNotificationServiceStates
+import de.tutao.tutashared.push.PushNotificationServiceState
 import de.tutao.tutashared.push.SseClient
 import de.tutao.tutashared.push.SseListener
 import de.tutao.tutashared.push.SseStorage
@@ -55,7 +55,9 @@ class PushNotificationService : LifecycleJobService() {
 	private val jobState: IPushNotificationJobState = PushNotificationJobState(false)
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sseClient: SseClient
-	private var serviceState = PushNotificationServiceStateIndicator(PushNotificationServiceStates.STOPPED)
+	/** Indicates the overall lifecycle status of the service. A wrapper class is used so that the job's
+	 * [PushNotificationServiceState] value can be modified by the internal functions of the service's [SseListener] */
+	private var serviceState = PushNotificationServiceStateIndicator(PushNotificationServiceState.STOPPED)
 		set(value) {
 			Log.d(TAG, "State $field -> $value")
 			field = value
@@ -65,7 +67,7 @@ class PushNotificationService : LifecycleJobService() {
 	override fun onCreate() {
 		super.onCreate()
 		Log.d(TAG, "onCreate")
-		serviceState.state = PushNotificationServiceStates.CREATED
+		serviceState.state = PushNotificationServiceState.CREATED
 
 		finishJobThread.start()
 
@@ -133,8 +135,8 @@ class PushNotificationService : LifecycleJobService() {
 		Log.d(TAG, "onStartCommand, sender: $maybeSender")
 
 		this.serviceState.state = when (this.serviceState.state) {
-			PushNotificationServiceStates.STOPPED, PushNotificationServiceStates.CREATED, PushNotificationServiceStates.STARTED -> PushNotificationServiceStates.STARTED
-			PushNotificationServiceStates.CONNECTING, PushNotificationServiceStates.CONNECTED -> this.serviceState.state
+			PushNotificationServiceState.STOPPED, PushNotificationServiceState.CREATED, PushNotificationServiceState.STARTED -> PushNotificationServiceState.STARTED
+			PushNotificationServiceState.CONNECTING, PushNotificationServiceState.CONNECTED -> this.serviceState.state
 		}
 
 		return START_STICKY
@@ -174,7 +176,7 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onDestroy() {
 		Log.d(TAG, "onDestroy")
-		this.serviceState.state = PushNotificationServiceStates.STOPPED
+		this.serviceState.state = PushNotificationServiceState.STOPPED
 		super.onDestroy()
 	}
 

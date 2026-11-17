@@ -25,7 +25,7 @@ import de.tutao.tutashared.push.IPushNotificationJobState
 import de.tutao.tutashared.push.LooperThread
 import de.tutao.tutashared.push.SseListener
 import de.tutao.tutashared.push.PushNotificationServiceStateIndicator
-import de.tutao.tutashared.push.PushNotificationServiceStates
+import de.tutao.tutashared.push.PushNotificationServiceState
 import de.tutao.tutashared.push.SseClient
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
@@ -53,11 +53,13 @@ import java.util.concurrent.TimeUnit
 class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
+	/** Indicates whether the service has an active job. A wrapper class is used so that the job state value can be
+	 * modified by the SseClient's NetworkObserver  */
 	private val jobState = PushNotificationJobState(false)
 	private lateinit var sseClient: SseClient
 	// the below wrapper class is necessary because the push notification service state needs to be modifiable by function calls from the CommonPushNotificationModule.
 	// since function inputs are immutable in Kotlin, this means we can't just pass a variable with a value of PushNotificationServiceStates.
-	private var state = PushNotificationServiceStateIndicator(PushNotificationServiceStates.STOPPED)
+	private var serviceState = PushNotificationServiceStateIndicator(PushNotificationServiceState.STOPPED)
 		set(value) {
 			Log.d(TAG, "State $field -> $value")
 			field = value
@@ -66,6 +68,11 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onCreate() {
 		super.onCreate()
+		Log.d(TAG, "onCreate")
+
+		serviceState.state = PushNotificationServiceState.CREATED
+		finishJobThread.start()
+
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
 		val crypto = AndroidNativeCryptoFacade(this, TempFs(this, SecureRandom(), TempDir(this)))
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(this, crypto, appDatabase)
@@ -83,7 +90,7 @@ class PushNotificationService : LifecycleJobService() {
 			crypto,
 			sseStorage,
 			NetworkObserver(this, this, jobState),
-			SseListener(state, notificationsHandler, ::finishJobIfNeeded, ::scheduleJobFinish),
+			SseListener(serviceState, notificationsHandler, ::finishJobIfNeeded, ::scheduleJobFinish),
 			NetworkUtils.defaultClient
 		)
 		lifecycleScope.launch {
@@ -117,9 +124,9 @@ class PushNotificationService : LifecycleJobService() {
 		val maybeSender = intent?.getStringExtra("sender")
 		Log.d(TAG, "onStartCommand, sender: $maybeSender")
 
-		this.state.state = when (this.state.state) {
-			PushNotificationServiceStates.STOPPED, PushNotificationServiceStates.CREATED, PushNotificationServiceStates.STARTED -> PushNotificationServiceStates.STARTED
-			PushNotificationServiceStates.CONNECTING, PushNotificationServiceStates.CONNECTED -> this.state.state
+		this.serviceState.state = when (this.serviceState.state) {
+			PushNotificationServiceState.STOPPED, PushNotificationServiceState.CREATED, PushNotificationServiceState.STARTED -> PushNotificationServiceState.STARTED
+			PushNotificationServiceState.CONNECTING, PushNotificationServiceState.CONNECTED -> this.serviceState.state
 		}
 
 		return START_STICKY
@@ -159,7 +166,7 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onDestroy() {
 		Log.d(TAG, "onDestroy")
-		this.state.state = PushNotificationServiceStates.STOPPED
+		this.serviceState.state = PushNotificationServiceState.STOPPED
 		super.onDestroy()
 	}
 

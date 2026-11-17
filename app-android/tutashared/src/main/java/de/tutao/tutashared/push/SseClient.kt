@@ -22,7 +22,18 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
-// TODO: investigate why this constructor was internal
+/** Establishes and manages the SSE connection with the server.
+ *
+ * @param crypto the AndroidNativeCryptoFacade which is used to create an identifier sent in the URL (why?) of the initial
+ * request establishing the SSE connection.
+ *
+ * @param sseStorage stores info about push identifiers and messages received over SSE
+ *
+ * @param networkObserver monitors for Android-specific indicators of changes in network conditions and connectivity
+ *
+ * @param sseListener contains logic for responding to new messages received over SSE, or changes in the SSE connection
+ * status.
+ */
 class SseClient (
     private val crypto: AndroidNativeCryptoFacade,
     private val sseStorage: SseStorage,
