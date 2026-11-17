@@ -2,7 +2,7 @@ import m, { ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import type { PlanSelectionModel } from "../subscription/PlanSelectionModel"
 import { getCurrentPaymentInterval, PlanTypeToName, shouldShowExternalStorePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
-import { getDiscountDetails, getPlanSelectorSubtitle, getPlanSelectorTitle } from "../subscription/utils/PlanSelectorUtils"
+import { getDiscountDetails, getPlanSelectorSubtitle, getPlanSelectorTitle, hasRelevantGlobalFirstYearCampaign } from "../subscription/utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { PlanSelector, PlanSelectorAttr, SubscriptionActionButtons } from "../subscription/PlanSelector"
@@ -11,7 +11,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { px } from "../../../ui/size"
 import { Styles } from "../../../ui/styles"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
-import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
+import { AvailablePlanType, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 import { PaymentInterval } from "../subscription/utils/PriceUtils"
 
 export interface PlanSelectorPageAttrs extends WizardStepComponentAttrs<PlanSelectionModel> {
@@ -27,6 +27,10 @@ export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
 		let availablePlans = acceptedPlans
 		const isApplePrice = shouldShowExternalStorePrices(accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
+		const somePlanHasDiscount = hasRelevantGlobalFirstYearCampaign(
+			discountDetails,
+			data.options.businessUse() ? SubscriptionType.Business : SubscriptionType.Personal,
+		)
 		const promotionMessage = planPrices!.getRawPricingData().messageTextId as TranslationKeyType
 		let message
 		try {
@@ -61,8 +65,8 @@ export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
 					},
 				},
 				[
-					this.renderHeadline(data),
-					this.renderSubtitle(data),
+					this.renderHeadline(data, somePlanHasDiscount),
+					this.renderSubtitle(data, somePlanHasDiscount),
 					m(
 						`.plan-selector-wrapper.flex.gap-64.full-width${isWideBusinessLayout ? ".justify-center" : ""}`,
 						m(
@@ -99,13 +103,13 @@ export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
 			),
 		)
 	}
-	private renderSubtitle(data: PlanSelectionModel) {
-		const subtitleTranslationKey = getPlanSelectorSubtitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0)
+	private renderSubtitle(data: PlanSelectionModel, somePlanHasDiscount: boolean) {
+		const subtitleTranslationKey = getPlanSelectorSubtitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0, somePlanHasDiscount)
 		return m(`p.mb-32`, lang.getTranslationText(subtitleTranslationKey))
 	}
 
-	private renderHeadline(data: PlanSelectionModel) {
-		const titleTranslationKey = getPlanSelectorTitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0)
+	private renderHeadline(data: PlanSelectionModel, somePlanHasDiscount: boolean) {
+		const titleTranslationKey = getPlanSelectorTitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0, somePlanHasDiscount)
 
 		return m(
 			`h1.font-mdio${Styles.get().isMobileLayout() ? ".h3" : ".h1"}`,
