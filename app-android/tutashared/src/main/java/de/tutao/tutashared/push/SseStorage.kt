@@ -13,6 +13,10 @@ import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
 import java.util.Date
 
+/**
+ * Persists info about SSE-related entities, including push identifiers, notifications, and datetime of last
+ * new notification check.
+ */
 class SseStorage(
 	private val db: AppDatabase,
 	private val keyStoreFacade: AndroidKeyStoreFacade,
