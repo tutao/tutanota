@@ -16,7 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 
-// TODO: investigate why this was originally designated as an internal constructor
+/** Monitors for changes in the network connectivity status and capabilities. */
 class NetworkObserver (
     context: Context,
     lifecycleOwner: LifecycleOwner,
@@ -77,6 +77,7 @@ class NetworkObserver (
 	}
 
 	fun setNetworkConnectivityListener(networkConnectivityListener: NetworkConnectivityListener) {
+		Log.d(TAG, "setting up networkConnectivityListener")
 		this.networkConnectivityListener = networkConnectivityListener
 	}
 

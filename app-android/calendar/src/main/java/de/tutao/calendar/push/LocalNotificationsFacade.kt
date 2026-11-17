@@ -41,7 +41,8 @@ private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
-
+/** @see [de.tutao.tutashared.push.INotificationsHandler]
+ */
 class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
 	ILocalNotificationsFacade, FileNotificationSender {
 	companion object {

@@ -1,6 +1,6 @@
 package de.tutao.tutashared.push
 
-enum class PushNotificationServiceStates {
+enum class PushNotificationServiceState {
 	/** onCreate was called but onStartCommand hasn't been yet. */
 	CREATED,
 
