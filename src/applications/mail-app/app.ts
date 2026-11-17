@@ -3,7 +3,7 @@ import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
 import { root } from "../../ui/base/RootView.js"
-import { assertNonNull, assertNotNull, isSessionStorageAvailable } from "../../platform-kit/utils"
+import { assertNotNull, isSessionStorageAvailable } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { Styles } from "../../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -93,10 +93,12 @@ if (isSessionStorageAvailable()) {
 		}
 	}
 }
-assertNonNull(env)
 
 assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
+const envProvider = EnvProvider.get()
+const clientDetector = await ClientDetector.init(envProvider, navigator.userAgent, navigator.platform, AppType.Mail)
+CheckBrowser.ensureIsSupported(clientDetector)
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
@@ -107,10 +109,6 @@ window.tutao = {
 	currentView,
 	locator: null,
 }
-
-const envProvider = EnvProvider.get()
-const checkBrowser = await CheckBrowser.init(envProvider, AppType.Mail)
-checkBrowser.ensureIsSupported()
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
 // and then the "Update WebView" message will never be show

@@ -1,4 +1,4 @@
-import { AppType, EnvProvider } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../platform-kit/app-env/boot/ClientConstants"
 import { assertNotNull, TypeChecks } from "@tutao/lang-api"
@@ -6,21 +6,13 @@ import { assertNotNull, TypeChecks } from "@tutao/lang-api"
 export class CheckBrowser {
 	public static readonly overflowAuto: string = CheckBrowser.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 
-	private constructor() {}
-
-	public static async init(envProvider: EnvProvider, appType: AppType) {
-		await ClientDetector.init(envProvider, navigator.userAgent, navigator.platform, appType)
-		return new CheckBrowser()
-	}
-
 	/**
 	 * A webview or electron client with these features are supported
 	 */
-	ensureIsSupported() {
-		const client = ClientDetector.get()
+	public static ensureIsSupported(clientDetector: ClientDetector) {
 		const clientHaveExpectedFeatures =
 			CheckBrowser.expectedJsSyntaxes() &&
-			CheckBrowser.isSupportedBrowserVersion(client) &&
+			CheckBrowser.isSupportedBrowserVersion(clientDetector) &&
 			CheckBrowser.expectedBuiltInsArePresent() &&
 			CheckBrowser.haveWebsocket() &&
 			CheckBrowser._cssQuerySelectorIsSupported() &&
