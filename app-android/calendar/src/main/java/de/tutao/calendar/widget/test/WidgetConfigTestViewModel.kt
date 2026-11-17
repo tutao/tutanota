@@ -13,12 +13,14 @@ class WidgetConfigTestViewModel(
 	credentials: List<PersistedCredentials> = listOf(),
 	selectedCredential: PersistedCredentials? = null,
 	calendars: Map<GeneratedId, CalendarRenderData> = mapOf(),
+	numberOfDays: Int = 7,
 	private val selectedCalendars: List<GeneratedId> = listOf()
 ) : WidgetConfigModel {
 	override val credentials: StateFlow<List<PersistedCredentials>> = MutableStateFlow(credentials)
 	override val isLoading: StateFlow<Boolean> = MutableStateFlow(false)
 	override val selectedCredential: StateFlow<PersistedCredentials?> = MutableStateFlow(selectedCredential)
 	override val calendars: StateFlow<Map<GeneratedId, CalendarRenderData>> = MutableStateFlow(calendars)
+	override val numberOfDays: StateFlow<Int> = MutableStateFlow(numberOfDays)
 	override val error: StateFlow<WidgetError?> = MutableStateFlow(null)
 
 	override fun toggleCalendarSelection(calendarId: GeneratedId, isSelected: Boolean) {}
@@ -30,4 +32,6 @@ class WidgetConfigTestViewModel(
 	override fun setSelectedCredential(credential: PersistedCredentials): Job? {
 		return null
 	}
+
+	override fun setNumberOfDays(days: Int) {}
 }

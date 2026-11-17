@@ -144,6 +144,7 @@ class Agenda : GlanceAppWidget() {
 				}
 
 				is WidgetUIState.Available -> {
+
 					val hasEvents = data.daysAndEvents.any { it.isNotEmpty() }
 
 					val onNewEvent = openCalendarEditor(LocalContext.current, userId)

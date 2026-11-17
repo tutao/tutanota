@@ -86,6 +86,7 @@ abstract class WidgetRepository() {
 		credentials: UnencryptedCredentials,
 		loggedInSdk: LoggedInSdk,
 		cryptoFacade: AndroidNativeCryptoFacade,
+		numberOfDays: Int = 7
 	): Map<GeneratedId, CalendarEventListDao> {
 		throw NotImplementedError()
 	}

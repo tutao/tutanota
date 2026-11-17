@@ -41,12 +41,14 @@ class WidgetConfigViewModel(
 	private val _selectedCredential = MutableStateFlow<PersistedCredentials?>(null)
 	private val _calendars: MutableStateFlow<Map<GeneratedId, CalendarRenderData>> = MutableStateFlow(HashMap())
 	private val _selectedCalendars: MutableStateFlow<Map<GeneratedId, CalendarRenderData>> = MutableStateFlow(HashMap())
+	private val _numberOfDays: MutableStateFlow<Int> = MutableStateFlow(7)
 	private val _error = MutableStateFlow<WidgetError?>(null)
 
 	override val credentials: StateFlow<List<PersistedCredentials>> = _credentials.asStateFlow()
 	override val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 	override val selectedCredential: StateFlow<PersistedCredentials?> = _selectedCredential.asStateFlow()
 	override val calendars: StateFlow<Map<GeneratedId, CalendarRenderData>> = _calendars.asStateFlow()
+	override val numberOfDays: StateFlow<Int> = _numberOfDays.asStateFlow()
 	override val error: StateFlow<WidgetError?> = _error.asStateFlow()
 
 	companion object {
@@ -99,6 +101,10 @@ class WidgetConfigViewModel(
 		}
 	}
 
+	override fun setNumberOfDays(days: Int){
+		_numberOfDays.value = days
+	}
+
 	override fun toggleCalendarSelection(calendarId: GeneratedId, isSelected: Boolean) {
 		if (!isSelected) {
 			_selectedCalendars.value = _selectedCalendars.value.minus(calendarId)
@@ -133,6 +139,12 @@ class WidgetConfigViewModel(
 					}
 				}
 
+				val preSelectNumberOfDays = {
+					_numberOfDays.value = settings.numberOfDays
+				}
+
+				preSelectNumberOfDays()
+
 				if (selectedCredential != null) {
 					setSelectedCredential(selectedCredential)?.invokeOnCompletion {
 						preSelectCalendars()
@@ -162,6 +174,7 @@ class WidgetConfigViewModel(
 
 	fun storeSettings(context: Context, widgetId: Int): Job {
 		val credential = _selectedCredential.value ?: throw Exception("Missing credentials for user")
+		val numberOfDays = _numberOfDays.value
 
 		_isLoading.value = true
 
@@ -173,7 +186,8 @@ class WidgetConfigViewModel(
 					widgetId,
 					SettingsDao(
 						calendars = _selectedCalendars.value,
-						userId = credential.credentialInfo.userId
+						userId = credential.credentialInfo.userId,
+						numberOfDays = numberOfDays
 					)
 				)
 			} catch (e: IOException) {

@@ -12,9 +12,11 @@ interface WidgetConfigModel {
 	val isLoading: StateFlow<Boolean>
 	val selectedCredential: StateFlow<PersistedCredentials?>
 	val calendars: StateFlow<Map<GeneratedId, CalendarRenderData>>
+	val numberOfDays: StateFlow<Int>
 	val error: StateFlow<WidgetError?>
 
 	fun toggleCalendarSelection(calendarId: GeneratedId, isSelected: Boolean)
 	fun isCalendarSelected(calendarId: GeneratedId): Boolean
 	fun setSelectedCredential(credential: PersistedCredentials): Job?
+	fun setNumberOfDays(days: Int): Unit
 }

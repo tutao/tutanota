@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SettingsDao(
 	val userId: GeneratedId,
-	val calendars: Map<GeneratedId, @Serializable(with = CalendarRenderDataSerializer::class) CalendarRenderData>
+	val calendars: Map<GeneratedId, @Serializable(with = CalendarRenderDataSerializer::class) CalendarRenderData>,
+	val numberOfDays: Int
 )

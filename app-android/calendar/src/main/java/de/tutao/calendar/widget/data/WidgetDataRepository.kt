@@ -140,6 +140,14 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 		return eventsMap
 	}
 
+	/**
+	 * Fetches events from the server to display in the widget.
+	 *
+	 * @param numberOfDays Sets the length of the period, in days, to retrieve events for.  Retrieves events with a
+	 * start time within the given range. Events that span multiple days might still display in the widget past the end
+	 * of the range unless you also shorten the data structure representing the widget's displayed days (in
+	 * [de.tutao.calendar.widget.model.WidgetUIViewModel.loadUIState]) based on this value.
+	 */
 	override suspend fun loadEventsFromServer(
 		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
@@ -147,14 +155,15 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 		calendars: List<GeneratedId>,
 		credentials: UnencryptedCredentials,
 		loggedInSdk: LoggedInSdk,
-		cryptoFacade: AndroidNativeCryptoFacade
+		cryptoFacade: AndroidNativeCryptoFacade,
+		numberOfDays: Int
 	): Map<GeneratedId, CalendarEventListDao> = withContext(Dispatchers.IO) {
 		val calendarFacade = loggedInSdk.calendarFacade()
 		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
 
 		val start = systemCalendar.timeInMillis.toULong()
 
-		systemCalendar.add(Calendar.DAY_OF_MONTH, 7)
+		systemCalendar.add(Calendar.DAY_OF_MONTH, numberOfDays)
 		systemCalendar.set(Calendar.HOUR, 0)
 		systemCalendar.set(Calendar.MINUTE, 0)
 		systemCalendar.set(Calendar.SECOND, 0)

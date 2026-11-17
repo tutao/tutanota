@@ -403,9 +403,11 @@ class WidgetConfigActivity : AppCompatActivity() {
 	private fun SettingsBody(innerPadding: PaddingValues, model: WidgetConfigModel) {
 		val credentials by model.credentials.collectAsState()
 		var showDropdown by remember { mutableStateOf(false) }
+		var showDaysDropdown by remember { mutableStateOf(false) }
 		val selectedLogin =
 			model.selectedCredential.collectAsState().value?.credentialInfo?.login ?: "Select a credential"
 		val calendars by model.calendars.collectAsState()
+		val numberOfDays by model.numberOfDays.collectAsState()
 
 		var rowSize by remember { mutableStateOf(Size.Zero) }
 		val context = LocalContext.current
@@ -562,6 +564,55 @@ class WidgetConfigActivity : AppCompatActivity() {
 								)
 							}
 						}
+					}
+				}
+			}
+			Column(modifier = Modifier.padding(8.dp)) {
+				Text(
+					"Number of days",
+					color = MaterialTheme.colorScheme.onBackground,
+					fontWeight = FontWeight.Bold,
+					fontSize = Dimensions.FontSize.font_12.sp,
+					lineHeight = 12.sp,
+					modifier = Modifier.padding(bottom = 4.dp)
+				)
+				TextButton(contentPadding = PaddingValues(8.dp),
+					onClick = { showDaysDropdown = true },
+					shape = RoundedCornerShape(8.dp),
+					colors = ButtonColors(
+						contentColor = MaterialTheme.colorScheme.secondary,
+						containerColor = MaterialTheme.colorScheme.surface,
+						disabledContentColor = MaterialTheme.colorScheme.primary,
+						disabledContainerColor = MaterialTheme.colorScheme.onPrimary
+					),
+					modifier = Modifier
+						.fillMaxWidth()
+						.onPlaced { layoutCoordinates -> rowSize = layoutCoordinates.size.toSize() })
+				{
+					Text(numberOfDays.toString(), modifier = Modifier.weight(weight = 1f), overflow = TextOverflow.Ellipsis)
+					Icon(
+						Icons.Default.ArrowDropDown,
+						"",
+						tint = MaterialTheme.colorScheme.onBackground,
+						modifier = Modifier
+							.size(32.dp)
+							.padding(4.dp)
+					)
+				}
+				DropdownMenu(expanded=showDaysDropdown,
+							onDismissRequest={showDaysDropdown=false},
+							modifier = Modifier
+							.background(MaterialTheme.colorScheme.surface)
+							.width(with(LocalDensity.current) { rowSize.width.toDp() })){
+						for(i in 1..7){
+						DropdownMenuItem(
+							text = { Text(i.toString())},
+							onClick = {
+								showDaysDropdown=false
+								model.setNumberOfDays(i)
+							},
+							modifier = Modifier
+							.background(color = MaterialTheme.colorScheme.surface))
 					}
 				}
 			}
@@ -765,7 +816,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 						"0" to CalendarRenderData(name = "Foo", color = "013E85"),
 						"1" to CalendarRenderData(name = "Bar", color = "A1C1FF")
 					),
-					listOf("1")
+					7
 				),
 				finishAction = {},
 				okAction = {}

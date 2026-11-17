@@ -149,8 +149,8 @@ class WidgetUIViewModel(
 		val startOfToday = now.toLocalDate()
 
 		// an array representing the current day and the next six days, to fill with events that appear on each day.
-		val daysAndEvents: Array<List<UIEvent>> =
-			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+		// will have only the length of the number of days selected in the widget settings.
+		val daysAndEvents: Array<List<UIEvent>> = Array(settings.numberOfDays){_->listOf()}
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			Log.d(TAG, "[$widgetId] Creating UIEvents from calendar $calendarId")
@@ -414,7 +414,8 @@ class WidgetUIViewModel(
 						credentials,
 						loggedInSdk,
 						cryptoFacade,
-					)
+						settings.numberOfDays,
+						)
 				}
 				Log.d(TAG, "[$widgetId] LoadEvents time: $time")
 			} catch (e: LoginException) {
