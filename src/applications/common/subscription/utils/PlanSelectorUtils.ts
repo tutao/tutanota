@@ -163,7 +163,7 @@ export function hasRelevantGlobalFirstYearCampaign(
 	return Object.entries(discountDetails)
 		.filter(([planName, _]) => isRelevantNewPlanName(planName, subscriptionType))
 		.map((v) => v[1])
-		.some((v) => v.discountType === "GlobalFirstYear" || v.discountType === "BonusMonthsAndGlobalFirstYear")
+		.some((v) => v.discountType === "GlobalFirstYear" || v.discountType === "BonusMonthsAndGlobalFirstYear" || v.discountType === "BonusMonths")
 }
 
 export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider: PriceAndConfigProvider): DiscountDetails {
@@ -274,29 +274,37 @@ export const enum CAMPAIGN_NAME {
 	DIGITAL_SOVEREIGNTY_2026_CAMPAIGN = "sovereignty2026",
 }
 
-export function getPlanSelectorTitle(campaignName: string | null, isReferred: boolean): TranslationKey {
-	switch (campaignName) {
-		case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
-			if (isReferred) {
-				return "planselector_page_sovereignty2026_referred_title"
-			}
-			return "planselector_page_sovereignty2026_title"
-		case CAMPAIGN_NAME.BLACKFRIDAY_CAMPAIGN:
-			return "campaignBlackFridayTitle2026_label"
-		default:
-			return "planselector_page_title"
+export function getPlanSelectorTitle(campaignName: string | null, isReferred: boolean, somePlanHasDiscount: boolean): TranslationKey {
+	if (somePlanHasDiscount) {
+		switch (campaignName) {
+			case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
+				if (isReferred) {
+					return "planselector_page_sovereignty2026_referred_title"
+				}
+				return "planselector_page_sovereignty2026_title"
+			case CAMPAIGN_NAME.BLACKFRIDAY_CAMPAIGN:
+				return "campaignBlackFridayTitle2026_label"
+			default:
+				return "planselector_page_title"
+		}
+	} else {
+		return "planselector_page_title"
 	}
 }
 
-export function getPlanSelectorSubtitle(campaignName: string | null, isReferred: boolean): TranslationKey {
-	switch (campaignName) {
-		case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
-			if (isReferred) {
-				return "planselector_page_sovereignty2026_referred_subtitle"
-			}
-			return "planselector_page_sovereignty2026_subtitle"
-		default:
-			return "planselector_page_subtitle"
+export function getPlanSelectorSubtitle(campaignName: string | null, isReferred: boolean, somePlanHasDiscount: boolean): TranslationKey {
+	if (somePlanHasDiscount) {
+		switch (campaignName) {
+			case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
+				if (isReferred) {
+					return "planselector_page_sovereignty2026_referred_subtitle"
+				}
+				return "planselector_page_sovereignty2026_subtitle"
+			default:
+				return "planselector_page_subtitle"
+		}
+	} else {
+		return "planselector_page_subtitle"
 	}
 }
 
