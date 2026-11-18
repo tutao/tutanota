@@ -22,6 +22,7 @@ export interface OrderConfirmationPageAttrs extends WizardStepComponentAttrs<Ord
 	onEditPayment: () => void
 	onPaymentIntervalChanged: () => void
 	onConfirm: () => Promise<boolean>
+	visiblePaymentMethods: number
 }
 
 export const PlanTypeToIcon: Record<AvailablePlanType, AllIcons> = {
@@ -93,7 +94,7 @@ export class UpgradeConfirmSubscriptionPage implements ClassComponent<OrderConfi
 									color: theme.on_surface_variant,
 								},
 								injectionsRight: () => {
-									return isExternalPayment
+									return attrs.visiblePaymentMethods < 2
 										? undefined
 										: m(IconButton, {
 												icon: Icons.PenFilled,

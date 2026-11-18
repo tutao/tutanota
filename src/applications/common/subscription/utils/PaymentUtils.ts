@@ -298,12 +298,18 @@ export function getVisiblePaymentMethods({
 	name: string
 	value: { paymentMethod: PaymentMethodType; form: PaymentDataInput }
 }> {
-	const isFreeAccount = locator.logins.getUserController().isFreeAccount()
+	const isFreePlan = locator.logins.getUserController().isFreeAccount()
 	const currentPaymentMethod = accountingInfo?.paymentMethod
 	const availablePaymentMethods = []
-	// Only show credit cards for users that have no payment method and are not on an app
-	// Or have a non-external payment method already set
-	if ((!currentPaymentMethod && !EnvProvider.get().isExternalPaymentSetup()) || !isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType)) {
+	// Only show credit cards or PayPal for users that either
+	// Have no payment method and are not on an app
+	// Have a payment method set that is non-external
+	// Have an external payment method, are on a free plan and are on web/desktop
+	if (
+		(!currentPaymentMethod && !EnvProvider.get().isExternalPaymentSetup()) ||
+		(currentPaymentMethod && !isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType)) ||
+		(isFreePlan && isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType) && EnvProvider.get().getPaymentSetup() === PaymentSetup.Default)
+	) {
 		availablePaymentMethods.push({
 			name: lang.get("paymentMethodCreditCard_label"),
 			value: { paymentMethod: PaymentMethodType.CreditCard, form: PaymentDataInput.CreditCard },
@@ -332,23 +338,17 @@ export function getVisiblePaymentMethods({
 		})
 	}
 
-	// Show Google or Apple only if the payment setup is Google/Apple
+	// Show Google or Apple only if
+	// the payment setup is Google/Apple
 	// and the user don't have an external payment method already set
-	if (
-		EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore &&
-		!isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType) &&
-		isFreeAccount
-	) {
+	// and the user is a free account
+	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore && isFreePlan) {
 		// ** Google Play Store **
 		availablePaymentMethods.push({
 			name: "Google",
 			value: { paymentMethod: PaymentMethodType.GooglePlay, form: PaymentDataInput.GooglePlay },
 		})
-	} else if (
-		EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore &&
-		!isExternalPaymentMethod(currentPaymentMethod as PaymentMethodType) &&
-		isFreeAccount
-	) {
+	} else if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore && isFreePlan) {
 		// ** App Store **
 		availablePaymentMethods.push({
 			name: "App Store",

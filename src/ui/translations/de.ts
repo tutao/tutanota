@@ -2595,12 +2595,12 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"accessGone_msg": "Dieses Konto wurde auf Veranlassung des Kontoinhabers deaktiviert.",
 		"migrationProtonStartTLSError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden.\nWenn du von Proton durch Proton Mail Bridge migrierst, stelle bitte sicher, dass der IMAP-Verbindungsmodus auf SSL eingestellt ist.\nDies kannst du in Proton Mail Bridge unter „Erweiterte Einstellungen“ -> „Verbindungsmodus“ vornehmen.",
-		"googlePaymentMethod_msg": "Du kannst beim Bezahlen den Google Play Store als Zahlungsmethode verwenden",
-		"switchToGooglePayment_msg": "Wenn du Google Play Store als Zahlungsmethode auswählst, ändern sich die Preise für dein Abonnement. Außerdem kannst du danach nicht mehr zu einer anderen Zahlungsmethode wechseln.\n\nMöchtest du fortfahren?",
-		"switchToApplePayment_msg": "Wenn du den App Store als Zahlungsmethode auswählst, ändern sich die Preise für dein Abonnement. Außerdem kannst du danach nicht mehr zu einer anderen Zahlungsmethode wechseln.\n\nMöchtest du fortfahren?",
-		"applePaymentMethod_msg": "Du kannst beim Bezahlen den App Store als Zahlungsmethode verwenden.",
+		"googlePaymentMethod_msg": "Du kannst beim Bezahlen den Google Play Store als Zahlungsmethode verwenden. Dadurch können sich die Preise der Abonnements verändern.",
+		"applePaymentMethod_msg": "Du kannst beim Bezahlen den App Store als Zahlungsmethode verwenden. Dadurch können sich die Preise der Abonnements verändern.",
 		"feedbackForUs_label": "Hast du Feedback?",
 		"feedbackNoReply_msg": "Wir antworten dir nicht auf deine Nachricht, aber sie wird geprüft und mit dem Team geteilt.",
+		"showAppStorePrice_action": "App Store Preise anzeigen",
+		"showGooglePrice_action": "Google Play Store Preise anzeigen",
 		"rateOnTrustPilot_action": "Bewerte auf TrustPilot",
 	}
 }

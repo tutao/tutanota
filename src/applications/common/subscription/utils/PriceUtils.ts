@@ -15,7 +15,7 @@ import {
 	UpgradePriceService_GET,
 	UpgradePriceServiceReturn,
 } from "@tutao/entities/sys"
-import { BookingItemFeatureType, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
+import { BookingItemFeatureType, isExternalPaymentMethod, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { PlanTypeToName } from "./SubscriptionUtils"
 import { reverse } from "../../misc/EnumUtils"
 
@@ -206,10 +206,15 @@ export class PriceAndConfigProvider {
 	/**
 	 * Returns the subscription price with the currency formatting on iOS/google and as a plain period seperated number on other platforms
 	 */
-	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, targetPlanType: PlanType): OfferPrice {
-		if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+	getSubscriptionPriceWithCurrency(
+		paymentInterval: PaymentInterval,
+		type: UpgradePriceType,
+		targetPlanType: PlanType,
+		selectedPaymentMethod: PaymentMethodType | null,
+	): OfferPrice {
+		if (!selectedPaymentMethod) {
 			return { displayPrice: "?", rawPrice: "?" }
-		} else if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		} else if (isExternalPaymentMethod(selectedPaymentMethod)) {
 			return this.getExternalPaymentsSubscriptionPrice(targetPlanType, paymentInterval)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, targetPlanType, type)

@@ -25,6 +25,7 @@ import { Styles } from "../../../ui/styles"
 import { layout_size } from "../../../ui/size"
 import { locator } from "../api/main/CommonLocator"
 import { upgrade } from "../subscription/SubscriptionConfirmationUtils"
+import { getVisiblePaymentMethods } from "../subscription/utils/PaymentUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -69,6 +70,12 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					}
 					return upgrade(data, data.referralData?.code ?? null)
 				},
+				visiblePaymentMethods: getVisiblePaymentMethods({
+					isBusiness: data.options.businessUse(),
+					isBankTransferAllowed: !data.firstMonthForFreeOfferActive,
+					accountingInfo: data.accountingInfo,
+					upgradeType: data.upgradeType,
+				}).length,
 			})
 		},
 	}

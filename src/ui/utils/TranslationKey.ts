@@ -2594,3 +2594,5 @@ export type TranslationKeyType =
 	| "switchToGooglePayment_msg"
 	| "switchToApplePayment_msg"
 	| "rateOnTrustPilot_action"
+	| "showAppStorePrice_action"
+	| "showGooglePrice_action"

@@ -127,10 +127,9 @@ class InvoiceAndPaymentDataPage implements ClassComponent<WizardStepComponentAtt
 				return this.renderCreditCardForm(ctx)
 			case PaymentDataInput.Other:
 				return this.renderOtherPaymentForm()
-			case PaymentDataInput.GooglePlay:
-				return this.renderGooglePaymentForm(ctx)
 			case PaymentDataInput.AppStore:
-				return this.renderAppstorePaymentForm(ctx)
+			case PaymentDataInput.GooglePlay:
+				return this.renderExternalPaymentForm(ctx)
 			default:
 				throw new ProgrammingError(`unknown payment method: ${method}`)
 		}
@@ -254,49 +253,36 @@ class InvoiceAndPaymentDataPage implements ClassComponent<WizardStepComponentAtt
 		])
 	}
 
-	private renderGooglePaymentForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
+	private renderExternalPaymentForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
+		const paymentMethod = ctx.viewModel.paymentData.paymentMethod
 		return m(`.flex.col${this.formGap}`, [
 			m(
 				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
-				m("", [
+				m(".flex.col.gap-8", [
 					m(".h4.pb-8", "Google"),
-					m(".small.pb-8", lang.getTranslationText("googlePaymentMethod_msg")),
-					m(PrimaryButton, {
+					m(
+						".small.pb-8",
+						paymentMethod === PaymentMethodType.GooglePlay
+							? lang.getTranslationText("googlePaymentMethod_msg")
+							: lang.getTranslationText("applePaymentMethod_msg"),
+					),
+					m(SecondaryButton, {
 						size: "md",
-						label: "continue_action",
+						label: paymentMethod === PaymentMethodType.GooglePlay ? "showGooglePrice_action" : "showAppStorePrice_action",
 						width: Styles.get().isMobileLayout() ? "full" : "flex",
-						onclick: async () => {
-							const result = await Dialog.confirm(lang.getTranslation("switchToGooglePayment_msg"))
-							if (result) {
-								ctx.goNext()
-							}
+						onclick: () => {
+							ctx.goPrev()
 						},
 						style: {
 							"margin-left": "auto",
 						},
 					}),
-				]),
-			),
-		])
-	}
-
-	private renderAppstorePaymentForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
-		return m(`.flex.col${this.formGap}`, [
-			m(
-				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
-				m("", [
-					m(".h4.pb-8", "App Store"),
-					//FIXME translations
-					m(".small.pb-8", lang.getTranslationText("applePaymentMethod_msg")),
 					m(PrimaryButton, {
 						size: "md",
 						label: "continue_action",
 						width: Styles.get().isMobileLayout() ? "full" : "flex",
-						onclick: async () => {
-							const result = await Dialog.confirm(lang.getTranslation("switchToApplePayment_msg"))
-							if (result) {
-								ctx.goNext()
-							}
+						onclick: () => {
+							ctx.goNext()
 						},
 						style: {
 							"margin-left": "auto",

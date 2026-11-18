@@ -100,6 +100,15 @@ const SettingsPlanSelectorPage: m.Component<WizardStepComponentAttrs<UpgradeView
 		m(PlanSelectorPage, {
 			...attrs,
 			forceMobileBusinessLayout: true,
+			selectedPaymentMethod: attrs.ctx.viewModel.paymentData.paymentMethod,
+		}),
+}
+
+const SignupPlanSelector: m.Component<WizardStepComponentAttrs<UpgradeViewModel>> = {
+	view: ({ attrs }) =>
+		m(PlanSelectorPage, {
+			...attrs,
+			selectedPaymentMethod: attrs.ctx.viewModel.paymentData.paymentMethod,
 		}),
 }
 
@@ -122,6 +131,12 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 					await locator.customerFacade.changePaymentInterval(assertNotNull(ctx.viewModel.accountingInfo), ctx.viewModel.options.paymentInterval())
 				},
 				onConfirm: async () => (ctx.viewModel.upgradeSuccessful = await upgrade(ctx.viewModel)),
+				visiblePaymentMethods: getVisiblePaymentMethods({
+					isBusiness: ctx.viewModel.options.businessUse(),
+					isBankTransferAllowed: !ctx.viewModel.firstMonthForFreeOfferActive,
+					accountingInfo: ctx.viewModel.accountingInfo,
+					upgradeType: ctx.viewModel.upgradeType,
+				}).length,
 			}),
 	}
 
@@ -134,7 +149,7 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 				steps: [
 					{
 						title: "Select Plan",
-						content: layout === UpgradeWizardLayout ? SettingsPlanSelectorPage : PlanSelectorPage,
+						content: layout === UpgradeWizardLayout ? SettingsPlanSelectorPage : SignupPlanSelector,
 						onNext: () => viewModel.updatePrice(),
 						onPrev: () => {
 							if (viewModel.options.businessUse() && viewModel.personalPlansAvailable) {
@@ -148,6 +163,7 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 					{
 						title: "Payment",
 						content: InvoiceAndPaymentDataPage,
+						onNext: () => viewModel.updatePrice(),
 						isEnabled: () => {
 							const visiblePaymentMethods = getVisiblePaymentMethods({
 								isBusiness: viewModel.options.businessUse(),

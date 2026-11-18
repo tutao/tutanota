@@ -11,11 +11,12 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { px } from "../../../ui/size"
 import { Styles } from "../../../ui/styles"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
-import { AvailablePlanType, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
+import { AvailablePlanType, PaymentMethodType, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 import { PaymentInterval } from "../subscription/utils/PriceUtils"
 
 export interface PlanSelectorPageAttrs extends WizardStepComponentAttrs<PlanSelectionModel> {
 	forceMobileBusinessLayout?: boolean
+	selectedPaymentMethod?: PaymentMethodType
 }
 
 export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
@@ -25,7 +26,7 @@ export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
 		const data = ctx.viewModel
 		const { planPrices, acceptedPlans, accountingInfo } = data
 		let availablePlans = acceptedPlans
-		const isApplePrice = shouldShowExternalStorePrices(accountingInfo ?? null)
+		const isApplePrice = shouldShowExternalStorePrices(vnode.attrs.selectedPaymentMethod)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
 		const somePlanHasDiscount = hasRelevantGlobalFirstYearCampaign(
 			discountDetails,

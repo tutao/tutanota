@@ -108,7 +108,7 @@ export async function showSwitchDialog({
 	const paymentInterval = stream(parseInt(accountingInfo.paymentInterval)) // always default to yearly
 	const options = { businessUse, paymentInterval }
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
-	const isExternalStorePrice = shouldShowExternalStorePrices(accountingInfo)
+	const isExternalStorePrice = shouldShowExternalStorePrices(paymentMethod)
 	const discountDetails = getDiscountDetails(isExternalStorePrice, priceAndConfigProvider)
 
 	if (currentPlanInfo.planType != null && LegacyPlans.includes(currentPlanInfo.planType)) {

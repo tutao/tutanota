@@ -105,7 +105,7 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 		if (!priceAndConfigProvider) return null
 
 		const availablePlans = viewModel.acceptedPlans.filter((plan) => NewPersonalPlans.includes(plan))
-		const isApplePrice = shouldShowExternalStorePrices(viewModel.accountingInfo ?? null)
+		const isApplePrice = shouldShowExternalStorePrices(attrs.viewModel.paymentData.paymentMethod)
 		const discountDetails = getDiscountDetails(isApplePrice, priceAndConfigProvider)
 		const isYearly = viewModel.options.paymentInterval() === PaymentInterval.Yearly
 		const anyPaidPlanHasCampaign =

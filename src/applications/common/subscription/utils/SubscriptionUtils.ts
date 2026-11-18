@@ -584,12 +584,15 @@ export function isAppStorePayment(accountingInfo: AccountingInfo | null): boolea
 /**
  * Returns whether the apple prices should be displayed when upgrading or switching a subscription.
  */
-export function shouldShowExternalStorePrices(accountingInfo: AccountingInfo | null): boolean {
-	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
-	return (
-		EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default &&
-		(!paymentMethod || paymentMethod === PaymentMethodType.AppStore || paymentMethod === PaymentMethodType.GooglePlay)
-	)
+export function shouldShowExternalStorePrices(selectedPaymentMethod: PaymentMethodType | undefined): boolean {
+	const paymentSetup = EnvProvider.get().getPaymentSetup()
+	if (paymentSetup === PaymentSetup.Default) {
+		return false
+	} else if (!selectedPaymentMethod && EnvProvider.get().isExternalPaymentSetup()) {
+		return true
+	} else {
+		return selectedPaymentMethod === PaymentMethodType.AppStore || selectedPaymentMethod === PaymentMethodType.GooglePlay
+	}
 }
 /**
  * Returns whether the apple price has an introductory offer. This should be used to check whether any campaign is running.

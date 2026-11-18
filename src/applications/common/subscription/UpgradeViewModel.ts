@@ -72,11 +72,17 @@ export class UpgradeViewModel implements PlanSelectionModel, PaymentDetailsModel
 	}
 
 	updatePrice(): void {
-		this.price = this.planPrices.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanActualPrice, this.targetPlanType)
+		this.price = this.planPrices.getSubscriptionPriceWithCurrency(
+			this.options.paymentInterval(),
+			UpgradePriceType.PlanActualPrice,
+			this.targetPlanType,
+			this.paymentData.paymentMethod,
+		)
 		const nextYear = this.planPrices.getSubscriptionPriceWithCurrency(
 			this.options.paymentInterval(),
 			UpgradePriceType.PlanNextYearsPrice,
 			this.targetPlanType,
+			this.paymentData.paymentMethod,
 		)
 		this.nextYearPrice = this.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 	}
