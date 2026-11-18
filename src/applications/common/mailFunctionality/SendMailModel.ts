@@ -1,10 +1,11 @@
-import { ApprovalStatus, EnvProvider, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { ApprovalStatus, EnvProvider, FeatureType, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
 	ContactTypeRef,
 	ConversationEntry,
 	ConversationEntryTypeRef,
+	CustomEmailSignatureTypeRef,
 	File,
 	FileTypeRef,
 	Mail,
@@ -27,7 +28,7 @@ import {
 	ReplyType,
 	VerificationRecipients,
 } from "../../../entities/tutanota/Utils"
-import { CustomerPropertiesTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
+import { CompanyEmailSignatureTypeRef, CustomerPropertiesTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import {
 	assertNotNull,
 	cleanMailAddress,
@@ -109,6 +110,7 @@ import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"
 import { isDriveEnabled } from "../misc/DriveUtils"
+import { EmailSignature, getDefaultEmailSignature, isCompanyEmailSignature, loadCustomEmailSignatures } from "../../mail-app/mail/signature/Signature"
 
 EnvProvider.assertMainOrNode()
 
@@ -171,7 +173,7 @@ export class SendMailModel {
 	private senderAddress: string
 	private confidential: boolean
 	private sendAt: Date | null = null
-
+	private emailSignatures: LazyLoaded<EmailSignature[]> = new LazyLoaded(async () => loadCustomEmailSignatures(this.entity, this.user()))
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
 	// We want to keep track of these for use in the mail editor, to allowing undo of deleting images
@@ -640,6 +642,7 @@ export class SendMailModel {
 				: this.getDefaultSender()
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
 		this.attachments = []
+		await this.emailSignatures.reload()
 
 		if (attachments) {
 			this.nonInlineAttachmentsCids = new Set(
@@ -917,6 +920,16 @@ export class SendMailModel {
 
 	getSendAtDate(): Date | null {
 		return this.sendAt
+	}
+
+	getAvailableEmailSignatures() {
+		const defaultTutaSignature: EmailSignature[] = !this.logins.isEnabled(FeatureType.DisableDefaultSignature) ? [getDefaultEmailSignature()] : []
+		const loaded = this.emailSignatures.isLoaded() ? this.emailSignatures.getLoaded() : []
+
+		return loaded
+			.filter(isCompanyEmailSignature)
+			.concat(defaultTutaSignature)
+			.concat(loaded.filter((signature) => !isCompanyEmailSignature(signature)))
 	}
 
 	setDefaultSendAtDate(): void {
@@ -1443,6 +1456,9 @@ export class SendMailModel {
 						this.senderAddress = this.getDefaultSender()
 					}
 				}
+			}
+			if (isUpdateForTypeRef(CustomEmailSignatureTypeRef, update) || isUpdateForTypeRef(CompanyEmailSignatureTypeRef, update)) {
+				await this.emailSignatures.reload()
 			}
 			this.markAsChangedIfNecessary(changed)
 		}

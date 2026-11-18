@@ -1282,15 +1282,23 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async handleFileDrop(fileDrop: FileDropData) {
 		try {
-			const [mailbox, dataFiles, { appendEmailSignature }, { newMailEditorFromTemplate }] = await Promise.all([
-				this.mailViewModel.getMailboxDetails(),
-				readLocalFiles(fileDrop.files),
-				import("../signature/Signature"),
-				import("../editor/MailEditor"),
-			])
+			const [mailbox, dataFiles, { appendEmailSignature, loadCustomEmailSignatures, EmailSignatureContext }, { newMailEditorFromTemplate }] =
+				await Promise.all([
+					this.mailViewModel.getMailboxDetails(),
+					readLocalFiles(fileDrop.files),
+					import("../signature/Signature"),
+					import("../editor/MailEditor"),
+				])
 
 			if (mailbox != null) {
-				const dialog = await newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", locator.logins.getUserController().props), dataFiles)
+				const props = locator.logins.getUserController().props
+				const signature = appendEmailSignature(
+					"",
+					props,
+					await loadCustomEmailSignatures(locator.entityClient, locator.logins.getUserController()),
+					EmailSignatureContext.NewMail,
+				)
+				const dialog = await newMailEditorFromTemplate(mailbox, {}, "", signature, dataFiles)
 				dialog?.show()
 			}
 		} catch (e) {

@@ -1,9 +1,11 @@
 import { Const, EnvProvider } from "@tutao/app-env"
-import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
+import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
 import { AesKey, Bcrypt, createAuthVerifier, CryptoWrapper, KeyEncryption, Randomizer, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
+import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions.js"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
@@ -13,11 +15,37 @@ import { RecoverCodeFacade, RecoverData } from "../../../../../../platform-kit/b
 import { AdminKeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../../platform-kit/base/base-crypto/IdentityKeyCreator"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
-import { createResetPasswordPostIn, createUserDataDelete, ResetPasswordService_POST, User, UserService_DELETE } from "@tutao/entities/sys"
+import {
+	CompanyEmailSignatureManagementService_DELETE,
+	CompanyEmailSignatureManagementService_POST,
+	CompanyEmailSignatureService_POST,
+	CompanyEmailSignatureService_PUT,
+	CompanyEmailSignatureTemplate,
+	CompanyEmailSignatureTemplateTypeRef,
+	CompanyEmailSignatureTypeRef,
+	createCompanyEmailSignatureManagementDeleteIn,
+	createCompanyEmailSignatureManagementPostIn,
+	createCompanyEmailSignaturePostIn,
+	createCompanyEmailSignaturePutIn,
+	createCompanyEmailSignatureTemplateTransferAggregatedType,
+	createCompanyEmailSignatureTransferAggregatedType,
+	createResetPasswordPostIn,
+	createUpdateCompanyEmailSignatureTransferAggregatedType,
+	createUserDataDelete,
+	CustomerInfoTypeRef,
+	CustomerTypeRef,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupTypeRef,
+	ResetPasswordService_POST,
+	User,
+	UserService_DELETE,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { GroupType } from "../../../../../../entities/sys/Utils"
 import { createUserAccountCreateData, createUserAccountUserData, UserAccountService_POST, UserAccountUserData } from "@tutao/entities/tutanota"
 import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kit/base/base-crypto/Constants"
-import { elementIdToId } from "@tutao/meta"
+import { elementIdToId, idToElementId } from "@tutao/meta"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -39,6 +67,7 @@ export class UserManagementFacade {
 		private readonly keyEncryption: KeyEncryption,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly bcrypt: Bcrypt,
+		private readonly entityClient: EntityClient,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -126,6 +155,8 @@ export class UserManagementFacade {
 		})
 		const { userGroup } = await this.serviceExecutor.execute(UserAccountService_POST, data, null)
 
+		await this.createCompanyEmailSignatureForNewUser(userGroup, name, mailAddress)
+
 		await this.identityKeyCreator.createIdentityKeyPair(
 			userGroup,
 			{
@@ -136,6 +167,114 @@ export class UserManagementFacade {
 		)
 
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
+	}
+
+	async createCompanyEmailSignatureTemplate(signatureTemplate: string): Promise<void> {
+		const customerGroupId = this.userFacade.getGroupId(GroupType.Customer)
+		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(customerGroupId)
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(customerGroupKey, sessionKey)
+		const postIn = createCompanyEmailSignatureManagementPostIn({
+			companyEmailSignatureTemplate: createCompanyEmailSignatureTemplateTransferAggregatedType({
+				_ownerEncSessionKey: ownerEncSessionKey.key,
+				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
+				signatureTemplate: signatureTemplate,
+			}),
+		})
+		await this.serviceExecutor.execute(CompanyEmailSignatureManagementService_POST, postIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			...(await this.keyLoaderFacade.assembleServiceEncryptionParamsForPost(customerGroupId)),
+		})
+		// We create company email signatures per user, and the CompanyEmailSignature instance is encrypted with the user's sk
+		for (const userGroupInfo of await this.loadUserGroupInfos()) {
+			await this.createCompanyEmailSignatureForUser(userGroupInfo.group, userGroupInfo.name, userGroupInfo.mailAddress ?? "", signatureTemplate)
+		}
+	}
+
+	async updateCompanyEmailSignatureTemplate(companyEmailSignatureTemplate: CompanyEmailSignatureTemplate, newSignatureTemplate: string): Promise<void> {
+		companyEmailSignatureTemplate.signatureTemplate = newSignatureTemplate
+		await this.entityClient.update(companyEmailSignatureTemplate)
+
+		for (const userGroupInfo of await this.loadUserGroupInfos()) {
+			const user = await this.loadUserOfGroup(userGroupInfo.group)
+			if (user.companyEmailSignature == null) {
+				await this.createCompanyEmailSignatureForUser(userGroupInfo.group, userGroupInfo.name, userGroupInfo.mailAddress ?? "", newSignatureTemplate)
+			} else {
+				await this.updateCompanyEmailSignatureForUser(userGroupInfo.group, user.companyEmailSignature, newSignatureTemplate)
+			}
+		}
+	}
+
+	async deleteCompanyEmailSignatureTemplate(): Promise<void> {
+		// the payload is empty, because we load the userGroupInfos and users on the server, see SystemApplication
+		await this.serviceExecutor.execute(CompanyEmailSignatureManagementService_DELETE, createCompanyEmailSignatureManagementDeleteIn({}), null)
+	}
+
+	private async createCompanyEmailSignatureForNewUser(userGroupId: Id, name: string, mailAddress: string): Promise<void> {
+		try {
+			const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getLoggedInUser().customer)))
+			const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+			if (customerInfo.companyEmailSignatureTemplate == null) {
+				return
+			}
+			const companyEmailSignatureTemplate = await this.entityClient.load(
+				CompanyEmailSignatureTemplateTypeRef,
+				idToElementId(customerInfo.companyEmailSignatureTemplate),
+			)
+			await this.createCompanyEmailSignatureForUser(userGroupId, name, mailAddress, companyEmailSignatureTemplate.signatureTemplate)
+		} catch (e) {
+			console.warn("could not create company signature template for new user", e)
+		}
+	}
+
+	private async loadUserOfGroup(userGroupId: Id): Promise<User> {
+		const group = await this.entityClient.load(GroupTypeRef, idToElementId(userGroupId))
+		return await this.entityClient.load(UserTypeRef, idToElementId(assertNotNull(group.user, "user group without user")))
+	}
+
+	private async loadUserGroupInfos(): Promise<GroupInfo[]> {
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getLoggedInUser().customer)))
+		return await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
+	}
+
+	private async createCompanyEmailSignatureForUser(userGroupId: Id, name: string, email: string, signatureTemplate: string): Promise<void> {
+		const userGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupId)
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, this.symmetricCipherUtils.aes256RandomKey())
+		const postIn = createCompanyEmailSignaturePostIn({
+			userGroup: userGroupId,
+			companyEmailSignature: createCompanyEmailSignatureTransferAggregatedType({
+				_ownerEncSessionKey: ownerEncSessionKey.key,
+				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
+				name,
+				email,
+				signatureTemplate,
+			}),
+		})
+		await this.serviceExecutor.execute(CompanyEmailSignatureService_POST, postIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			...(await this.adminKeyLoaderFacade.assembleServiceEncryptionParamsForPost(userGroupId, null)),
+		})
+	}
+
+	private async updateCompanyEmailSignatureForUser(userGroupId: Id, companyEmailSignatureId: Id, signatureTemplate: string): Promise<void> {
+		const companyEmailSignature = await this.entityClient.load(CompanyEmailSignatureTypeRef, idToElementId(companyEmailSignatureId))
+		const kdfNonce = await this.entityClient.ensureKdfNonce(companyEmailSignature)
+		const putIn = createCompanyEmailSignaturePutIn({
+			userGroup: userGroupId,
+			companyEmailSignature: companyEmailSignatureId,
+			companyEmailSignatureWithNewTemplate: createUpdateCompanyEmailSignatureTransferAggregatedType({
+				_ownerEncSessionKey: companyEmailSignature._ownerEncSessionKey,
+				_ownerKeyVersion: companyEmailSignature._ownerKeyVersion,
+				_kdfNonce: kdfNonce,
+				signatureTemplate,
+			}),
+		})
+		await this.serviceExecutor.execute(CompanyEmailSignatureService_PUT, putIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			...(await this.adminKeyLoaderFacade.assembleServiceEncryptionParamsForPut(userGroupId, null, companyEmailSignature)),
+		})
 	}
 
 	async generateUserAccountData(

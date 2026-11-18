@@ -16,7 +16,6 @@ import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
-import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
 import { deviceConfig, ListAutoSelectBehavior, MailListDisplayMode } from "../../common/misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
@@ -50,7 +49,6 @@ EnvProvider.assertMainOrNode()
 const MINIMUM_DISPLAYED_STORAGE_IN_BYTES = 10000
 
 export class MailSettingsViewer implements UpdatableSettingsViewer {
-	_signature: Stream<string>
 	_mailboxProperties: LazyLoaded<MailboxProperties>
 	_reportMovedMails: ReportMovedMailsType
 	_defaultSender: string
@@ -69,7 +67,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	constructor() {
 		this._defaultSender = getDefaultSenderFromUser(mailLocator.logins.getUserController())
-		this._signature = stream(getSignatureType(mailLocator.logins.getUserController().props).name)
 		this._reportMovedMails = getReportMovedMailsType(null) // loaded later
 		this._defaultUnconfidential = mailLocator.logins.getUserController().props.defaultUnconfidential
 		this._sendPlaintext = mailLocator.logins.getUserController().props.sendPlaintextOnly
@@ -154,20 +151,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
 			dropdownWidth: 300,
-		}
-
-		const changeSignatureButtonAttrs: IconButtonAttrs = {
-			label: "userEmailSignature_label",
-			click: () => showEditSignatureDialog(mailLocator.logins.getUserController().props),
-			icon: Icons.PenFilled,
-			size: ButtonSize.Compact,
-		}
-		const signatureAttrs: LegacyTextFieldAttrs = {
-			label: "userEmailSignature_label",
-			value: this._signature(),
-			oninput: this._signature,
-			isReadOnly: true,
-			injectionsRight: () => [m(IconButton, changeSignatureButtonAttrs)],
 		}
 
 		const editOutOfOfficeNotificationButtonAttrs: IconButtonAttrs = {
@@ -348,7 +331,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
 					m(".h4.mt-32#emailsending", lang.get("emailSending_label")),
 					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
-					m("#signature", m(LegacyTextField, signatureAttrs)),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
 					m("#spamreports", m(DropDownSelector, reportMovedMailsAttrs)),
@@ -464,8 +446,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._noAutomaticContacts = props.noAutomaticContacts
 
 		this._sendPlaintext = props.sendPlaintextOnly
-
-		this._signature(getSignatureType(props).name)
 	}
 
 	_updateMailboxPropertiesSettings() {

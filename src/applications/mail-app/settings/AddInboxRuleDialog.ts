@@ -545,7 +545,7 @@ export async function show(
 
 		const isNewInboxRule = originalInboxRule == null
 		const dialog = Dialog.showActionDialog({
-			type: DialogType.InboxRule,
+			type: DialogType.Popup_L,
 			title: isNewInboxRule ? "addInboxRule_action" : "editInboxRule_action",
 			child: form,
 			okAction: null,

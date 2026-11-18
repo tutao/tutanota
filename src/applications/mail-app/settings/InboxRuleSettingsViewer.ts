@@ -92,9 +92,9 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		const isMobile = ClientDetector.get().isMobileDevice()
 
 		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
-		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback" : ""}`
+		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".overflow-y-scroll-settings-page.scrollbar-gutter-stable-or-fallback" : ""}`
 		// no gap to make drag&drop between the lines work, the components have padding that makes up for it
-		const inboxRuleListClasses = `.mt-12.flex-v-start${isMobile ? "" : ".overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback"}`
+		const inboxRuleListClasses = `.mt-12.flex-v-start${isMobile ? "" : ".overflow-y-scroll-settings-page.scrollbar-gutter-stable-or-fallback"}`
 
 		return m("", [
 			m(

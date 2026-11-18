@@ -31,7 +31,7 @@ import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
 import { MobileActionBar } from "../../../../ui/MobileActionBar.js"
-import { appendEmailSignature } from "../../mail/signature/Signature.js"
+import { appendEmailSignature, EmailSignatureContext, loadCustomEmailSignatures } from "../../mail/signature/Signature.js"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor.js"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout.js"
 import { theme } from "../../../../ui/theme.js"
@@ -926,13 +926,19 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 export async function writeMail(to: PartialRecipient, subject: string = ""): Promise<void> {
 	const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+	const props = locator.logins.getUserController().props
 	const editor = await newMailEditorFromTemplate(
 		mailboxDetails,
 		{
 			to: [to],
 		},
 		subject,
-		appendEmailSignature("", locator.logins.getUserController().props),
+		appendEmailSignature(
+			"",
+			props,
+			await loadCustomEmailSignatures(locator.entityClient, locator.logins.getUserController()),
+			EmailSignatureContext.NewMail,
+		),
 	)
 	editor?.show()
 }

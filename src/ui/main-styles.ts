@@ -275,7 +275,7 @@ export class MainStyles {
 					"overflow-y": "scroll",
 					"webkit-overflow-scrolling": "touch",
 				},
-				".overflow-y-scroll-inbox-rules": {
+				".overflow-y-scroll-settings-page": {
 					// The scrollbar is always there with "overflow-y": "scroll",
 					// but displays little scrollbar arrows even when there is no scroll bar, which is not visually appealing
 					// this differs from ".scroll" as there is no hyphen in front of webkit

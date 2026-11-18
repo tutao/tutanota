@@ -490,6 +490,7 @@ export const DEFAULT_ERROR = "defaultError"
 export const BIRTHDAY_CALENDAR_BASE_ID = "birthday_calendar"
 export const DEFAULT_BIRTHDAY_CALENDAR_COLOR = "FF9933"
 export const MAX_LABELS_PER_FREE_USER = 3
+export const MAX_CUSTOM_EMAIL_SIGNATURES_PER_FREE_USER = 1
 export const MAX_LABELS_PER_MAIL = 5
 export const TUTA_MAIL_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
 export const TUTA_MAIL_APP_STORE_URL = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
@@ -575,6 +576,8 @@ export enum UpgradePromptType {
 	SUBSCRIPTION_VIEWER,
 	APPLE_IN_APP_EVENT,
 	DRIVE,
+	COMPANY_SIGNATURE,
+	MORE_SIGNATURES_NEEDED,
 }
 
 /**

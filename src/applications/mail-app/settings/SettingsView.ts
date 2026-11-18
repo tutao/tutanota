@@ -82,6 +82,7 @@ import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import MigrationSettingsViewer from "./migration/MigrationSettingsViewer.js"
 import { InboxRuleSettingsViewer } from "./InboxRuleSettingsViewer"
 import { SpamFilteringSettingsViewer } from "./SpamFilteringSettingsViewer"
+import { SignatureSettingsViewer } from "./SignatureSettingsViewer"
 
 EnvProvider.assertMainOrNode()
 
@@ -136,6 +137,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.BugFilled,
 				"spamfiltering",
 				() => new SpamFilteringSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient),
+				undefined,
+			),
+			new SettingsFolder(
+				() => "userEmailSignature_label",
+				() => Icons.PenFilled,
+				"signatures",
+				() => new SignatureSettingsViewer(mailLocator.entityClient, mailLocator.logins),
 				undefined,
 			),
 			new SettingsFolder(

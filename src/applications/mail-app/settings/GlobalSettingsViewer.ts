@@ -1,5 +1,7 @@
 import { SpamRuleFieldType, SpamRuleType } from "../../../entities/tutanota/Utils"
 import {
+	CompanyEmailSignatureTemplate,
+	CompanyEmailSignatureTemplateTypeRef,
 	createEmailSenderListElement,
 	Customer,
 	CustomerInfo,
@@ -33,7 +35,7 @@ import {
 import stream from "mithril/stream"
 import { formatDateTime } from "../../../ui/utils/Formatter"
 import { Dialog } from "../../../ui/base/Dialog"
-import { LockedError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -55,6 +57,12 @@ import type { UpdatableSettingsViewer } from "../../common/settings/Interfaces.j
 import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
 import { getSpamRuleField } from "../mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CompanyEmailSignatureTemplateSettings } from "./CompanyEmailSignatureTemplateSettings"
+import {
+	removeCompanyEmailSignatureTemplate,
+	showBuyOrSetCompanyEmailSignatureTemplateDialog,
+	showCompanyEmailSignatureTemplateDialog,
+} from "../../common/settings/EditCompanyEmailSignatureTemplateDialog"
 
 EnvProvider.assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -66,6 +74,14 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private readonly props = stream<Readonly<CustomerServerProperties>>()
 	private customer: Customer | null = null
 	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
+	private companyEmailSignatureTemplate: LazyLoaded<CompanyEmailSignatureTemplate | null> = new LazyLoaded(async () => {
+		const customerInfo = await this.customerInfo.reload()
+		return customerInfo.companyEmailSignatureTemplate
+			? locator.entityClient
+					.load(CompanyEmailSignatureTemplateTypeRef, idToElementId(customerInfo.companyEmailSignatureTemplate))
+					.catch(ofClass(NotFoundError, (_) => null))
+			: null
+	})
 
 	private accountMaintenanceUpdateNotifier: AccountMaintenanceUpdateNotifier | null = null
 
@@ -86,6 +102,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	constructor() {
 		this.customerProperties.getAsync().then(m.redraw)
+		this.companyEmailSignatureTemplate.getAsync().then(m.redraw)
 		this.updateCustomerServerProperties()
 		this.view = this.view.bind(this)
 		this.updateDomains()
@@ -160,6 +177,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					infoMsg: "moreInfo_msg",
 					infoLinkId: InfoLink.DomainInfo,
 				}),
+				this.renderCompanyEmailSignatureTemplateSettings(),
 				m(AccountMaintenanceSettings, {
 					customerServerProperties: this.props,
 					setOnUpdateHandler: (fn: AccountMaintenanceUpdateNotifier) => {
@@ -285,6 +303,20 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				})
 			showProgressDialog("loading_msg", loadingPromise).then(() => m.redraw())
 		}
+	}
+
+	renderCompanyEmailSignatureTemplateSettings(): Children {
+		const companyEmailSignatureTemplate = this.companyEmailSignatureTemplate.getSync()
+		if (!this.companyEmailSignatureTemplate.isLoaded()) {
+			return null
+		}
+
+		return m(CompanyEmailSignatureTemplateSettings, {
+			companyEmailSignatureTemplate,
+			onAddCompanyEmailSignatureTemplate: () => showBuyOrSetCompanyEmailSignatureTemplateDialog(),
+			onEditCompanyEmailSignatureTemplate: async (signature) => await showCompanyEmailSignatureTemplateDialog(signature),
+			onRemoveCompanyEmailSignatureTemplate: async () => await removeCompanyEmailSignatureTemplate(),
+		})
 	}
 
 	private async updateDomains(): Promise<void> {
@@ -456,11 +488,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				return this.updateCustomerServerProperties()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this.customerInfo.reset()
-
 				return this.updateDomains()
 			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
-				this.customerProperties.reset()
-				this.customerProperties.getAsync().then(m.redraw)
+				return this.customerProperties.reload().then(m.redraw)
+			} else if (isUpdateForTypeRef(CompanyEmailSignatureTemplateTypeRef, update)) {
+				return this.companyEmailSignatureTemplate.reload().then(m.redraw)
 			}
 			return Promise.resolve()
 		}).then(noOp)
