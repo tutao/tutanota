@@ -5,19 +5,18 @@ import { InvalidDataError, PreconditionFailedError } from "../../../platform-kit
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { lang, LanguageViewModel } from "../../../ui/utils/LanguageViewModel"
 import type { UserController } from "../../common/api/main/UserController"
-import { appendEmailSignature } from "../mail/signature/Signature"
-import { UserError } from "../../common/api/main/UserError"
-import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
-import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest.js"
-
-import { getAvailablePlansWithAutoResponder } from "../../common/subscription/utils/SubscriptionUtils.js"
-
 import {
 	createOutOfOfficeNotification,
 	createOutOfOfficeNotificationMessage,
 	OutOfOfficeNotification,
 	OutOfOfficeNotificationMessage,
 } from "@tutao/entities/tutanota"
+import { appendEmailSignature, EmailSignature, EmailSignatureContext } from "../mail/signature/Signature"
+import { UserError } from "../../common/api/main/UserError"
+import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
+import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest.js"
+
+import { getAvailablePlansWithAutoResponder } from "../../common/subscription/utils/SubscriptionUtils.js"
 import { OutOfOfficeNotificationMessageType } from "../../../entities/tutanota/Utils"
 
 export const enum RecipientMessageType {
@@ -50,6 +49,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 		userController: UserController,
 		languageViewModel: LanguageViewModel,
 		readonly serviceExecutor: IServiceExecutor,
+		private readonly customEmailSignatures: readonly EmailSignature[],
 	) {
 		this._entityClient = entityClient
 		this._userController = userController
@@ -109,7 +109,12 @@ export class EditOutOfOfficeNotificationDialogModel {
 	_setDefaultMessages() {
 		const templateSubject = this._languageViewModel.get("outOfOfficeDefaultSubject_msg")
 
-		const templateMessage = appendEmailSignature(this._languageViewModel.get("outOfOfficeDefault_msg"), this._userController.props)
+		const templateMessage = appendEmailSignature(
+			this._languageViewModel.getTranslationText("outOfOfficeDefault_msg"),
+			this._userController.props,
+			this.customEmailSignatures,
+			EmailSignatureContext.NewMail,
+		)
 		this.organizationSubject(templateSubject)
 		this.defaultSubject(templateSubject)
 		this.defaultMessage(templateMessage)

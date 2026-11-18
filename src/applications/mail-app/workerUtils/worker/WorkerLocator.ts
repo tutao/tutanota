@@ -85,7 +85,6 @@ import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomMailboxMigrationFolderSyncStateCacheHandler } from "./CustomMailboxMigrationFolderSyncStateCacheHandler"
-import type { MailIndexerBackend } from "../index/MailIndexerBackend"
 import { random, SymmetricCipherUtils } from "@tutao/crypto"
 import { IndexedDbConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase"
 import { OfflineConfigurationDatabaseDefinitions } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
@@ -467,6 +466,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.keyEncryption,
 			locator.base.cryptoWrapper,
 			locator.base.bcrypt,
+			locator.base.cachingEntityClient,
 		)
 	})
 
