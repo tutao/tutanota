@@ -126,8 +126,8 @@ function emailSettings(router: Router): readonly QuickAction[] {
 			exec: () => routeToFolderSection(router, folder, "defaultsender"),
 		},
 		{
-			description: `${emailSettingsLabel} ${lang.getTranslationText("userEmailSignature_label")}`,
-			exec: () => routeToFolderSection(router, folder, "signature"),
+			description: `${lang.getTranslationText("userEmailSignature_label")}`,
+			exec: () => routeToFolder(router, "signatures"),
 		},
 		{
 			description: `${emailSettingsLabel} ${lang.getTranslationText("spamReports_label")}`,

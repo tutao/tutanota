@@ -1208,8 +1208,9 @@ export class MailViewerViewModel {
 
 		const mailSubject = this.getSubject() || ""
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(mailSubject)
-		const body = infoLine + '<br><br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
-		const { prependEmailSignature } = await import("../signature/Signature")
+		const { prependEmailSignature, loadCustomEmailSignatures, EmailSignatureContext, markQuoteInfoLine } = await import("../signature/Signature")
+		const body = markQuoteInfoLine(infoLine) + '<br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
+		const customEmailSignatures = await loadCustomEmailSignatures(this.entityClient, this.logins.getUserController())
 		const senderMailAddress = await this.getSenderOfResponseMail()
 		return {
 			previousMail: this.mail,
@@ -1218,7 +1219,7 @@ export class MailViewerViewModel {
 			recipients,
 			attachments: this.attachments.slice(),
 			subject: "FWD: " + mailSubject,
-			bodyText: addSignature ? prependEmailSignature(body, this.logins) : body,
+			bodyText: addSignature ? prependEmailSignature(body, this.logins, customEmailSignatures, EmailSignatureContext.ReplyOrForward) : body,
 			replyTos,
 		}
 	}
@@ -1248,7 +1249,8 @@ export class MailViewerViewModel {
 			const mailSubject = this.getSubject()
 			const subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
 			const infoLine = formatDateTime(this.getDate()) + " " + lang.get("by_label") + " " + sender.address + ":"
-			const body = infoLine + '<br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
+			const { markQuoteInfoLine } = await import("../signature/Signature.js")
+			const body = markQuoteInfoLine(infoLine) + '<blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
 			const toRecipients: MailAddress[] = []
 			const ccRecipients: MailAddress[] = []
 			const bccRecipients: MailAddress[] = []
@@ -1283,7 +1285,8 @@ export class MailViewerViewModel {
 				}
 			}
 
-			const { prependEmailSignature } = await import("../signature/Signature.js")
+			const { prependEmailSignature, loadCustomEmailSignatures, EmailSignatureContext } = await import("../signature/Signature.js")
+			const customEmailSignatures = await loadCustomEmailSignatures(this.entityClient, this.logins.getUserController())
 			const { newMailEditorAsResponse } = await import("../editor/MailEditor")
 
 			const isReloadNeeded = !this.sanitizeResult || this.mail.attachments.length !== this.attachments.length
@@ -1309,7 +1312,7 @@ export class MailViewerViewModel {
 						},
 						attachments: attachmentsForReply,
 						subject,
-						bodyText: prependEmailSignature(body, this.logins),
+						bodyText: prependEmailSignature(body, this.logins, customEmailSignatures, EmailSignatureContext.ReplyOrForward),
 						replyTos: [],
 					},
 					this.isBlockingExternalImages() || !this.isShowingExternalContent(),

@@ -319,6 +319,10 @@ import("../../ui/translations/en.js")
 		}
 
 		mailLocator.logins.addPostLoginAction(async () => {
+			const { CustomSignatureMigrationPostLoginAction } = await import("./mail/signature/CustomSignatureMigrationPostLoginAction.js")
+			return new CustomSignatureMigrationPostLoginAction(mailLocator.logins, mailLocator.entityClient)
+		})
+		mailLocator.logins.addPostLoginAction(async () => {
 			const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction.js")
 			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
 		})

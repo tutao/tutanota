@@ -81,6 +81,7 @@ import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import MigrationSettingsViewer from "./migration/MigrationSettingsViewer.js"
 import { InboxRuleSettingsViewer } from "./InboxRuleSettingsViewer"
+import { SignatureSettingsViewer } from "./SignatureSettingsViewer"
 
 EnvProvider.assertMainOrNode()
 
@@ -128,6 +129,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.FunnelFilled,
 				"inboxrules",
 				() => new InboxRuleSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient, mailLocator.inboxRuleModel, mailLocator.inboxRuleHandler),
+				undefined,
+			),
+			new SettingsFolder(
+				() => "userEmailSignature_label",
+				() => Icons.PenFilled,
+				"signatures",
+				() => new SignatureSettingsViewer(mailLocator.entityClient, mailLocator.logins),
 				undefined,
 			),
 			new SettingsFolder(

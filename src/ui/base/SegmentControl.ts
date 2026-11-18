@@ -24,7 +24,7 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 
 		return [
 			m(
-				".segmentControl.flex.center-horizontally.button-height",
+				".segmentControl.flex.center-horizontally.button-height.mt-8",
 				{
 					role: "tablist",
 					class: vnode.attrs.class,
