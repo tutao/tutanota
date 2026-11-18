@@ -64,6 +64,7 @@ import Stream from "mithril/stream"
 import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorField"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { SettingsExpander } from "../settings/SettingsExpander"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -186,7 +187,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			if (lastSubscriptionFromTutao) {
 				this.changePaymentMethod()
 			} else if (isMatching && !isExpired) {
-				if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Default) {
+				if (Singletons.envProvider.getPaymentSetup() === PaymentSetup.Default) {
 					this.changePaymentMethod()
 					return
 				} else {

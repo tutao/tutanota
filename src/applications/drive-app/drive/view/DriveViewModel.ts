@@ -49,6 +49,7 @@ import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 import { DuplicateFilesDialogDecision, showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -548,7 +549,7 @@ export class DriveViewModel {
 	}
 
 	async filesDropped(files: File[], folderTransferItems: FileSystemDirectoryEntry[]) {
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			const webFileResolver = assertNotNull(this.webFileResolver)
 			const fileRefs = await promiseMap(files, (file) => webFileResolver.resolveWebFile(file))
 

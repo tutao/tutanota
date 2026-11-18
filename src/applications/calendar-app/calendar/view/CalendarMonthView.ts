@@ -46,6 +46,7 @@ import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExport
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../../ui/theme"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -151,7 +152,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			weekdayDaysClasses = "content-bg border-radius-top-12"
 		} else {
 			containerStyle = {
-				paddingBottom: EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
+				paddingBottom: Singletons.envProvider.isIOSApp() && ClientDetector.get().isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
 			}
 			weekdayDaysClasses = "nav-bg"
 		}
@@ -175,7 +176,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					".flex.col.rel.flex-grow.overflow-hidden",
 					{
 						class:
-							(!Styles.get().isUsingBottomNavigation() || (EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp())
+							(!Styles.get().isUsingBottomNavigation() || (Singletons.envProvider.isIOSApp() && ClientDetector.get().isCalendarApp())
 								? "content-bg"
 								: "") + (!isDesktopLayout ? " border-radius-top-12" : ""),
 						style: containerStyle,
@@ -259,7 +260,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					mouseEvent.redraw = false
 
 					let key
-					if (mouseEvent.metaKey && EnvProvider.get().isAppleDevice()) {
+					if (mouseEvent.metaKey && Singletons.envProvider.isAppleDevice()) {
 						key = Keys.META
 					} else if (mouseEvent.ctrlKey) {
 						key = Keys.CTRL

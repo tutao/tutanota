@@ -9,6 +9,7 @@ import { EnvProvider, PaymentSetup, ProgrammingError, TutanotaConstants, Upgrade
 import { BookingTypeRef } from "@tutao/entities/sys"
 import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 import { windowFacade } from "./WindowFacade"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 let upgradeDialogShowing = false
 
@@ -166,9 +167,12 @@ export async function showManageSubscriptionThroughExternalStoreDialog(paymentMe
 }
 
 export function openExternalSubscriptionPage(paymentMethod?: PaymentMethodType | null) {
-	if (paymentMethod === PaymentMethodType.AppStore || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore)) {
+	if (paymentMethod === PaymentMethodType.AppStore || (paymentMethod == null && Singletons.envProvider.getPaymentSetup() === PaymentSetup.Appstore)) {
 		windowFacade.openLink("https://apps.apple.com/account/subscriptions")
-	} else if (paymentMethod === PaymentMethodType.GooglePlay || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore)) {
+	} else if (
+		paymentMethod === PaymentMethodType.GooglePlay ||
+		(paymentMethod == null && Singletons.envProvider.getPaymentSetup() === PaymentSetup.Playstore)
+	) {
 		windowFacade.openLink("https://play.google.com/store/account/subscriptions")
 	}
 }

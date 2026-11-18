@@ -1,11 +1,14 @@
 import {
 	AssociationReprType,
+	AttributeId,
+	AttributeModel,
 	CardinalityEnum,
 	getAssociationRepresentationType,
 	IDENTITY_FIELDS,
 	isSameIdTuple,
 	isSameSingleId,
 	isSameTypeRef,
+	TypeModel,
 	ValueTypeEnum,
 } from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
@@ -102,7 +105,7 @@ export class PatchGenerator {
 				const value = encryptedParsedValue.getNullWhenNull()?.asString() ?? null
 				patches.push(
 					createPatch({
-						attributePath: OutgoingServerJson.networkDebuggedKey(attributeId, clientTypeModel),
+						attributePath: this.networkDebuggedKey(attributeId, clientTypeModel),
 						patchOperation: PatchOperationType.REPLACE,
 						value,
 					}),
@@ -115,7 +118,7 @@ export class PatchGenerator {
 				continue
 			}
 			const attributeId = modelAssociation.id
-			const networkDebuggedAttributeId = OutgoingServerJson.networkDebuggedKey(attributeId, clientTypeModel)
+			const networkDebuggedAttributeId = this.networkDebuggedKey(attributeId, clientTypeModel)
 			const associationReprType = getAssociationRepresentationType(modelAssociation.type)
 
 			if (associationReprType === AssociationReprType.Aggregation) {
@@ -292,6 +295,12 @@ export class PatchGenerator {
 	private isDistinctAggregateIds(array: Array<Id>): boolean {
 		const checkSet = new Set(array)
 		return checkSet.size === array.length
+	}
+	private networkDebuggedKey(attrId: AttributeId, typeModel: TypeModel): string {
+		if (this.instancePipeline.typeMapper.networkDebuggingEnabled()) {
+			return attrId.toString() + ":" + AttributeModel.getAttributeName(typeModel, attrId)
+		}
+		return attrId.toString()
 	}
 }
 

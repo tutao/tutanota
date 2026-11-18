@@ -22,6 +22,7 @@ import { Shortcut } from "../../../../ui/utils/KeyManager"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DriveItemPickerAttrs, DriveItemPickerBehavior, PickedDestinationAction, PickedItemAction, showItemPicker } from "./DriveItemPicker"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export function newItemActions({
 	onUploadFiles,
@@ -51,7 +52,7 @@ export function newItemActions({
 		label: lang.getTranslation("uploadFile_action"),
 		icon: Icons.Upload,
 	})
-	if (EnvProvider.get().isBrowser() || EnvProvider.get().isDesktop()) {
+	if (Singletons.envProvider.isBrowser() || Singletons.envProvider.isDesktop()) {
 		newItemDropdown.push({
 			click: (event, dom) => {
 				onUploadFolders(event, dom)

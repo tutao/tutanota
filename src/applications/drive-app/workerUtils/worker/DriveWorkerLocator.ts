@@ -57,6 +57,7 @@ import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailA
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CachingOfflineStorage } from "../../../../app-kit/local-store/CachingOfflineStorage"
 import { random } from "@tutao/crypto"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -113,13 +114,13 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	if (!EnvProvider.get().isBrowser() && !(EnvProvider.get().getMode() === Mode.Admin)) {
+	if (!Singletons.envProvider.isBrowser() && !(Singletons.envProvider.getMode() === Mode.Admin)) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 	}
 
 	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
 	let offlineStorageProvider: () => Promise<CachingOfflineStorage | null>
-	if (!EnvProvider.get().isBrowser() && !(EnvProvider.get().getMode() === Mode.Admin)) {
+	if (!Singletons.envProvider.isBrowser() && !(Singletons.envProvider.getMode() === Mode.Admin)) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
 				ref: UserTypeRef,
@@ -135,6 +136,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 				new OfflineMapper(locator.base.typeModelResolver),
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
+				Singletons.envProvider,
 			)
 			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
@@ -160,14 +162,14 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	locator.cacheStorage = maybeUninitializedStorage
 
 	const lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider> = lazyMemoized(async () => {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
 		} else {
 			return new NoOpLastProcessedEventBatchStorageFacade()
 		}
 	})
 
-	locator.identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.base.login)
+	locator.identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.base.login, Singletons.envProvider)
 
 	locator.cacheManagement = lazyMemoized(async () => {
 		const { CacheManagementFacade } = await import("../../../common/api/worker/facades/lazy/CacheManagementFacade.js")
@@ -176,6 +178,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 
 	const clientModelInfo = initClientModels(apps)
 	locator.base = await createBaseLocator({
+		envProvider: Singletons.envProvider,
 		worker,
 		clientModelInfo,
 		browserData,
@@ -185,8 +188,8 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		cacheManagement: locator.cacheManagement,
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
-		rsa: await createRsaImplementation(worker, random),
-		fileFacade: EnvProvider.get().isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
+		rsa: await createRsaImplementation(worker, random, Singletons.envProvider),
+		fileFacade: Singletons.envProvider.isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
 		entityMigratorFactory: ({
@@ -349,7 +352,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		locator.base.cache as EntityRestCache,
 		locator.base.user,
 		locator.base.instancePipeline,
-		(path) => new WebSocket(EnvProvider.get().getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(Singletons.envProvider.getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		locator.base.typeModelResolver,
 		locator.base.crypto,
@@ -357,6 +360,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		locator.base.lastProcessedEventBatchStorageFacade,
 		serverDateProvider,
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
+		Singletons.envProvider,
 	)
 
 	locator.Const = TutanotaConstants.Const

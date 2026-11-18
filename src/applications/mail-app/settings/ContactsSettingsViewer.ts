@@ -13,6 +13,7 @@ import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection }
 import { TutanotaProperties, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "../../../platform-kit/meta"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -64,7 +65,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderImportContactsButton(): Children {
-		if (!EnvProvider.get().isApp()) {
+		if (!Singletons.envProvider.isApp()) {
 			return null
 		}
 		return m("#importcontacts.flex.flex-space-between.items-center", [
@@ -78,7 +79,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderContactsSyncDropdown(): Child {
-		if (!EnvProvider.get().isApp()) return null
+		if (!Singletons.envProvider.isApp()) return null
 
 		return m(
 			"#contactsync",
@@ -109,7 +110,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async onContactSyncSelectionChanged(contactSyncEnabled: boolean) {
-		assert(EnvProvider.get().isApp(), "isApp")
+		assert(Singletons.envProvider.isApp(), "isApp")
 		const syncManager = mailLocator.nativeContactsSyncManager()
 
 		if (!contactSyncEnabled) {

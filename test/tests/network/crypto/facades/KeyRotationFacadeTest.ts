@@ -114,6 +114,7 @@ import { _aes128RandomKey } from "../../../crypto/AesTest"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 import { CacheManager } from "../../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
+import { Singletons } from "../../../../../src/platform-kit/singletons/singleton"
 
 const { anything } = matchers
 
@@ -2258,6 +2259,7 @@ o.spec("KeyRotationFacade", function () {
 				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
 				const rolloutAction = new KeyRotationRolloutAction(
+					Singletons.envProvider,
 					keyRotationFacadeMock,
 					userFacadeMock,
 					rolloutType,
@@ -2280,7 +2282,15 @@ o.spec("KeyRotationFacade", function () {
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
 				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
-				const rolloutAction = new KeyRotationRolloutAction(keyRotationFacadeMock, userFacadeMock, rolloutType, passphraseKey, true, SessionType.Login)
+				const rolloutAction = new KeyRotationRolloutAction(
+					Singletons.envProvider,
+					keyRotationFacadeMock,
+					userFacadeMock,
+					rolloutType,
+					passphraseKey,
+					true,
+					SessionType.Login,
+				)
 				await rolloutAction.execute()
 
 				verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything(), matchers.anything()), { times: 0 })
@@ -2295,6 +2305,7 @@ o.spec("KeyRotationFacade", function () {
 				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
 				const rolloutAction = new KeyRotationRolloutAction(
+					Singletons.envProvider,
 					keyRotationFacadeMock,
 					userFacadeMock,
 					rolloutType,
@@ -2316,6 +2327,7 @@ o.spec("KeyRotationFacade", function () {
 				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
 				const rolloutAction = new KeyRotationRolloutAction(
+					Singletons.envProvider,
 					keyRotationFacadeMock,
 					userFacadeMock,
 					rolloutType,

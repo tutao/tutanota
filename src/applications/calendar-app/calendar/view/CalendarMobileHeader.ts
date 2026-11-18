@@ -20,6 +20,7 @@ import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { EnvProvider } from "../../../../platform-kit/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -119,7 +120,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 	}
 
 	private renderDateNavigation(attrs: CalendarMobileHeaderAttrs) {
-		if (EnvProvider.get().isApp() || !(Styles.get().isSingleColumnLayout() || Styles.get().isTwoColumnLayout())) {
+		if (Singletons.envProvider.isApp() || !(Styles.get().isSingleColumnLayout() || Styles.get().isTwoColumnLayout())) {
 			return null
 		}
 

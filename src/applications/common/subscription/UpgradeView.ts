@@ -14,6 +14,7 @@ import { ButtonType } from "../../../ui/base/Button"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { Styles } from "../../../ui/styles"
 import { DefaultAnimationTime } from "../../../ui/animation/Animations"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export interface UpgradeViewAttrs {
 	viewModel: UpgradeViewModel
@@ -143,7 +144,7 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 					{
 						title: "Payment",
 						content: InvoiceAndPaymentDataPage,
-						isEnabled: () => EnvProvider.get().getPaymentSetup() === PaymentSetup.Default,
+						isEnabled: () => Singletons.envProvider.getPaymentSetup() === PaymentSetup.Default,
 					},
 					{ title: "Order Confirmation", content: this.ConfirmationPage },
 				],

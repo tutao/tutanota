@@ -20,6 +20,7 @@ import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { elementIdToId } from "@tutao/meta"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null
@@ -32,12 +33,12 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	constructor() {
 		this.expanded = stream<boolean>(false)
 		this.user = locator.logins.getUserController().user
-		this.model = new NotificationSettingsViewerModel(EnvProvider.get().isBrowser() ? null : locator.pushService, this.user, locator.entityClient)
+		this.model = new NotificationSettingsViewerModel(Singletons.envProvider.isBrowser() ? null : locator.pushService, this.user, locator.entityClient)
 
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 			const promises: Promise<any>[] = [locator.pushService.getExtendedNotificationMode()]
 
-			if (EnvProvider.get().isApp()) {
+			if (Singletons.envProvider.isApp()) {
 				promises.push(
 					locator.systemPermissionHandler.hasPermission(PermissionType.Notification),
 					locator.pushService.getReceiveCalendarNotificationConfig(),
@@ -45,7 +46,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 			}
 			Promise.all(promises).then(([extendedNotificationMode, hasPermission, canReceiveCalendarNotifications]) => {
 				this.extendedNotificationMode = extendedNotificationMode
-				if (EnvProvider.get().isApp()) {
+				if (Singletons.envProvider.isApp()) {
 					if (this.hasNotificationPermission !== hasPermission) this.hasNotificationPermission = hasPermission
 					if (this.receiveCalendarNotifications !== canReceiveCalendarNotifications)
 						this.receiveCalendarNotifications = canReceiveCalendarNotifications
@@ -61,7 +62,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		identifier.disabled = !identifier.disabled
 		locator.entityClient.update(identifier).then(() => m.redraw)
 
-		if (!EnvProvider.get().isBrowser() && identifier.identifier === this.model.getCurrentIdentifier()) {
+		if (!Singletons.envProvider.isBrowser() && identifier.identifier === this.model.getCurrentIdentifier()) {
 			if (identifier.disabled) {
 				locator.pushService.invalidateAlarmsForUser(elementIdToId(this.user._id))
 			} else {
@@ -82,7 +83,8 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		])
 
 		const rows = this.model.getLoadedPushIdentifiers().map((identifier) => {
-			const isCurrentDevice = (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && identifier.identifier === this.model.getCurrentIdentifier()
+			const isCurrentDevice =
+				(Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) && identifier.identifier === this.model.getCurrentIdentifier()
 
 			return m(IdentifierRow, {
 				name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
@@ -116,7 +118,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 							}),
 						)
 					: null,
-				EnvProvider.get().isApp() ? this.renderCalendarNotificationsDropdown() : null,
+				Singletons.envProvider.isApp() ? this.renderCalendarNotificationsDropdown() : null,
 				m("#targets", m(NotificationTargetsList, { rows, rowAdd, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs)),
 			]),
 		])

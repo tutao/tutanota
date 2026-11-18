@@ -4,6 +4,7 @@
  */
 import { EnvProvider } from "@tutao/app-env"
 import { delay } from "@tutao/utils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -41,7 +42,7 @@ function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Pr
 const importErrorHandler = produceThrottledFunction(200, () => import("./ErrorHandlerImpl.js"))
 
 export async function handleUncaughtError(e: Error) {
-	if (EnvProvider.get().isTest()) {
+	if (Singletons.envProvider.isTest()) {
 		throw e
 	}
 

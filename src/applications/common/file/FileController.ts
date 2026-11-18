@@ -17,6 +17,7 @@ import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetecto
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { createReferencingInstance, DownloadableFileEntity } from "../../../entities/storage/BlobUtils"
 import { DiskFolder } from "../../drive-app/drive/view/DriveUtils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -401,7 +402,7 @@ export async function downloadAndDecryptFromArchive(
 }
 
 export async function showNativeFilePicker(fileTypes?: Array<string>, isFileOnly: boolean = false): Promise<ReadonlyArray<DataFile>> {
-	if (EnvProvider.get().isApp()) {
+	if (Singletons.envProvider.isApp()) {
 		const rect = { width: 0, height: 0, left: 0, top: 0 } as DOMRect
 		try {
 			const fileApp = locator.fileApp

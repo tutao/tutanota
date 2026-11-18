@@ -13,6 +13,7 @@ import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMime
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { isNull } from "../../../../platform-kit/utils/Utils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -89,7 +90,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 
 		const pumpkat = isOctober
 			? m("img", {
-					src: `${EnvProvider.get().getPathPrefix()}/images/drive/pumpkat.png`,
+					src: `${Singletons.envProvider.getPathPrefix()}/images/drive/pumpkat.png`,
 					alt: "",
 					rel: "noreferrer",
 					loading: "lazy",

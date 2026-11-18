@@ -14,18 +14,17 @@ const TAG = "[HttpClient]"
  */
 export class HttpClientJavascript implements HttpClient {
 	private lastRequestId: number
-	private readonly verbose: boolean
 	private readonly usingTimeoutAbort: boolean
-
-	constructor(private readonly timeoutValue: number) {
+	private readonly verbose: boolean
+	private readonly isIosApp: boolean
+	public constructor(envProvider: EnvProvider) {
 		this.lastRequestId = 0
-
-		// We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver.
-		this.usingTimeoutAbort = EnvProvider.get().isWebClient() || EnvProvider.get().isAndroidApp()
-
 		// @ts-ignore
 		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
-		this.verbose = EnvProvider.get().isWorker() && debug
+		// We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver.
+		this.usingTimeoutAbort = envProvider.isWebClient() || envProvider.isAndroidApp()
+		this.verbose = EnvProvider.isWorker() && debug
+		this.isIosApp = envProvider.isIOSApp()
 	}
 
 	async request(
@@ -40,7 +39,7 @@ export class HttpClientJavascript implements HttpClient {
 		uploadProgressListener: ProgressListener | null,
 		downloadProgressListener: ProgressListener | null,
 	): Promise<HttpResponse> {
-		url = EnvProvider.get().rewriteSchemeForIos(url)
+		url = HttpClient.rewriteSchemeForIos(url, this.isIosApp)
 
 		return newPromise((resolve, _reject) => {
 			// Make sure to call reject() only once (e.g. if both xhr.onabort and xhr.upload.onabort fire) because
@@ -91,7 +90,7 @@ export class HttpClientJavascript implements HttpClient {
 			}
 
 			if (this.verbose) {
-				console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${this.timeoutValue}`)
+				console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${timeout}`)
 			}
 
 			xhr.onload = async (): Promise<void> => {
@@ -141,7 +140,7 @@ export class HttpClientJavascript implements HttpClient {
 					restartTimeoutTimer()
 
 					if (this.verbose) {
-						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${this.timeoutValue}`)
+						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${timeout}`)
 					}
 
 					if (uploadProgressListener != null && pe.lengthComputable) {
@@ -172,7 +171,7 @@ export class HttpClientJavascript implements HttpClient {
 						if (this.verbose) {
 							console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 						}
-						reject(new ConnectionError(`Reached timeout of ${this.timeoutValue}ms ${xhr.statusText} | ${method} ${url}`))
+						reject(new ConnectionError(`Reached timeout of ${timeout}ms ${xhr.statusText} | ${method} ${url}`))
 					}
 				}
 			}
@@ -185,7 +184,7 @@ export class HttpClientJavascript implements HttpClient {
 				restartTimeoutTimer()
 
 				if (this.verbose) {
-					console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${this.timeoutValue}`)
+					console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${timeout}`)
 				}
 
 				if (downloadProgressListener != null && pe.lengthComputable) {
@@ -199,7 +198,7 @@ export class HttpClientJavascript implements HttpClient {
 				if (abortSignal?.aborted ?? false) {
 					reject(new CancelledError(`Request canceled | ${method} ${url}`))
 				} else {
-					reject(new ConnectionError(`Reached timeout of ${this.timeoutValue}ms ${xhr.statusText} | ${method} ${url}`))
+					reject(new ConnectionError(`Reached timeout of ${timeout}ms ${xhr.statusText} | ${method} ${url}`))
 				}
 			}
 

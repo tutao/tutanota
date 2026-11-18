@@ -347,8 +347,8 @@ export class ClientDetector {
 	}
 
 	public static createSingletonForTest() {
-		assert(EnvProvider.get().isTest(), "This method is only supposed to be used from test")
-		ClientDetector.singleton = new ClientDetector(EnvProvider.get(), "", AppType.Calendar, false, "")
+		assert(EnvProvider.isTest(), "This method is only supposed to be used from test")
+		ClientDetector.singleton = new ClientDetector(new EnvProvider(globalThis.env), "", AppType.Calendar, false, "")
 	}
 }
 

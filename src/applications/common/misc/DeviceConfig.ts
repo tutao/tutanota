@@ -11,6 +11,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ThemeConfigurator } from "../../../ui/ThemeController"
 import { CheckBrowser } from "../../../ui/CheckBrowser"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -162,7 +163,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
 			mailAutoSelectBehavior:
-				loadedConfig.mailAutoSelectBehavior ?? (EnvProvider.get().isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
+				loadedConfig.mailAutoSelectBehavior ?? (Singletons.envProvider.isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},

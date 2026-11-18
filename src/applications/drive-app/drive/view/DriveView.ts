@@ -61,6 +61,7 @@ import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { wholeListSelected } from "../../../common/misc/ListModel"
 import { showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export type MailFileSender = (item: DriveFile) => unknown
 
@@ -221,7 +222,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			"#drive.main-view",
 			{
 				class:
-					EnvProvider.get().isAndroidApp() && Styles.get().isAppNotUsingBottomNav() && !this.driveViewModel.listState().inMultiselect
+					Singletons.envProvider.isAndroidApp() && Styles.get().isAppNotUsingBottomNav() && !this.driveViewModel.listState().inMultiselect
 						? "mb-safe-inset"
 						: undefined,
 			},

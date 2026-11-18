@@ -9,6 +9,7 @@ import { px } from "../../../../ui/size.js"
 import { theme } from "../../../../ui/theme.js"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 interface DissatisfactionPageAttrs {
 	dialog: Dialog
@@ -39,7 +40,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 					},
 				},
 				m(DynamicColorSvg, {
-					path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/feedback.svg`,
+					path: `${Singletons.envProvider.getPathPrefix()}/images/dynamic-color-svg/feedback.svg`,
 				}),
 			),
 			m(

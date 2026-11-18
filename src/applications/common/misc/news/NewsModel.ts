@@ -4,6 +4,7 @@ import { NewsListItem } from "./NewsListItem.js"
 import { EnvProvider } from "@tutao/app-env"
 import { createNewsIn, NewsId, NewsOut, NewsService_GET, NewsService_POST } from "@tutao/entities/tutanota"
 import { NULL_ENTITY } from "@tutao/meta"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 /**
  * Interface for storing information about displayed news items on the device.
@@ -42,7 +43,7 @@ export class NewsModel {
 
 			if (!!newsListItem && (await newsListItem.isShown(newsItemId))) {
 				// we can't display those news items unless we allow apple payments
-				const unsupportedIosNewsItem = EnvProvider.get().isIOSApp() && ["newPlans", "newPlansOfferEnding"].includes(newsItemId.newsItemName)
+				const unsupportedIosNewsItem = Singletons.envProvider.isIOSApp() && ["newPlans", "newPlansOfferEnding"].includes(newsItemId.newsItemName)
 				if (!unsupportedIosNewsItem) {
 					this.liveNewsIds.push(newsItemId)
 					this.liveNewsListItems[newsItemName] = newsListItem

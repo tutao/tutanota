@@ -12,6 +12,7 @@ import { Divider } from "../../../../../ui/Divider.js"
 import { BaseButton, BaseButtonAttrs } from "../../../../../ui/base/buttons/BaseButton"
 import { AriaRole } from "../../../../../ui/AriaUtils"
 import { ButtonColor, getColors } from "../../../../../ui/base/Button"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export type EventTimeEditorAttrs = {
 	startOfTheWeekOffset: number
@@ -41,7 +42,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 			displayEndTimeZone = editModel.getEffectiveEndTimeZone()
 		}
 
-		const appClasses = EnvProvider.get().isApp() ? ["smaller"] : []
+		const appClasses = Singletons.envProvider.isApp() ? ["smaller"] : []
 
 		return m(".flex.col.flex-grow.gap-12", [
 			m(".flex.gap-8.items-center.justify-between", [

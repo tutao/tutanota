@@ -131,6 +131,7 @@ export type BaseLocator = {
 	nonCachingEntityClient: EntityClient
 	typeModelResolver: TypeModelResolver
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
+	envProvider: EnvProvider
 }
 
 export interface BaseLocatorWorker {
@@ -153,6 +154,7 @@ export type InfoMessageArgs = {
 }
 
 export type BaseLocatorConfig = {
+	envProvider: EnvProvider
 	worker: BaseLocatorWorker
 	clientModelInfo: ClientModelInfo
 	browserData: BrowserData
@@ -205,6 +207,7 @@ export async function createBaseLocator({
 	nativeCryptoFacade,
 	entityMigratorFactory,
 	entityRestCache,
+	envProvider,
 }: BaseLocatorConfig): Promise<BaseLocator> {
 	const keyCache = new KeyCache()
 	const symmetricCipherUtils = new SymmetricCipherUtils(random)
@@ -248,10 +251,11 @@ export async function createBaseLocator({
 		keyEncryption,
 	)
 	const restClient = new RestClient(
+		envProvider,
 		suspensionHandler,
 		domainConfig,
 		String(browserData.clientPlatform),
-		new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
+		new HttpClientJavascript(envProvider),
 	).addMiddleware(new UpdateAppTypesHashMiddleware(serverModelInfo))
 
 	// Declared before serviceExecutor and entityRestClient because it's captured via lazyCrypto
@@ -279,7 +283,7 @@ export async function createBaseLocator({
 
 	const patchMerger = new PatchMerger(maybeUninitializedStorage, instancePipeline, typeModelResolver, lazyCrypto, symmetricCipherFacade)
 
-	const cache: EntityRestInterface = EnvProvider.get().isAdminClient()
+	const cache: EntityRestInterface = envProvider.isAdminClient()
 		? entityRestClient
 		: entityRestCache(entityRestClient, patchMerger, typeModelResolver, lastProcessedEventBatchStorageFacade)
 
@@ -288,7 +292,7 @@ export async function createBaseLocator({
 
 	let kyberFacade: KyberFacade
 	let ed25519Facade: Ed25519Facade
-	if (isNotNull(nativeCryptoFacade) && (EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())) {
+	if (isNotNull(nativeCryptoFacade) && (envProvider.isIOSApp() || envProvider.isAndroidApp())) {
 		kyberFacade = new NativeKyberFacade(nativeCryptoFacade, random)
 		ed25519Facade = new NativeEd25519Facade(nativeCryptoFacade)
 	} else {
@@ -440,7 +444,7 @@ export async function createBaseLocator({
 	let argon2idFacade: Argon2idFacade
 	if (isNotNull(argon2idFacadeOverride)) {
 		argon2idFacade = argon2idFacadeOverride
-	} else if (isNotNull(nativeCryptoFacade) && !EnvProvider.get().isBrowser()) {
+	} else if (isNotNull(nativeCryptoFacade) && !envProvider.isBrowser()) {
 		argon2idFacade = new NativeArgon2idFacade(nativeCryptoFacade)
 	} else {
 		argon2idFacade = new WASMArgon2idFacade()
@@ -463,7 +467,7 @@ export async function createBaseLocator({
 	const deviceEncryptionFacade = new DeviceEncryptionFacade(symmetricCipherUtils, aes)
 	const { DatabaseKeyFactory } = await import("./base-crypto/DatabaseKeyFactory.js")
 	const databaseKeyFactory =
-		EnvProvider.get().isBrowser() || EnvProvider.get().isAdminClient() ? new DatabaseKeyFactory(null) : new DatabaseKeyFactory(deviceEncryptionFacade)
+		envProvider.isBrowser() || envProvider.isAdminClient() ? new DatabaseKeyFactory(null) : new DatabaseKeyFactory(deviceEncryptionFacade)
 
 	login = new LoginFacade(
 		restClient,
@@ -496,7 +500,7 @@ export async function createBaseLocator({
 		bcrypt,
 	)
 
-	if (EnvProvider.get().networkDebuggingEnabled()) {
+	if (envProvider.networkDebuggingEnabled()) {
 		crypto.enableNetworkDebugging()
 		patchMerger.enableNetworkDebugging()
 		instancePipeline.enableNetworkDebugging()
@@ -554,5 +558,6 @@ export async function createBaseLocator({
 		symmetricCipherFacade,
 		keyEncryption,
 		bcrypt,
+		envProvider,
 	}
 }

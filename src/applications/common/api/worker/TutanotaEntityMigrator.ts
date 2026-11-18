@@ -23,6 +23,7 @@ import { CryptoNetworkHelper } from "../../../../platform-kit/network/CryptoNetw
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../../../platform-kit/instance-pipeline/EntityUtils"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export class TutanotaEntityMigrator implements EntityMigrator {
 	constructor(
@@ -113,7 +114,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
 		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
-		if (EnvProvider.get().networkDebuggingEnabled()) {
+		if (Singletons.envProvider.networkDebuggingEnabled()) {
 			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
 			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
 		}

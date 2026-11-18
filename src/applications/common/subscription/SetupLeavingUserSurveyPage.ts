@@ -4,6 +4,7 @@ import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/Variant
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export interface SetupLeavingUserSurveyPageAttrs {
 	closeAction: () => void
@@ -40,7 +41,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 						m(
 							".block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/${vnode.attrs.image}.svg`,
+								path: `${Singletons.envProvider.getPathPrefix()}/images/leaving-wizard/${vnode.attrs.image}.svg`,
 							}),
 						),
 					),

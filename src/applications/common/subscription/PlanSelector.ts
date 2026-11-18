@@ -18,6 +18,7 @@ import { DiscountDetails, hasRelevantGlobalFirstYearCampaign, isPersonalPlanAvai
 import { Styles } from "../../../ui/styles"
 import { EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { AvailablePlanType, NewBusinessPlans, NewPersonalPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -218,7 +219,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}
 
 	private renderAdditionalButton(newSignupFlow: undefined | boolean, options: SelectedSubscriptionOptions) {
-		if (!newSignupFlow || EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		if (!newSignupFlow || Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 			return null
 		}
 		if (options.businessUse()) {

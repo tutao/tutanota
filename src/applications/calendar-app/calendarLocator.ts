@@ -128,6 +128,7 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -379,7 +380,7 @@ class CalendarLocator implements CommonLocator {
 	}
 
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			const { MobileContactSuggestionProvider } = await import("../common/native/MobileContactSuggestionProvider.js")
 			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
 		} else {
@@ -510,7 +511,7 @@ class CalendarLocator implements CommonLocator {
 
 	async credentialsRemovalHandler(): Promise<CredentialRemovalHandler> {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../common/login/CredentialRemovalHandler.js")
-		return EnvProvider.get().isBrowser()
+		return Singletons.envProvider.isBrowser()
 			? new NoopCredentialRemovalHandler()
 			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async () => {
 					// nothing needs to be specifically done for the calendar app right now.
@@ -522,11 +523,11 @@ class CalendarLocator implements CommonLocator {
 		const { LoginViewModel } = await import("../common/login/LoginViewModel.js")
 		const credentialsRemovalHandler = await calendarLocator.credentialsRemovalHandler()
 		const { MobileAppLock, NoOpAppLock } = await import("../common/login/AppLock.js")
-		const appLock = EnvProvider.get().isApp()
+		const appLock = Singletons.envProvider.isApp()
 			? new MobileAppLock(assertNotNull(this.nativeInterfaces).mobileSystemFacade, assertNotNull(this.nativeInterfaces).nativeCredentialsFacade)
 			: new NoOpAppLock()
 		return () => {
-			const domainConfig = EnvProvider.get().isBrowser()
+			const domainConfig = Singletons.envProvider.isBrowser()
 				? calendarLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
 					calendarLocator.domainConfigProvider().getCurrentDomainConfig()
@@ -538,7 +539,7 @@ class CalendarLocator implements CommonLocator {
 				deviceConfig,
 				domainConfig,
 				credentialsRemovalHandler,
-				EnvProvider.get().isBrowser() ? null : this.pushService,
+				Singletons.envProvider.isBrowser() ? null : this.pushService,
 				appLock,
 			)
 		}
@@ -682,12 +683,12 @@ class CalendarLocator implements CommonLocator {
 
 		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
-		this.pluginManager = new PluginManager(pluginConfigurationProvider, new DialogProvider())
+		this.pluginManager = new PluginManager(Singletons.envProvider, pluginConfigurationProvider, new DialogProvider())
 		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 		pluginConfigurationProvider.setPluginManager(this.pluginManager)
 
 		this.Const = TutanotaConstants.Const
-		if (!EnvProvider.get().isBrowser()) {
+		if (!Singletons.envProvider.isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/WebMobileFacade.js")
 			const { WebCommonNativeFacade } = await import("../common/native/WebCommonNativeFacade.js")
@@ -738,19 +739,19 @@ class CalendarLocator implements CommonLocator {
 				AppType.Calendar,
 			)
 
-			if (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
+			if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), EnvProvider.get().isApp())
-				if (EnvProvider.get().isDesktop()) {
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), Singletons.envProvider.isApp())
+				if (Singletons.envProvider.isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 				}
-			} else if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {
+			} else if (Singletons.envProvider.isAndroidApp() || Singletons.envProvider.isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/SystemPermissionHandler.js")
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), EnvProvider.get().isApp())
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), Singletons.envProvider.isApp())
 
 				this.systemFacade.storeServerRemoteOrigin(assertNotNull(env.staticUrl)).catch((e) => console.log("Failed to store remote URL: ", e))
 			}
@@ -760,7 +761,7 @@ class CalendarLocator implements CommonLocator {
 			this.webAuthn = new WebauthnClient(
 				new BrowserWebauthn(navigator.credentials, this.domainConfigProvider().getCurrentDomainConfig()),
 				this.domainConfigProvider(),
-				EnvProvider.get().isApp(),
+				Singletons.envProvider.isApp(),
 			)
 		}
 		this.secondFactorHandler = new SecondFactorHandler(
@@ -832,11 +833,11 @@ class CalendarLocator implements CommonLocator {
 			},
 		}
 		const selectedThemeFacade =
-			EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+			Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => calendarLocator.themeFacade))
 				: new WebThemeFacade(deviceConfig)
 		const lazySanitizer =
-			EnvProvider.get().getMode() === Mode.Test
+			Singletons.envProvider.getMode() === Mode.Test
 				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 				: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
@@ -911,9 +912,9 @@ class CalendarLocator implements CommonLocator {
 			this.fileController,
 			this.contactModel,
 			timeZone,
-			!EnvProvider.get().isBrowser() ? this.externalCalendarFacade : null,
+			!Singletons.envProvider.isBrowser() ? this.externalCalendarFacade : null,
 			deviceConfig,
-			!EnvProvider.get().isBrowser() ? this.pushService : null,
+			!Singletons.envProvider.isBrowser() ? this.pushService : null,
 			this.syncTracker,
 			lang,
 		)
@@ -1040,7 +1041,7 @@ class CalendarLocator implements CommonLocator {
 	})
 
 	showSetupWizard = async () => {
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			const { showSetupWizard } = await import("../common/native/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
@@ -1057,10 +1058,10 @@ class CalendarLocator implements CommonLocator {
 	}
 
 	async updateClients(): Promise<void> {
-		if (EnvProvider.get().isApp()) {
-			if (EnvProvider.get().isAndroidApp()) {
+		if (Singletons.envProvider.isApp()) {
+			if (Singletons.envProvider.isAndroidApp()) {
 				this.nativeInterfaces?.mobileSystemFacade.openLink("market://details?id=de.tutao.calendar")
-			} else if (EnvProvider.get().isIOSApp()) {
+			} else if (Singletons.envProvider.isIOSApp()) {
 				this.nativeInterfaces?.mobileSystemFacade.openLink("itms-apps://itunes.apple.com/app/id6657977811")
 			}
 		}
@@ -1068,9 +1069,9 @@ class CalendarLocator implements CommonLocator {
 
 	readonly credentialFormatMigrator: () => Promise<CredentialFormatMigrator> = lazyMemoized(async () => {
 		const { CredentialFormatMigrator } = await import("../common/misc/credentials/CredentialFormatMigrator.js")
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, null)
-		} else if (EnvProvider.get().isApp()) {
+		} else if (Singletons.envProvider.isApp()) {
 			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, this.systemFacade)
 		} else {
 			return new CredentialFormatMigrator(deviceConfig, null, null)
@@ -1089,11 +1090,11 @@ class CalendarLocator implements CommonLocator {
 	 */
 	private async createCredentialsProvider(): Promise<CredentialsProvider> {
 		const { CredentialsProvider } = await import("../common/misc/credentials/CredentialsProvider.js")
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isApp()) {
 			return new CredentialsProvider(
 				this.nativeCredentialsFacade,
 				this.sqlCipherFacade,
-				EnvProvider.get().isDesktop() ? this.interWindowEventSender : null,
+				Singletons.envProvider.isDesktop() ? this.interWindowEventSender : null,
 			)
 		} else {
 			const { WebCredentialsFacade } = await import("../common/misc/credentials/WebCredentialsFacade.js")

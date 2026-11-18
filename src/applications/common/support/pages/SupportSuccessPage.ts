@@ -9,6 +9,7 @@ import { Dialog } from "../../../../ui/base/Dialog.js"
 import { Card } from "../../../../ui/base/Card"
 import { SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 type SupportSuccessPageAttrs = {
 	dialog: Dialog
@@ -30,7 +31,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 						m(
 							".block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/rate-us.svg`,
+								path: `${Singletons.envProvider.getPathPrefix()}/images/dynamic-color-svg/rate-us.svg`,
 							}),
 						),
 					),

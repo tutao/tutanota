@@ -13,6 +13,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Styles } from "../../../ui/styles"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -203,7 +204,7 @@ export class QuickSearchBar<T> implements Component<SearchBarAttrs<T>> {
 	}
 
 	oncreate() {
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
 			this.onFocus()
 		}

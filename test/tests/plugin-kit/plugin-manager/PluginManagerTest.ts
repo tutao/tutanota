@@ -13,6 +13,7 @@ import { OperationType } from "../../../../src/platform-kit/meta"
 import { stringToBase64UrlCustomId } from "../../../../src/platform-kit/utils/Encoding"
 import { CachingStatus, EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 o.spec("PluginManagerTest", () => {
 	let configurationAdapter: ConfigurationAdapter
@@ -22,7 +23,7 @@ o.spec("PluginManagerTest", () => {
 	o.beforeEach(() => {
 		configurationAdapter = object<ConfigurationAdapter>()
 		dialogAdapter = object<DialogAdapter>()
-		pluginManager = new PluginManager(configurationAdapter, dialogAdapter)
+		pluginManager = new PluginManager(Singletons.envProvider, configurationAdapter, dialogAdapter)
 	})
 
 	function seedLoadedPlugin(overrides: { api?: any; pluginAsWorker?: any; draftConfig?: Record<string, string> } = {}) {

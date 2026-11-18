@@ -12,6 +12,7 @@ import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -155,7 +156,7 @@ export class WorkerClient {
 }
 
 export function bootstrapWorker(locator: CommonLocator): WorkerClient {
-	const worker = new WorkerClient(EnvProvider.get())
+	const worker = new WorkerClient(Singletons.envProvider)
 	const start = Date.now()
 	worker.init(locator).then(() => console.log("worker init time (ms):", Date.now() - start))
 	return worker

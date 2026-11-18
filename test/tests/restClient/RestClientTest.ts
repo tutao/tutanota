@@ -10,7 +10,7 @@ import {
 	RestTextBody,
 	SuspensionBehavior,
 } from "../../../src/platform-kit/rest-client/types"
-import { CancelledError, EnvProvider } from "../../../src/platform-kit/app-env"
+import { CancelledError } from "../../../src/platform-kit/app-env"
 import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
 import express from "express"
@@ -23,6 +23,7 @@ import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddl
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { ApplicationTypesService_GET } from "@tutao/entities/base"
 import { HttpClient, HttpClientJavascript, HttpResponse } from "../../../src/platform-kit/http-client"
+import { Singletons } from "../../../src/platform-kit/singletons/singleton"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 
@@ -56,10 +57,11 @@ o.spec("RestClientTest", function () {
 
 		o.beforeEach(() => {
 			restClient = new RestClient(
+				Singletons.envProvider,
 				suspensionHandlerMock as SuspensionHandler,
 				domainConfigStub,
 				String(ClientPlatform.UNKNOWN),
-				new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
+				new HttpClientJavascript(Singletons.envProvider),
 			)
 		})
 
@@ -224,7 +226,12 @@ o.spec("RestClientTest", function () {
 					res.set("Date", SERVER_TIME_IN_HEADER)
 					res.status(205).send() // every status code !== 200 is currently handled as error
 				})
-				await o(() => restClient.request(url, method, { ...DEFAULT_REST_CLIENT_OPTIONS, baseUrl })).asyncThrows(restError.ResourceError)
+				await o(() =>
+					restClient.request(url, method, {
+						...DEFAULT_REST_CLIENT_OPTIONS,
+						baseUrl,
+					}),
+				).asyncThrows(restError.ResourceError)
 			}
 		}
 
@@ -403,6 +410,7 @@ o.spec("RestClientTest", function () {
 
 			const activateSuspensionCalls: Array<{ seconds: number; url: string }> = []
 			restClient = new RestClient(
+				Singletons.envProvider,
 				{
 					...suspensionHandlerMock,
 					activateSuspensionIfInactive: (seconds: number, url: URL) => {
@@ -411,7 +419,7 @@ o.spec("RestClientTest", function () {
 				} as SuspensionHandler,
 				domainConfigStub,
 				String(ClientPlatform.UNKNOWN),
-				new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
+				new HttpClientJavascript(Singletons.envProvider),
 			)
 
 			const res = await restClient.request("/get/suspend-then-succeed", HttpMethod.GET, {
@@ -452,10 +460,11 @@ o.spec("RestClientTest", function () {
 			const middlewareOne = new CountingMiddleWare()
 			const middlewareTwo = new CountingMiddleWare()
 			restClient = new RestClient(
+				Singletons.envProvider,
 				suspensionHandlerMock as SuspensionHandler,
 				domainConfigStub,
 				String(ClientPlatform.UNKNOWN),
-				new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
+				new HttpClientJavascript(Singletons.envProvider),
 			)
 				.addMiddleware(middlewareOne)
 				.addMiddleware(middlewareTwo)
@@ -472,7 +481,13 @@ o.spec("RestClientTest", function () {
 	o.spec("HttpClient wiring", function () {
 		o("passes upload and download progress listeners to the HttpClient in the correct argument positions", async function () {
 			const httpClient = new RecordingHttpClient()
-			const client = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, String(ClientPlatform.UNKNOWN), httpClient)
+			const client = new RestClient(
+				Singletons.envProvider,
+				suspensionHandlerMock as SuspensionHandler,
+				domainConfigStub,
+				String(ClientPlatform.UNKNOWN),
+				httpClient,
+			)
 
 			const uploadProgressListener: ProgressListener = { update: noOp }
 			const downloadProgressListener: ProgressListener = { update: noOp }

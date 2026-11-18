@@ -586,7 +586,7 @@ export class LoginFacade implements SessionTypeProvider {
 				}
 
 				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
-				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: EnvProvider.get().isTest() ? asyncResumeSession : null }
+				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: this.restClient.envProvider.isTest() ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}
@@ -903,13 +903,21 @@ export class LoginFacade implements SessionTypeProvider {
 			if (rolloutType === RolloutType.AdminOrUserGroupKeyRotation || rolloutType === RolloutType.OtherGroupKeyRotation) {
 				await this.rolloutFacade.configureRollout(
 					rolloutType,
-					new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey, modernKdfType, sessionType),
+					new KeyRotationRolloutAction(
+						this.restClient.envProvider,
+						this.keyRotationFacade,
+						this.userFacade,
+						rolloutType,
+						userPassphraseKey,
+						modernKdfType,
+						sessionType,
+					),
 				)
 			}
 			if (rolloutType === RolloutType.InstanceKeySharing) {
 				await this.rolloutFacade.configureRollout(
 					rolloutType,
-					new InstanceKeySharingRolloutAction(this.instanceKeyFacade, this.userFacade, sessionType),
+					new InstanceKeySharingRolloutAction(this.restClient.envProvider, this.instanceKeyFacade, this.userFacade, sessionType),
 				)
 			}
 		}

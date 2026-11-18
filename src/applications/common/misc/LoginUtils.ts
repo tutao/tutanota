@@ -28,6 +28,7 @@ import { Customer } from "@tutao/entities/sys"
 import { AvailablePlans, AvailablePlanType, NewBusinessPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
 import { CacheMode } from "../../../platform-kit/instance-pipeline/RestClientOptions"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(elementIdToId(customer._id))
@@ -193,7 +194,7 @@ export function getWebsiteLangFromParams(urlParams: Params): { code: LanguageCod
 }
 
 export function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {
-	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+	if (Singletons.envProvider.getPaymentSetup() === PaymentSetup.None) {
 		// there is no point in returning paid plans if payments are not working.
 		return [PlanType.Free]
 	}

@@ -92,6 +92,7 @@ import { ContactList } from "@tutao/entities/tutanota"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { $Promisable, PromisableWrapper, promiseMapCompat, PromiseMapFn } from "./IndexerPromiseUtils"
 import { Aes } from "@tutao/crypto"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -354,7 +355,7 @@ export class IndexerCore {
 					if (operation.isAbortedForBackgroundMode) {
 						console.log("transaction has been aborted because of background mode")
 					} else {
-						if (!EnvProvider.get().isTest()) {
+						if (!Singletons.envProvider.isTest()) {
 							console.log("rejecting operation with error", e)
 						}
 

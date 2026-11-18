@@ -24,6 +24,7 @@ import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { px } from "../../../ui/size"
 import { Dialog } from "../../../ui/base/Dialog"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -91,7 +92,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
 				style: {
-					marginBottom: EnvProvider.get().isAndroidApp() ? `calc(var(--safe-area-inset-bottom) + ${this.keyboardHeight}px)` : px(this.keyboardHeight),
+					marginBottom: Singletons.envProvider.isAndroidApp()
+						? `calc(var(--safe-area-inset-bottom) + ${this.keyboardHeight}px)`
+						: px(this.keyboardHeight),
 				},
 			},
 			[
@@ -103,7 +106,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						{
 							...landmarkAttrs(
 								AriaLandmarks.Main,
-								EnvProvider.get().isApp() || EnvProvider.get().isDesktop() ? lang.get("addAccount_action") : lang.get("login_label"),
+								Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop() ? lang.get("addAccount_action") : lang.get("login_label"),
 							),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
@@ -119,7 +122,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 								this.renderMoreOptions(),
 							),
 							m(".flex-grow"),
-							!(EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && this.viewModel.shouldShowAppButtons()
+							!(Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) && this.viewModel.shouldShowAppButtons()
 								? this._renderAppButtons()
 								: null,
 							renderInfoLinks(),

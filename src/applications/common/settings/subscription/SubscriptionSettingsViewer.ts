@@ -89,6 +89,7 @@ import { InfoIconAttrs } from "../../../../ui/base/InfoIcon"
 import { showUserUpgradedDeclinedDialog } from "../../ratings/UserUpgradedDeclinedDialog"
 import { deviceConfig } from "../../misc/DeviceConfig"
 import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -363,7 +364,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							},
 						},
 						m(DynamicColorSvg, {
-							path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/feature.svg`,
+							path: `${Singletons.envProvider.getPathPrefix()}/images/leaving-wizard/feature.svg`,
 						}),
 					),
 					m("", lang.getTranslationText("subscriptionSettingsFreePlan_label")),
@@ -471,7 +472,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					".flex.justify-end.gap-8",
 					m(SecondaryButton, {
 						label:
-							EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+							Singletons.envProvider.getPaymentSetup() === PaymentSetup.Appstore
 								? "subscriptionSettingManageSubscription_action"
 								: "subscriptionSettingManageSubscriptionGoogle_action",
 						width: "flex",
@@ -573,7 +574,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleUpgradeSubscription() {
-		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		if (Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 			const term = await getExternalSubscriptionError()
 			if (term) {
 				return Dialog.message(term)

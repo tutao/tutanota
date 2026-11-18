@@ -13,6 +13,7 @@ import { SessionType } from "../../../../src/platform-kit/app-env/SessionType"
 import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
 import { TrustDBEntry } from "../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {
@@ -57,7 +58,7 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 	o.beforeEach(function () {
 		sqlCipherFacade = object()
 		loginFacade = object()
-		identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(sqlCipherFacade, () => loginFacade)
+		identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(sqlCipherFacade, () => loginFacade, Singletons.envProvider)
 	})
 
 	o.spec("trust", function () {

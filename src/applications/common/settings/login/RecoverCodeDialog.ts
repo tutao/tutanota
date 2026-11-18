@@ -23,6 +23,7 @@ import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { font_size } from "../../../../ui/size"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 type Action = "get" | "create"
 EnvProvider.assertMainOrNode()
@@ -135,7 +136,7 @@ export class RecoverCodeField {
 							icon: Icons.ClipboardFilled,
 							click: () => copyToClipboard(splitRecoverCode),
 						}),
-						EnvProvider.get().isApp() || typeof window.print !== "function"
+						Singletons.envProvider.isApp() || typeof window.print !== "function"
 							? null
 							: m(IconButton, {
 									label: "print_action",

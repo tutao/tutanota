@@ -10,6 +10,7 @@ import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export type TimePickerAttrs = {
 	time: Time
@@ -135,7 +136,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						style: {
 							textAlign: "center",
 							fontSize: rem(font_size.smaller_em),
-							borderWidth: EnvProvider.get().isApp() ? "2px" : "",
+							borderWidth: Singletons.envProvider.isApp() ? "2px" : "",
 						},
 						// TODO(gg): Sensitive typing here, `vnode` is `NoLifecycle` but `satisfies XYZAttrs` breaks
 						oncreate: (vnode) => {

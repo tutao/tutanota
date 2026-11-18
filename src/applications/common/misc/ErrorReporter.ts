@@ -22,6 +22,7 @@ import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetecto
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { ErrorInfo, errorToString } from "../../../platform-kit/utils/ErrorInfo"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 type FeedbackContent = {
 	message: string
@@ -334,7 +335,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 
 async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: DataFile[]) {
 	const clientType = (() => {
-		switch (EnvProvider.get().getMode()) {
+		switch (Singletons.envProvider.getMode()) {
 			case Mode.Browser:
 				return ErrorReportClientType.Browser
 			case Mode.Android:
@@ -405,7 +406,7 @@ export function clientInfoString(
 		? neverNull(typedKeys(AccountType).find((typeName) => AccountType[typeName] === locator.logins.getUserController().user.accountType))
 		: "UNKNOWN"
 
-	const client: string = EnvProvider.get().getMode()
+	const client: string = Singletons.envProvider.getMode()
 	let message = `${lineBreak}${lineBreak} Client: ${client}`
 	message += `${lineBreak} Type: ${type}`
 	message += `${lineBreak} Tutanota version: ${env.versionNumber}`
@@ -432,9 +433,9 @@ export async function getLogAttachments(timestamp?: Date): Promise<Array<DataFil
 		logs.push(workerLogFile)
 	}
 
-	if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
+	if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isApp()) {
 		const nativeLog = await locator.commonSystemFacade.getLog()
-		const nativeLogFile = createLogFile(nativeLog, EnvProvider.get().isDesktop() ? "desktop" : "device", timestamp?.getTime())
+		const nativeLogFile = createLogFile(nativeLog, Singletons.envProvider.isDesktop() ? "desktop" : "device", timestamp?.getTime())
 		logs.push(nativeLogFile)
 	}
 

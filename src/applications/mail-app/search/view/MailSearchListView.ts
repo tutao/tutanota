@@ -14,6 +14,7 @@ import { component_size, px, size } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MailRow } from "../../mail/view/MailRow"
 import { CommonSearchListViewAttrs, renderListColumnWrapper } from "../../../common/search/SearchUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface MailSearchListViewAttrs extends CommonSearchListViewAttrs<Mail> {
 	getLabelsForMail: (mail: Mail) => MailSet[]
@@ -85,10 +86,10 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 		} else if (
 			(this.attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
 				this.attrs.indexState.currentMailIndexTimestamp !== TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
-				EnvProvider.get().isOfflineStorageAvailable()) ||
+				Singletons.envProvider.isOfflineStorageAvailable()) ||
 			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < this.attrs.indexState.currentMailIndexTimestamp)
 		) {
-			const extendToDate = EnvProvider.get().isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
+			const extendToDate = Singletons.envProvider.isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
 
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(

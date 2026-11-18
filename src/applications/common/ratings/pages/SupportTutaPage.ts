@@ -15,6 +15,7 @@ import { GENERATED_MAX_ID } from "@tutao/meta"
 import { getReferralLink, ReferralLinkViewer } from "../../misc/news/items/ReferralLinkViewer"
 import { BookingTypeRef } from "@tutao/entities/sys"
 import { LegacyPrivatePlans, NewPaidPlans, PlanType } from "../../../../entities/sys/Utils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 interface SupportTutaPageAttrs {
 	dialog: Dialog
@@ -40,7 +41,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		}
 
 		return m(ImageWithOptionsDialog, {
-			image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/off-surveillance.svg`,
+			image: `${Singletons.envProvider.getPathPrefix()}/images/dynamic-color-svg/off-surveillance.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingSupportTuta_title",
 			messageText: "ratingSupportTuta_msg",

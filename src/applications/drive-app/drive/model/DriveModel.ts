@@ -36,6 +36,7 @@ import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { WindowFacade } from "../../../common/misc/WindowFacade"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { DuplicateFilesDialogDecision } from "../view/DriveDuplicateFileDialog"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export const enum ClipboardAction {
 	Cut,
@@ -79,7 +80,7 @@ export class DriveModel {
 	private ensureWindowCloseListener() {
 		if (this.deleteWindowCloseListener == null) {
 			this.deleteWindowCloseListener = this.windowFacade.addWindowCloseListener(async () => {
-				if (EnvProvider.get().isDesktop()) {
+				if (Singletons.envProvider.isDesktop()) {
 					const cancelAndClose: boolean = await this.showWindowCloseConfirmation()
 
 					if (cancelAndClose) {

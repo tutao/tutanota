@@ -1,5 +1,4 @@
-import { assertNotNull, isNotNull } from "./functional"
-import { TsJson } from "./types/ecmascript"
+import { isNotNull } from "./functional"
 
 export class RuntimeInfo {
 	public static readonly _isWorker: boolean = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
@@ -16,11 +15,5 @@ export class RuntimeInfo {
 
 	public static hasTouchEvent(): boolean {
 		return isNotNull(window.TouchEvent)
-	}
-
-	public static globallyDefinedEnv(): string {
-		// Note:
-		// since we do not have access to EnvType here, we cannot return that type
-		return TsJson.stringify(assertNotNull(globalThis.env, "Expected env variable to be always there"))
 	}
 }

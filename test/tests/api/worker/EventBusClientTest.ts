@@ -37,6 +37,7 @@ import { ProgressMonitorInterface } from "../../../../src/platform-kit/network/P
 import { AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance" | "cachingStatus"> = {
 	instance: null,
@@ -84,6 +85,7 @@ o.spec("EventBusClient", function () {
 			() => Promise.resolve(lastProcessedEventBatchStorageFacade),
 			serverDateProvider,
 			createProgressMonitor,
+			Singletons.envProvider,
 		)
 	}
 

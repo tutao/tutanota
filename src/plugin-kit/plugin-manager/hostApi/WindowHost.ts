@@ -9,7 +9,10 @@ export class WindowHost implements WindowHostApi {
 	private nextWindowId = 0
 	private readonly openedWindows: Map<number, Nullable<Window>> = new Map()
 
-	constructor(private readonly manifest: PluginManifest) {}
+	constructor(
+		private readonly manifest: PluginManifest,
+		private readonly envProvider: EnvProvider,
+	) {}
 
 	async openWindow(url: string): Promise<Nullable<number>> {
 		const targetUrl = new URL(url)
@@ -22,7 +25,7 @@ export class WindowHost implements WindowHostApi {
 		// }
 
 		let win: Nullable<Window> = null
-		if (EnvProvider.get().isIOSApp()) {
+		if (this.envProvider.isIOSApp()) {
 			window.location.href = url
 		} else {
 			win = window.open(url)

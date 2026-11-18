@@ -12,6 +12,7 @@ import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetecto
 import { SurveyData } from "@tutao/entities/sys"
 import { EnvProvider } from "@tutao/app-env"
 import { CloseEventBusOption } from "../../../platform-kit/network/Constants"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	let takeover = ""
@@ -23,7 +24,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
-					!(EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp())
+					!(Singletons.envProvider.isIOSApp() && ClientDetector.get().isCalendarApp())
 						? m(LegacyTextField, {
 								label: "targetAddress_label",
 								value: takeover,

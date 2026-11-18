@@ -11,6 +11,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { Thunk } from "@tutao/utils"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 type EmailSupportUnavailableAttrs = {
 	data: SupportDialogState
@@ -36,7 +37,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 							},
 						},
 						m(DynamicColorSvg, {
-							path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/account.svg`,
+							path: `${Singletons.envProvider.getPathPrefix()}/images/leaving-wizard/account.svg`,
 						}),
 					),
 				]),

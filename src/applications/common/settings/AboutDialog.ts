@@ -13,6 +13,7 @@ import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetecto
 import { EnvProvider } from "@tutao/app-env"
 import { getTutaLogoSvg } from "../../../ui/base/Logo"
 import { theme } from "../../../ui/theme"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -55,7 +56,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 			]),
 			this.logsLink(),
 			// wrap it in a div so that it's not filling the whole width
-			EnvProvider.get().isApp()
+			Singletons.envProvider.isApp()
 				? m(
 						"",
 						m(Button, {

@@ -35,6 +35,7 @@ import { NotFoundError } from "@tutao/rest-client/error"
 import type { PlanSelectionModel } from "../../subscription/PlanSelectionModel"
 import type { PaymentDetailsModel } from "../../subscription/PaymentDetailsModel"
 import type { OrderConfirmationModel } from "../../subscription/OrderConfirmationModel"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export class SignupViewModel implements PlanSelectionModel, PaymentDetailsModel, OrderConfirmationModel {
 	get isInitialized(): boolean {
@@ -177,7 +178,7 @@ export class SignupViewModel implements PlanSelectionModel, PaymentDetailsModel,
 	}
 
 	private async resolveMessageBox(): Promise<Translation | null> {
-		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		if (Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 			this.options.businessUse(false)
 			const appstoreSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
 			if (appstoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.Unknown) {

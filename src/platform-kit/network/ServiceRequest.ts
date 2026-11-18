@@ -1,9 +1,6 @@
-import { EnvProvider } from "@tutao/app-env"
-import { DataTransferEntity, ServiceDefinition } from "../meta"
-import { Nullable } from "@tutao/utils"
-import { ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
-
-EnvProvider.assertMainOrNode()
+import type { DataTransferEntity, ServiceDefinition } from "@tutao/meta"
+import type { Nullable } from "@tutao/utils"
+import type { ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 
 export interface IServiceExecutor {
 	execute<In extends DataTransferEntity, Out extends DataTransferEntity>(

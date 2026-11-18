@@ -52,6 +52,7 @@ import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { InstanceKeySharingRolloutAction } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeySharingRolloutAction"
+import { Singletons } from "../../../../../src/platform-kit/singletons/singleton"
 
 const { anything } = matchers
 
@@ -446,7 +447,7 @@ o.spec("InstanceKeySharingRolloutAction", function () {
 		const user: User = object()
 		when(userFacadeMock.getUser()).thenReturn(user)
 
-		const rolloutAction = new InstanceKeySharingRolloutAction(instanceKeyFacadeMock, userFacadeMock, SessionType.Persistent)
+		const rolloutAction = new InstanceKeySharingRolloutAction(Singletons.envProvider, instanceKeyFacadeMock, userFacadeMock, SessionType.Persistent)
 		await rolloutAction.execute()
 		verify(instanceKeyFacadeMock.loadAndProcessPendingInstanceKeySharing(user), { times: 1 })
 	})

@@ -28,6 +28,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../../../ui/base/Dro
 import { getSharedGroupName } from "../../sharing/GroupUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 /**
  * Shows a dialog with a preview of a given list of events
@@ -171,7 +172,7 @@ export function calendarSelectionDialog(
 
 export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
 	const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
-	const dataFiles = EnvProvider.get().isApp()
+	const dataFiles = Singletons.envProvider.isApp()
 		? await showNativeFilePicker(allowedExtensions, true)
 		: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
 	const contents: ParsedEventAlarmTuple[] = []

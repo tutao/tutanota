@@ -29,6 +29,7 @@ import { createUserSettingsGroupRoot, SupportCategory, SupportTopic } from "@tut
 import { getCurrentDate } from "../../mail-app/mail/MailUtils"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "rateUs" | "supportTuta" | "suggestion" | "contactSupport"
 
@@ -169,7 +170,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 export async function handleRatingByEvent(triggerType: TriggerType) {
 	createEvent(deviceConfig)
 
-	const disallowReasons = await evaluateRatingEligibility(getCurrentDate(), deviceConfig, EnvProvider.get().isApp())
+	const disallowReasons = await evaluateRatingEligibility(getCurrentDate(), deviceConfig, Singletons.envProvider.isApp())
 
 	if (!isEmpty(disallowReasons)) {
 		return
@@ -190,7 +191,7 @@ function onSupportRequestSend(dialog: Dialog) {
 					label: lang.makeTranslation("", "Get Tuta Mail"),
 					click: () =>
 						windowFacade.openLink(
-							EnvProvider.get().isIOSApp() ? TutanotaConstants.TUTA_MAIL_APP_STORE_URL : TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL,
+							Singletons.envProvider.isIOSApp() ? TutanotaConstants.TUTA_MAIL_APP_STORE_URL : TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL,
 						),
 				}
 			: {

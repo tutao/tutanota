@@ -209,8 +209,9 @@ export class OfflineStorage implements CacheStorage {
 		private readonly offlineMapper: OfflineMapper,
 		private readonly customCacheHandler: CustomCacheHandlerMap,
 		additionalTables: Record<string, OfflineStorageTable>,
+		public readonly envProvider: EnvProvider,
 	) {
-		assert((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.get().isTest(), "Offline storage is not available.")
+		assert((!this.envProvider.isBrowser() && !this.envProvider.isAdminClient()) || this.envProvider.isTest(), "Offline storage is not available.")
 		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
 	}
 
@@ -249,7 +250,7 @@ export class OfflineStorage implements CacheStorage {
 		this.userId = userId
 		this.databaseKey = databaseKey
 		if (forceNewDatabase) {
-			if (EnvProvider.get().isDesktop()) {
+			if (this.envProvider.isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)
 			}
 			await this.sqlCipherFacade.deleteDb(userId)

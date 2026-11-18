@@ -8,6 +8,7 @@ import { pureComponent } from "../../../ui/base/PureComponent"
 import { isNotEmpty } from "@tutao/utils"
 
 import { renderSearchInOurApps } from "./AppPromo"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export interface SearchBarOverlayAttrs<T> {
 	items: readonly T[]
@@ -95,7 +96,7 @@ export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> 
 		}
 
 		if (indexTimestamp > TutanotaConstants.FULL_INDEXED_TIMESTAMP && !indexInfo) {
-			indexInfo = !EnvProvider.get().isOfflineStorageAvailable() // we have isNonBlockingSearchAvailable() at home
+			indexInfo = !Singletons.envProvider.isOfflineStorageAvailable() // we have isNonBlockingSearchAvailable() at home
 				? lang.getTranslationText("searchedUntil_msg") + " " + formatDate(new Date(indexTimestamp))
 				: lang.getTranslationText("notAllMailsSearchable_msg")
 		}

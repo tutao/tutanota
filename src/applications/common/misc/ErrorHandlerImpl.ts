@@ -35,6 +35,7 @@ import { locator } from "../api/main/CommonLocator"
 import { UserTypeRef } from "@tutao/entities/sys"
 import { elementIdToId } from "@tutao/meta"
 import { errToErrorInfo } from "../../../platform-kit/utils/ErrorInfo"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -92,8 +93,8 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError || e instanceof InvalidModelError) {
 		const isOffline =
-			!EnvProvider.get().isBrowser() &&
-			!EnvProvider.get().isAdminClient() &&
+			!Singletons.envProvider.isBrowser() &&
+			!Singletons.envProvider.isAdminClient() &&
 			logins.isUserLoggedIn() &&
 			logins.getUserController().sessionType === SessionType.Persistent
 
@@ -104,7 +105,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		}
 
 		const { userId } = logins.getUserController()
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			await interWindowEventSender?.localUserDataInvalidated(userId)
 		}
 		await worker.getWorkerInterface().cacheStorage.purgeStorage()

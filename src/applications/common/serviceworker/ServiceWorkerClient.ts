@@ -5,6 +5,7 @@ import { handleUncaughtError } from "../misc/ErrorHandler"
 import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/ErrorUtils.js"
 import { DomainConfig, EnvProvider } from "@tutao/app-env"
 import type { ServiceWorkerMessage } from "./ServiceWorkerTypes"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink: boolean; onUpdate: () => void }) {
 	const notificationMessage: Component = {
@@ -64,10 +65,10 @@ export function init(domainConfig: DomainConfig) {
 		// We don't want service worker in certain environments
 		if (
 			env.dist &&
-			!EnvProvider.get().isApp() &&
-			!EnvProvider.get().isDesktop() &&
+			!Singletons.envProvider.isApp() &&
+			!Singletons.envProvider.isDesktop() &&
 			window.nativeAppWebDialog == null &&
-			!EnvProvider.get().isNextCloudPlugin()
+			!Singletons.envProvider.isNextCloudPlugin()
 		) {
 			console.log("Registering ServiceWorker")
 			serviceWorker

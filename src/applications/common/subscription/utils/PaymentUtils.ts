@@ -35,6 +35,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import type { PrimaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons"
 import { isPersonalPlanAvailable } from "./PlanSelectorUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -147,7 +148,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		const app = ClientDetector.get().isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,
-		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${EnvProvider.get().getClientType()}&app=${app}`
+		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${Singletons.envProvider.getClientType()}&app=${app}`
 		Dialog.message("creditCardVerificationNeededPopup_msg").then(() => {
 			const paymentUrlString = locator.domainConfigProvider().getCurrentDomainConfig().paymentUrl
 			const paymentUrl = new URL(paymentUrlString)

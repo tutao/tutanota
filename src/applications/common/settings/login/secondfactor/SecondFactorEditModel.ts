@@ -10,6 +10,7 @@ import { getHtmlSanitizer } from "../../../misc/HtmlSanitizer.js"
 import QRCode from "qrcode-svg"
 import { createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User } from "@tutao/entities/sys"
 import { elementIdToId } from "@tutao/meta"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export const enum VerificationStatus {
 	Initial = "Initial",
@@ -61,7 +62,7 @@ export class SecondFactorEditModel {
 		this.otpInfo = new LazyLoaded(async () => {
 			const url = await this.getOtpAuthUrl(this.totpKeys.readableKey)
 
-			const totpQRCodeSvg = EnvProvider.get().isApp()
+			const totpQRCodeSvg = Singletons.envProvider.isApp()
 				? null
 				: getHtmlSanitizer().sanitizeSVG(
 						new QRCode({

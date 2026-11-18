@@ -17,6 +17,7 @@ import { mailLocator } from "../../mailLocator"
 import { FolderItemId } from "../../../drive-app/drive/view/DriveUtils"
 import { DriveFileTypeRef } from "@tutao/entities/drive"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export async function attachDriveFile(model: SendMailModel): Promise<void> {
 	const roots = await mailLocator.driveFacade.loadRootFolders("withNetwork")
@@ -49,11 +50,11 @@ export async function chooseAndAttachFile(
 		const files = await showFileChooserForAttachments(boundingRect, fileTypes)
 		if (!files || files.length === 0) return
 
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			// we have file refs and want to keep them
 			model.attachFiles(files)
 			return files
-		} else if (EnvProvider.get().isDesktop()) {
+		} else if (Singletons.envProvider.isDesktop()) {
 			// this is important for the desktop client so it can attach them as inline images. // we have file refs and want to read them.
 			const dataFiles: Array<DataFile> = (
 				await Promise.all((files as Array<FileReference>).map(async (f) => locator.fileApp.readDataFile(f.location)))
@@ -80,7 +81,7 @@ export function showFileChooserForAttachments(
 	fileTypes?: ReadonlyArray<string>,
 ): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	const fileSelector =
-		EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+		Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 			? locator.fileApp.openFileChooser(boundingRect, fileTypes)
 			: showFileChooser(FileChooserMultiMode.Multi, fileTypes)
 	return fileSelector

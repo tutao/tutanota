@@ -12,6 +12,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { useKeyHandler } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { CheckBrowser } from "../../../ui/CheckBrowser"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -57,7 +58,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 		const canSaveCredentials = CheckBrowser.haveLocalStorage()
-		if (a.savePassword && (EnvProvider.get().isApp() || EnvProvider.get().isDesktop())) {
+		if (a.savePassword && (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop())) {
 			a.savePassword(true)
 		}
 		return m(
@@ -97,7 +98,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					}),
 				),
 				a.savePassword
-					? EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+					? Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 						? m("small.block.content-fg", lang.get("dataWillBeStored_msg"))
 						: m(
 								".pt-16",
@@ -123,7 +124,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 										? lang.makeTranslation(
 												"onlyPrivateComputer_msg",
 												lang.get("onlyPrivateComputer_msg") +
-													(!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()
+													(!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()
 														? "\n" + lang.get("dataWillBeStored_msg")
 														: ""),
 											)
@@ -135,7 +136,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				m(
 					".pt-16",
 					m(PrimaryButton, {
-						label: EnvProvider.get().isApp() || EnvProvider.get().isDesktop() ? "addAccount_action" : "login_action",
+						label: Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop() ? "addAccount_action" : "login_action",
 						onclick: () => a.onSubmit(a.mailAddress(), a.password()),
 					}),
 				),

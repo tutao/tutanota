@@ -63,6 +63,7 @@ import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/er
 import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 import { getPrivateBusinessSwitchButton, InvoiceData, SubscriptionActionButtons } from "./utils/PaymentUtils"
 import { showManageSubscriptionThroughExternalStoreDialog } from "../misc/SubscriptionDialogs"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -411,7 +412,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 				break
 
 			case UnsubscribeFailureReason.ACTIVE_APPSTORE_SUBSCRIPTION:
-				if (EnvProvider.get().isIOSApp()) {
+				if (Singletons.envProvider.isIOSApp()) {
 					await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 					return false
 				} else {

@@ -55,6 +55,7 @@ import { OfflineMapper } from "../../../../src/platform-kit/instance-pipeline/Of
 import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 import { OfflineStorageArgs } from "../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
@@ -117,6 +118,7 @@ o.spec("OfflineStorageDbTest", function () {
 			offlineMapper,
 			customCacheHandlerMap,
 			{},
+			Singletons.envProvider,
 		)
 	})
 
@@ -141,16 +143,26 @@ o.spec("OfflineStorageDbTest", function () {
 		})
 
 		o.test("init calls createTables which initializes all tables", async () => {
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), {
-				some_table: {
-					definition: "some statement will be run here",
-					purgedWithCache: false,
+			const storageWithMockedSql = new OfflineStorage(
+				sqlMock,
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				{
+					some_table: {
+						definition: "some statement will be run here",
+						purgedWithCache: false,
+					},
+					another_table: {
+						definition: "another statement will be run here",
+						purgedWithCache: true,
+					},
 				},
-				another_table: {
-					definition: "another statement will be run here",
-					purgedWithCache: true,
-				},
-			})
+				Singletons.envProvider,
+			)
 			await storageWithMockedSql.init(new OfflineStorageArgs(userId, databaseKey, false))
 			verify(sqlMock.run("some statement will be run here", []))
 			verify(sqlMock.run("another statement will be run here", []))
@@ -170,16 +182,26 @@ o.spec("OfflineStorageDbTest", function () {
 				metadata_exists: { type: SqlType.Number, value: 1 },
 			})
 
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), {
-				some_table: {
-					definition: "some statement will be run here",
-					purgedWithCache: false,
+			const storageWithMockedSql = new OfflineStorage(
+				sqlMock,
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				{
+					some_table: {
+						definition: "some statement will be run here",
+						purgedWithCache: false,
+					},
+					another_table: {
+						definition: "another statement will be run here",
+						purgedWithCache: true,
+					},
 				},
-				another_table: {
-					definition: "another statement will be run here",
-					purgedWithCache: true,
-				},
-			})
+				Singletons.envProvider,
+			)
 			await storageWithMockedSql.init(new OfflineStorageArgs(userId, databaseKey, false))
 			await storageWithMockedSql.purgeStorage()
 			verify(sqlMock.run("DROP TABLE IF EXISTS another_table", []))
@@ -197,19 +219,29 @@ o.spec("OfflineStorageDbTest", function () {
 				metadata_exists: { type: SqlType.Number, value: 1 },
 			})
 
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), {
-				some_table: {
-					definition: "some statement will be run here",
-					purgedWithCache: false,
-					async onBeforePurged(sqlCipherFacade: SqlCipherFacade) {
-						sqlCipherFacade.run("onBeforePurged was called", [])
+			const storageWithMockedSql = new OfflineStorage(
+				sqlMock,
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				{
+					some_table: {
+						definition: "some statement will be run here",
+						purgedWithCache: false,
+						async onBeforePurged(sqlCipherFacade: SqlCipherFacade) {
+							sqlCipherFacade.run("onBeforePurged was called", [])
+						},
+					},
+					another_table: {
+						definition: "another statement will be run here",
+						purgedWithCache: true,
 					},
 				},
-				another_table: {
-					definition: "another statement will be run here",
-					purgedWithCache: true,
-				},
-			})
+				Singletons.envProvider,
+			)
 			await storageWithMockedSql.init(new OfflineStorageArgs(userId, databaseKey, false))
 			await storageWithMockedSql.purgeStorage()
 			verify(sqlMock.run("onBeforePurged was called", []), { times: 1 })
@@ -220,12 +252,22 @@ o.spec("OfflineStorageDbTest", function () {
 				metadata_exists: { type: SqlType.Number, value: 1 },
 			})
 
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), {
-				some_table: {
-					definition: "some statement will be run here",
-					purgedWithCache: false,
+			const storageWithMockedSql = new OfflineStorage(
+				sqlMock,
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				object(),
+				{
+					some_table: {
+						definition: "some statement will be run here",
+						purgedWithCache: false,
+					},
 				},
-			})
+				Singletons.envProvider,
+			)
 
 			when(migratorMock.migrate(storageWithMockedSql)).thenDo(() => {
 				verify(sqlMock.run("some statement will be run here", []), { times: 1 })

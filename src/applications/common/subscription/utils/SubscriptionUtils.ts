@@ -40,6 +40,7 @@ import { EntityUpdateData, EntityUpdatesListener, isUpdateFor, ListenerPriority 
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { reverse } from "../../misc/EnumUtils"
 import { idToElementId } from "@tutao/meta"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export const enum UpgradeType {
 	/**
@@ -182,7 +183,7 @@ export enum SubscriptionApp {
 
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(async () => {
-		const clientType = EnvProvider.get().getClientType()
+		const clientType = Singletons.envProvider.getClientType()
 		const subscriptionApp = ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 		const result = await locator.serviceExecutor.execute(
 			PaymentDataService_GET,
@@ -313,7 +314,7 @@ export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMet
 	downcast<PaymentMethodType | null>(accountingInfo.paymentMethod)
 
 export function hasMatchingExternalPaymentSetup(paymentMethod: PaymentMethodType | null): boolean {
-	const paymentSetup = EnvProvider.get().getPaymentSetup()
+	const paymentSetup = Singletons.envProvider.getPaymentSetup()
 	return (
 		(paymentMethod === PaymentMethodType.AppStore && paymentSetup === PaymentSetup.Appstore) ||
 		(paymentMethod === PaymentMethodType.GooglePlay && paymentSetup === PaymentSetup.Playstore)
@@ -333,9 +334,9 @@ export function hasMatchingSubscription(accountingInfo: AccountingInfo, lastBook
 		if (!isExternalPaymentMethod(paymentMethodType)) {
 			// we can manage our own subscriptions anywhere
 			return true
-		} else if (paymentMethodType === PaymentMethodType.AppStore && EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore) {
+		} else if (paymentMethodType === PaymentMethodType.AppStore && Singletons.envProvider.getPaymentSetup() === PaymentSetup.Appstore) {
 			return true
-		} else if (paymentMethodType === PaymentMethodType.GooglePlay && EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore) {
+		} else if (paymentMethodType === PaymentMethodType.GooglePlay && Singletons.envProvider.getPaymentSetup() === PaymentSetup.Playstore) {
 			return true
 		} else {
 			return false
@@ -347,7 +348,7 @@ function hasMatchingExternalSubscription(lastBooking: Booking | null): boolean {
 	if (lastBooking != null) {
 		const isExpired = lastBooking.endDate && lastBooking.endDate?.getTime() < Date.now()
 		const provider = lastBooking.subscriptionReference.subscriptionProvider
-		const paymentSetup = EnvProvider.get().getPaymentSetup()
+		const paymentSetup = Singletons.envProvider.getPaymentSetup()
 		const isMatching =
 			(provider === SubscriptionProvider.Google && paymentSetup === PaymentSetup.Playstore) ||
 			(provider === SubscriptionProvider.Apple && paymentSetup === PaymentSetup.Appstore)
@@ -546,7 +547,7 @@ export function isAppStorePayment(accountingInfo: AccountingInfo | null): boolea
 export function shouldShowExternalStorePrices(accountingInfo: AccountingInfo | null): boolean {
 	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
 	return (
-		EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default &&
+		Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default &&
 		(!paymentMethod || paymentMethod === PaymentMethodType.AppStore || paymentMethod === PaymentMethodType.GooglePlay)
 	)
 }
@@ -605,7 +606,7 @@ export function isBusinessPlan(plan: AvailablePlanType): boolean {
  */
 export function shouldHideBusinessPlans(): boolean {
 	// we cannot currently subscribe iOS/Android users to business plans
-	return EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default
+	return Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default
 }
 
 /**
@@ -626,7 +627,7 @@ export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null)
 export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
 
 export function getDefaultPaymentMethod(): PaymentMethodType {
-	const paymentSetup = EnvProvider.get().getPaymentSetup()
+	const paymentSetup = Singletons.envProvider.getPaymentSetup()
 	if (paymentSetup !== PaymentSetup.Default) {
 		if (paymentSetup === PaymentSetup.Appstore) {
 			return PaymentMethodType.AppStore

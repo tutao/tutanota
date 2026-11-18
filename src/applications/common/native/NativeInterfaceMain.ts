@@ -9,6 +9,7 @@ import { DesktopNativeTransport } from "../../../app-kit/native-bridge/main/Desk
 import { IosNativeTransport } from "../../../app-kit/native-bridge/main/IosNativeTransport.js"
 import { Request, Transport } from "../../../app-kit/native-bridge/shared/MessageTypes"
 import { objToError } from "../api/common/utils/ErrorUtils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -22,13 +23,13 @@ export class NativeInterfaceMain implements NativeInterface {
 	async init() {
 		let transport: Transport<NativeRequestType, JsRequestType>
 
-		if (EnvProvider.get().isAndroidApp()) {
+		if (Singletons.envProvider.isAndroidApp()) {
 			const androidTransport = new AndroidNativeTransport(window)
 			androidTransport.start()
 			transport = androidTransport
-		} else if (EnvProvider.get().isIOSApp()) {
+		} else if (Singletons.envProvider.isIOSApp()) {
 			transport = new IosNativeTransport(window)
-		} else if (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
+		} else if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient()) {
 			transport = new DesktopNativeTransport(window.nativeApp)
 		} else {
 			throw new ProgrammingError("Tried to create a native interface in the browser")

@@ -76,6 +76,7 @@ import { OfflineStorageArgs } from "../../../../../src/platform-kit/base/facades
 import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { WebsocketConnectivityListener } from "../../../../../src/platform-kit/network/WebsocketConnectivityListener"
+import { Singletons } from "../../../../../src/platform-kit/singletons/singleton"
 
 const { anything } = matchers
 
@@ -111,6 +112,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 		offlineMapperFromTypeModelResolver(typeModelResolver),
 		handlerMap,
 		{},
+		Singletons.envProvider,
 	)
 	await offlineStorage.init(new OfflineStorageArgs(userId, offlineDatabaseTestKey, false))
 	return offlineStorage

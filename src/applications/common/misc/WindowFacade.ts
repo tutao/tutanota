@@ -7,6 +7,7 @@ import type { IWindowFacade } from "../../../ui/IWindowFacade"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { EnvProvider } from "@tutao/app-env"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -88,14 +89,14 @@ export class WindowFacade implements IWindowFacade {
 	openLink(href: string) {
 		const tmpAnchorEl = document.createElement("a")
 		tmpAnchorEl.href = href
-		tmpAnchorEl.target = EnvProvider.get().isApp() ? "_system" : "_blank"
+		tmpAnchorEl.target = Singletons.envProvider.isApp() ? "_system" : "_blank"
 		tmpAnchorEl.click()
 	}
 
 	init(logins: LoginController, connectivityModel: WebsocketConnectivityModel) {
 		this.logins = logins
 
-		if (window.addEventListener && !EnvProvider.get().isApp()) {
+		if (window.addEventListener && !Singletons.envProvider.isApp()) {
 			window.addEventListener("beforeunload", (e) => this._beforeUnload(e))
 			window.addEventListener("popstate", (e) => this._popState(e))
 			window.addEventListener("unload", (e) => this._onUnload())
@@ -103,13 +104,13 @@ export class WindowFacade implements IWindowFacade {
 
 		this.connectivityModel = connectivityModel
 
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient()) {
 			this.addPageInBackgroundListener()
 		}
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
 		// and Cmd+Arrow to navigate a text editor
-		if (EnvProvider.get().isDesktop() && ClientDetector.get().isMacOS && window.addEventListener) {
+		if (Singletons.envProvider.isDesktop() && ClientDetector.get().isMacOS && window.addEventListener) {
 			window.addEventListener("keydown", (e) => {
 				if (!e.metaKey || e.key === "Meta") return
 
@@ -233,7 +234,7 @@ export class WindowFacade implements IWindowFacade {
 				stringifiedArgs[k] = String(v)
 			}
 		}
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient()) {
 			const { locator } = await import("../api/main/CommonLocator")
 			await locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {
@@ -248,7 +249,7 @@ export class WindowFacade implements IWindowFacade {
 		// For Android it's handled manually from native because visibilitychange listener is not called after the
 		// app was inactive for some time.
 		// See NativeWrapperCommands.js
-		if (EnvProvider.get().isIOSApp()) {
+		if (Singletons.envProvider.isIOSApp()) {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 

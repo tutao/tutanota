@@ -10,6 +10,7 @@ import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { SupportDialogState } from "../SupportDialog.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 type SupportRequestSentPageAttrs = {
 	data: SupportDialogState
@@ -46,7 +47,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 						m(
 							".pb-16.block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/other.svg`,
+								path: `${Singletons.envProvider.getPathPrefix()}/images/leaving-wizard/other.svg`,
 							}),
 						),
 					),
@@ -58,7 +59,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 							text: "getTutaMail_action",
 							onclick: () => {
 								windowFacade.openLink(
-									EnvProvider.get().isIOSApp() ? TutanotaConstants.TUTA_MAIL_APP_STORE_URL : TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL,
+									Singletons.envProvider.isIOSApp() ? TutanotaConstants.TUTA_MAIL_APP_STORE_URL : TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL,
 								)
 							},
 							rightIcon: { icon: Icons.DownloadFilled, title: "download_action" },

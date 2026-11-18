@@ -48,6 +48,7 @@ import { WebMobileFacade } from "./WebMobileFacade.js"
 import { CryptoFacade } from "../../../platform-kit/base/base-crypto/CryptoFacade"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -91,7 +92,7 @@ export function createNativeInterfaces(
 	logins: LoginController,
 	app: AppType,
 ): NativeInterfaces {
-	if (EnvProvider.get().isBrowser()) {
+	if (Singletons.envProvider.isBrowser()) {
 		throw new ProgrammingError("Tried to make native interfaces in non-native")
 	}
 
@@ -133,7 +134,7 @@ export function createNativeInterfaces(
 }
 
 export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInterfaces {
-	if (!(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())) {
+	if (!(Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient())) {
 		throw new ProgrammingError("tried to create desktop interfaces in non-electron client")
 	}
 	return {

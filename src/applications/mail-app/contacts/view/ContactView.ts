@@ -67,6 +67,7 @@ import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ContactQuickSearchBar } from "./ContactQuickSearchBar"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -580,7 +581,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				colors: ButtonColor.Nav,
 			},
 			childAttrs: async () => {
-				const vcardButtons: Array<DropdownButtonAttrs> = EnvProvider.get().isApp()
+				const vcardButtons: Array<DropdownButtonAttrs> = Singletons.envProvider.isApp()
 					? [
 							{
 								label: "importContacts_label",

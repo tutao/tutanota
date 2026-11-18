@@ -23,6 +23,7 @@ import { idToElementId } from "@tutao/meta"
 import { PaymentMethodType } from "../../../../entities/sys/Utils"
 import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
 import { deviceConfig } from "../../misc/DeviceConfig"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -178,7 +179,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 export function isPartnerEnabled(loginController: LoginController): boolean {
 	return (
 		loginController.isInternalUserLoggedIn() &&
-		EnvProvider.get().isBrowser() &&
+		Singletons.envProvider.isBrowser() &&
 		loginController.isEnabled(FeatureType.SolutionPartner) &&
 		loginController.getUserController().isGlobalAdmin()
 	)

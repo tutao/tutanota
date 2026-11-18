@@ -30,12 +30,13 @@ export class LocalIdentityKeyTrustDatabase implements IdentityKeyTrustDatabase {
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
 		private readonly lazyLoginFacade: lazy<SessionTypeProvider>,
+		private readonly envProvider: Readonly<EnvProvider>,
 	) {}
 
 	async isIdentityKeyTrustDatabaseSupported(): Promise<boolean> {
 		const loginFacade = this.lazyLoginFacade()
 		const sessionType = await loginFacade.getSessionType()
-		return !EnvProvider.get().isBrowser() && sessionType === SessionType.Persistent
+		return !this.envProvider.isBrowser() && sessionType === SessionType.Persistent
 	}
 
 	/**

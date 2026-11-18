@@ -16,6 +16,7 @@ import {
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { PublicKeyIdentifierType } from "../../../../platform-kit/crypto/CryptoTypes"
 import { TrustDBEntry } from "../../../../platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export type PublicIdentity = {
 	fingerprint: Hex
@@ -155,7 +156,7 @@ export class KeyVerificationModel {
 
 	public async requestCameraPermission(): Promise<boolean> {
 		let hasPermission = true
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			hasPermission = await this.mobileSystemFacade.hasPermission(PermissionType.Camera)
 			if (!hasPermission) {
 				try {
@@ -165,7 +166,7 @@ export class KeyVerificationModel {
 					hasPermission = false
 				}
 			}
-		} else if (EnvProvider.get().isDesktop() && EnvProvider.get().isAppleDevice()) {
+		} else if (Singletons.envProvider.isDesktop() && Singletons.envProvider.isAppleDevice()) {
 			hasPermission = await this.desktopSystemFacade.requestVideoPermission()
 		}
 

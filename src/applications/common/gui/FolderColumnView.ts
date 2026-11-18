@@ -5,9 +5,9 @@ import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "../../../ui/AriaUtils.js"
 import type { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import { MainCreateButton } from "../../../ui/MainCreateButton.js"
-import { EnvProvider } from "@tutao/app-env"
 import { Styles } from "../../../ui/styles"
 import { Icons } from "../../../ui/base/icons/Icons"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
@@ -19,7 +19,8 @@ export type Attrs = {
 
 export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
-		const isAndroidWithBottomNavAndDrawer = EnvProvider.get().isAndroidApp() && Styles.get().isAppUsingBottomNav() && !Styles.get().isMobileDesktopLayout()
+		const isAndroidWithBottomNavAndDrawer =
+			Singletons.envProvider.isAndroidApp() && Styles.get().isAppUsingBottomNav() && !Styles.get().isMobileDesktopLayout()
 		return m(
 			".flex.height-100p.nav-bg" +
 				(isAndroidWithBottomNavAndDrawer ? ".pb-safe-inset" : "") +

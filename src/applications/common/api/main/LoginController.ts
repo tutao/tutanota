@@ -16,6 +16,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { CacheMode } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { elementIdToId } from "@tutao/meta"
 import { PreLogoutAction } from "../../../../app-kit/native-bridge/common/PreLogoutAction"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -110,7 +111,7 @@ export class LoginController {
 		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
 
-		if (!EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isAdminClient()) {
 			await this.loadCustomizations()
 		}
 		await this._determineIfWhitelabel()

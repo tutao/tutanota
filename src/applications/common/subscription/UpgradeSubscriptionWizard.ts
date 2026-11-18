@@ -16,6 +16,7 @@ import { showUpgradeDialog } from "./UpgradeView"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { Dialog } from "../../../ui/base/Dialog"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export type SubscriptionParameters = {
@@ -77,10 +78,10 @@ export async function showUpgradeWizard({
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: Translation
 }): Promise<void> {
-	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+	if (Singletons.envProvider.getPaymentSetup() === PaymentSetup.None) {
 		return Dialog.message("appStoreSubscriptionError_msg")
 	}
-	if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+	if (Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 		const term = await getExternalSubscriptionError()
 		if (term) {
 			return Dialog.message(term)

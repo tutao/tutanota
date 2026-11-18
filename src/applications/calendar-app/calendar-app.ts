@@ -44,6 +44,7 @@ import { CheckBrowser } from "../../ui/CheckBrowser"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
 import { KeyManager } from "../../ui/utils/KeyManager"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -52,7 +53,7 @@ const urlQueryParams = m.parseQueryString(location.search)
 
 assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
-const envProvider = EnvProvider.get()
+const envProvider = Singletons.envProvider
 const clientDetector = await ClientDetector.init(envProvider, navigator.userAgent, navigator.platform, AppType.Calendar)
 CheckBrowser.ensureIsSupported(clientDetector)
 
@@ -102,7 +103,7 @@ import("../../ui/translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel)
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
 		}
 
@@ -131,7 +132,7 @@ import("../../ui/translations/en.js")
 		calendarLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess() {
-					if (EnvProvider.get().isApp()) {
+					if (Singletons.envProvider.isApp()) {
 						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
 				},
@@ -139,7 +140,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()) {
 			calendarLocator.logins.addPostLoginAction(async () => {
 				const { CalendarPostLoginAction } = await import("../common/offline/CalendarPostLoginAction.js")
 				return new CalendarPostLoginAction(
@@ -455,7 +456,7 @@ import("../../ui/translations/en.js")
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 			await calendarLocator.native.init()
 		}
 		// if (isDesktop()) {

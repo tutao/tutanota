@@ -16,6 +16,9 @@
 		},
 		{
 			"path": "../platform-kit/tsconfig.utils.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.singletons.json"
 		}
 	]
 }

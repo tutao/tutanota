@@ -8,6 +8,7 @@ import { ArchiveDataType } from "../../../entities/sys/Utils"
 import { assertOnlyFileReferences, DataFile, FileReference } from "../../../entities/tutanota/Utils"
 import { TransferId } from "../../../entities/drive/Utils"
 import { createReferencingInstance, DownloadableFileEntity } from "../../../entities/storage/BlobUtils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -20,7 +21,7 @@ export class FileControllerNative extends FileController {
 		private readonly fileApp: NativeFileApp,
 	) {
 		assert(
-			EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient() || EnvProvider.get().isApp() || EnvProvider.get().isTest(),
+			Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient() || Singletons.envProvider.isApp() || Singletons.envProvider.isTest(),
 			"Don't make native file controller when not in native",
 		)
 		super(blobFacade)
@@ -46,10 +47,10 @@ export class FileControllerNative extends FileController {
 		// For apps "opening" DataFile currently means saving and opening it.
 		try {
 			const fileReference = await this.fileApp.writeDataFile(file)
-			if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isDesktop()) {
+			if (Singletons.envProvider.isAndroidApp() || Singletons.envProvider.isDesktop()) {
 				await this.fileApp.putFileIntoDownloadsFolder(fileReference.location, fileReference.name)
 				return
-			} else if (EnvProvider.get().isIOSApp()) {
+			} else if (Singletons.envProvider.isIOSApp()) {
 				return this.fileApp.open(fileReference)
 			}
 		} catch (e) {
@@ -84,11 +85,11 @@ export class FileControllerNative extends FileController {
 
 	async writeDownloadedFiles(downloadedFiles: readonly (DataFile | FileReference)[]): Promise<void> {
 		assertOnlyFileReferences(downloadedFiles)
-		if (EnvProvider.get().isIOSApp()) {
+		if (Singletons.envProvider.isIOSApp()) {
 			await this.processDownloadedFilesIOS(downloadedFiles)
-		} else if (EnvProvider.get().isDesktop()) {
+		} else if (Singletons.envProvider.isDesktop()) {
 			await this.processDownloadedFilesDesktop(downloadedFiles)
-		} else if (EnvProvider.get().isAndroidApp()) {
+		} else if (Singletons.envProvider.isAndroidApp()) {
 			await promiseMap(downloadedFiles, (file) => this.fileApp.putFileIntoDownloadsFolder(file.location, file.name))
 		} else {
 			throw new ProgrammingError("in filecontroller native but not in ios, android or desktop? - tried to write")
@@ -96,7 +97,7 @@ export class FileControllerNative extends FileController {
 	}
 
 	async openDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void> {
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {
+		if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isAndroidApp() || Singletons.envProvider.isIOSApp()) {
 			assertOnlyFileReferences(downloadedFiles)
 			await this.openFiles(downloadedFiles)
 		} else {
@@ -146,7 +147,7 @@ export class FileControllerNative extends FileController {
 				await this.fileApp.open(file)
 			} finally {
 				// on desktop, we don't get to know when the other app is done with the file, so we leave cleanup to the OS
-				if (EnvProvider.get().isApp())
+				if (Singletons.envProvider.isApp())
 					await this.fileApp.deleteFile(file.location).catch((e: any) => console.log("failed to delete file", file.location, e))
 			}
 		}

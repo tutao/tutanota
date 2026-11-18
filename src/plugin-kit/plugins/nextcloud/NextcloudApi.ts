@@ -16,7 +16,7 @@ export type NextcloudCredentials = {
 }
 
 export class NextcloudApi {
-	private static httpClient: HttpClient = new HttpClientJavascript(TimeConstants.secondsToMillis(5))
+	private static httpClient: HttpClient = null!
 	private nextCloudCredentials: Nullable<NextcloudCredentials>
 
 	public constructor(
@@ -26,6 +26,14 @@ export class NextcloudApi {
 		private readonly nextcloudPlugin: NextcloudPlugin,
 	) {
 		this.nextCloudCredentials = null
+	}
+
+	public static initializeHttpClient(envProvider: EnvProvider) {
+		NextcloudApi.httpClient = new HttpClientJavascript(envProvider)
+	}
+
+	private get envProvider(): EnvProvider {
+		return this.nextcloudPlugin.envProvider
 	}
 
 	public setNextcloudCredentials(nextcloudCredentials: NextcloudCredentials): this {
@@ -54,7 +62,7 @@ export class NextcloudApi {
 				"OCS-APIRequest": "true",
 			},
 			MediaType.Json,
-			EnvProvider.get().getTimeOutValue(),
+			this.envProvider.getTimeOutValue(),
 			null,
 			null,
 			null,
@@ -82,7 +90,7 @@ export class NextcloudApi {
 					"Content-Type": "application/x-www-form-urlencoded",
 				},
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				this.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -133,7 +141,7 @@ export class NextcloudApi {
 				null,
 				headers,
 				MediaType.Binary,
-				EnvProvider.get().getTimeOutValue(),
+				this.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -183,7 +191,7 @@ export class NextcloudApi {
 				new RestBinaryBody(dataFile.data),
 				putHeaders,
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				this.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -221,7 +229,7 @@ export class NextcloudApi {
 				null,
 				postHeaders,
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				this.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -282,7 +290,7 @@ export class NextcloudApi {
 				null,
 				{},
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				TimeConstants.secondsToMillis(5),
 				null,
 				null,
 				null,

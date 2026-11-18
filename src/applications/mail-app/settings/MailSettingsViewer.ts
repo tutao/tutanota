@@ -44,6 +44,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/inst
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { MailSearchModel } from "../search/model/MailSearchModel"
 import { MailIndexingAbortReason } from "../workerUtils/index/MailIndexer"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -245,7 +246,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				if (mailIndexEnabled) {
 					showProgressDialog("pleaseWait_msg", mailLocator.indexerFacade.enableMailIndexing()).catch(
 						ofClass(IndexingNotSupportedError, () => {
-							Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+							Dialog.message(Singletons.envProvider.isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}),
 					)
 				} else {
@@ -344,7 +345,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-32#general", lang.get("general_label")),
 					m("#conversationthread", m(DropDownSelector, conversationViewDropdownAttrs)),
 					m("#maillistgrouping", m(DropDownSelector, mailListDisplayMode)),
-					EnvProvider.get().isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
+					Singletons.envProvider.isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
 					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
 					m(".h4.mt-32#emailsending", lang.get("emailSending_label")),
 					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
@@ -371,7 +372,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderLocalDataSection(): Children {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			return [m(".h4.mt-32#localdata", lang.get("localDataSection_label")), this.renderRebuildSearchIndex(), this.renderClearCacheButton()]
 		} else {
 			return null

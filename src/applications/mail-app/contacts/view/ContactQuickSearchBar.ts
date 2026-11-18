@@ -6,6 +6,7 @@ import { getContactListName } from "../../../common/contactsFunctionality/Contac
 import type { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface ContactSearchBarAttrs {
 	loadResults: (searchQuery: QuickSearchQuery) => Promise<LiveSearchResult<Contact>>
@@ -26,7 +27,7 @@ export class ContactQuickSearchBar implements ClassComponent<ContactSearchBarAtt
 			shouldOfferUpgrade: false,
 			confirmSearch: async () => {
 				if (!(await attrs.indexingSupported())) {
-					Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+					Dialog.message(Singletons.envProvider.isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 					return false
 				} else {
 					return true

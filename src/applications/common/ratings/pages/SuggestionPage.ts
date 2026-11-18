@@ -14,6 +14,7 @@ import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
 import { createSurveyData, createSurveyDataPostIn, SurveyService_POST } from "@tutao/entities/sys"
 import { EnvProvider } from "@tutao/app-env"
 import { TriggerType } from "../UserSatisfactionUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -43,7 +44,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						},
 					},
 					m(DynamicColorSvg, {
-						path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/on-your-mind.svg`,
+						path: `${Singletons.envProvider.getPathPrefix()}/images/dynamic-color-svg/on-your-mind.svg`,
 					}),
 				),
 				m(".h3.text-center.pb-8.pt-8", lang.get("ratingSuggestionPage_title")),

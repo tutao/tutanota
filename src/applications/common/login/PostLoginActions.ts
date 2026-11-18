@@ -41,6 +41,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { ButtonType } from "../../../ui/base/Button"
 import { GENERATED_MIN_ID } from "@tutao/meta"
 import { PluginManager } from "../../../plugin-kit/plugin-manager/PluginManager"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -108,7 +109,7 @@ export class PostLoginActions implements PostLoginAction {
 		})
 
 		// We already have user data to load themes
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 			await this.storeNewCustomThemes()
 		}
 	}
@@ -136,12 +137,12 @@ export class PostLoginActions implements PostLoginAction {
 
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
-		if (!EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isAdminClient()) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
 		}
 
-		if (this.logins.isGlobalAdminUserLoggedIn() && !EnvProvider.get().isAdminClient()) {
+		if (this.logins.isGlobalAdminUserLoggedIn() && !Singletons.envProvider.isAdminClient()) {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
@@ -363,7 +364,7 @@ export class PostLoginActions implements PostLoginAction {
 	// Show the onboarding wizard if this is the first time the app has been opened since install
 	private async showSetupWizardIfNeeded(): Promise<void> {
 		const isSetupComplete = deviceConfig.getIsSetupComplete()
-		if (EnvProvider.get().isApp() && !isSetupComplete) {
+		if (Singletons.envProvider.isApp() && !isSetupComplete) {
 			await this.showSetupWizard()
 		}
 	}

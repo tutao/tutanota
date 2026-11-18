@@ -83,6 +83,7 @@ import { PickedDestinationAction } from "../../../drive-app/drive/view/DriveItem
 import { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../../ui/base/Button"
 import { prependParentLabelNamesToLabel } from "./MailSetTreeUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 
@@ -489,7 +490,7 @@ export function replaceCidsWithInlineImages(
 				imageElement.setAttribute("src", inlineImage.objectUrl)
 				imageElement.classList.remove("tutanota-placeholder")
 
-				if (EnvProvider.get().isApp()) {
+				if (Singletons.envProvider.isApp()) {
 					// Add long press action for apps
 					let timeoutId: TimeoutID | null
 					let startCoords:
@@ -531,7 +532,7 @@ export function replaceCidsWithInlineImages(
 					})
 				}
 
-				if (EnvProvider.get().isDesktop()) {
+				if (Singletons.envProvider.isDesktop()) {
 					// add right click action for desktop apps
 					imageElement.addEventListener("contextmenu", (e: MouseEvent) => {
 						onContext(inlineImage.cid, e, imageElement)
@@ -1178,14 +1179,14 @@ export class AttachmentDownloader {
 	canOpenAttachment(attachment: Attachment): boolean {
 		// Can Open: Desktop, Android, iOS
 		// Data files are written to a temporary file and opened(on desktop & app, erroring on browser)
-		return EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+		return Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 	}
 
 	canDownloadAttachment(attachment: Attachment): boolean {
 		// Can Download: Web, Desktop, Android
 		// on iOS you always open and then choose where to save
 		// downloading a file reference does not make any sense, since the file is already on the file system
-		return !EnvProvider.get().isIOSApp() && !isFileReference(attachment)
+		return !Singletons.envProvider.isIOSApp() && !isFileReference(attachment)
 	}
 
 	async saveToDrive(attachment: Attachment) {
