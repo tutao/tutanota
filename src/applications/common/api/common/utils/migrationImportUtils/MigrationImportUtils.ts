@@ -138,6 +138,13 @@ export function getFolderSyncStateForMailboxPath(
 	)
 }
 
+/**
+ * Prevents the case an Invalid Date caused imports to fail due evaluating to NaN
+ */
+function validDateOrNull(date: Date | null | undefined): Date | null {
+	return date instanceof Date && !Number.isNaN(date.getTime()) ? date : null
+}
+
 export function migrationMailToImportMailParams(
 	migrationMail: MigrationMail,
 	folderSyncStateId: IdTuple,
@@ -158,11 +165,15 @@ export function migrationMailToImportMailParams(
 	const bodyText = migrationMail.body?.html.trim() || (migrationMail.body?.plaintext.trim() ? plainTextToHtml(migrationMail.body.plaintext) : "")
 
 	const isLegacyGmail = migrationMail.imapUid !== undefined && migrationMail.labels !== undefined
+
+	const sentDate = validDateOrNull(migrationMail.envelope?.date)
+	const receivedDate = validDateOrNull(migrationMail.internalDate)
+
 	return {
 		subject: migrationMail.envelope?.subject ?? "",
 		bodyText: bodyText,
-		sentDate: migrationMail.envelope?.date ?? new Date(Date.now()),
-		receivedDate: migrationMail.internalDate ?? new Date(Date.now()),
+		sentDate: sentDate ?? new Date(Date.now()),
+		receivedDate: receivedDate ?? new Date(Date.now()),
 		state: mailStateFromMigrationMailbox(migrationMail),
 		unread: unreadFromMigrationMail(migrationMail),
 		messageId: migrationMail.envelope?.messageId ?? null,
