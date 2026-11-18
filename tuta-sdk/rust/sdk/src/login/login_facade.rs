@@ -370,6 +370,7 @@ mod tests {
 			successfulLogins: Default::default(),
 			plugins: None,
 			userMigrationInfos: None,
+			companyEmailSignature: None,
 		}
 	}
 }

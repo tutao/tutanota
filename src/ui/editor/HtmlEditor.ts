@@ -54,11 +54,9 @@ export class HtmlEditor implements Component {
 
 	view(): Children {
 		const modeSwitcherLabel = this.modeSwitcherLabel
-		let borderClasses = this._showBorders
-			? this.active && this.editor.isEnabled()
-				? ".editor-border-active.border-radius"
-				: ".editor-border.border-radius." + (modeSwitcherLabel != null ? ".editor-no-top-border" : "")
-			: ""
+		let borderClasses =
+			".mt-16" +
+			(this._showBorders ? (this.active && this.editor.isEnabled() ? ".editor-border-active.border-radius" : ".editor-border.border-radius.") : "")
 
 		const renderedInjections = this.injections?.() ?? null
 
@@ -91,7 +89,7 @@ export class HtmlEditor implements Component {
 						},
 					})
 				: null,
-			this.label ? m(".small.mt-24", lang.getTranslationText(this.label)) : null,
+			this.label ? m(".small.mt-24.mb-8", lang.getTranslationText(this.label)) : null,
 			m(borderClasses, [
 				getPlaceholder(),
 				this.mode === HtmlEditorMode.WYSIWYG
