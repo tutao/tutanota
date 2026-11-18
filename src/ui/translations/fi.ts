@@ -1742,7 +1742,7 @@ export default {
 		"pricing.gdpr_tooltip": "Kaikki tiedot tallennetaan Euroopan unionin yleisen tietosuoja-asetuksen (GDPR) tiukkojen säännösten mukaisesti.",
 		"pricing.gdprDataProcessing_label": "Yleisen tietosuoja-asetuksen mukainen käsittelysopimus",
 		"pricing.generalDiscount_msg": "Tuta Mail ja Tuta Calendar nyt tarjoushintaan!",
-		"pricing.getStarted_label": "Alkuun",
+		"pricing.getStarted_label": "Aloita",
 		"pricing.globalFirstYearDiscountRibbon_label": "SÄÄSTÄ {amount}",
 		"pricing.goEuropeanHeadline_msg": "Osta eurooppalaista: erikoistarjous, säästä {amount} vielä kun ehdit!",
 		"pricing.goEuropeanHeadlineIos_msg": "Osta eurooppalaista: erikoistarjous, säästä rahaa vielä kun ehdit!",
