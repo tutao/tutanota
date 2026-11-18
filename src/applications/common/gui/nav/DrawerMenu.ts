@@ -21,7 +21,6 @@ import { locator } from "../../api/main/CommonLocator"
 import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
 import { AccountType, PaymentMethodType } from "../../../../entities/sys/Utils"
-import { showUserSatisfactionDialog } from "../../ratings/UserSatisfactionDialog"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -140,7 +139,10 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 									? {
 											icon: Icons.LightbulbFilled,
 											label: "feedbackForUs_label",
-											click: () => void showUserSatisfactionDialog("ManualFeedback"),
+											click: async () => {
+												const { showUserSatisfactionDialog } = await import("../../ratings/UserSatisfactionDialog")
+												void showUserSatisfactionDialog("ManualFeedback")
+											},
 										}
 									: null,
 							],
