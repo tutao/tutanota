@@ -32,7 +32,7 @@ import {
 	WhitelabelConfig,
 	WhitelabelConfigTypeRef,
 } from "@tutao/entities/sys"
-import { AccountType, GroupType, LegacyPlans, PlanType } from "../../../../entities/sys/Utils"
+import { AccountType, AvailablePlanType, GroupType, LegacyPlans, NewBusinessPlans, PlanType } from "../../../../entities/sys/Utils"
 import {
 	createUserSettingsGroupRoot,
 	TutanotaProperties,
@@ -160,6 +160,11 @@ export class UserController {
 	async isNewPaidPlan(): Promise<boolean> {
 		const type = await this.getPlanType()
 		return !this.isLegacyPlan(type) && type !== PlanType.Free
+	}
+
+	async isNewPaidBusinessPlan(): Promise<boolean> {
+		const type = await this.getPlanType()
+		return !this.isLegacyPlan(type) && NewBusinessPlans.includes(downcast<AvailablePlanType>(type))
 	}
 
 	async useLegacyBookingItem(): Promise<boolean> {
