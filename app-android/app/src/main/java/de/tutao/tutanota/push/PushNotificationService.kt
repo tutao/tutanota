@@ -53,7 +53,7 @@ class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
 	private val jobState = PushNotificationJobState(false)
-	private lateinit var localNotificationsFacade: LocalNotificationsFacade
+	private lateinit var localNotificationsFacade: TutaLocalNotificationsFacade
 	private lateinit var sseClient: SseClient
 	/** Indicates the overall lifecycle status of the service. A wrapper class is used so that the job's
 	 * [PushNotificationServiceState] value can be modified by the internal functions of the service's [SseListener] */
@@ -76,7 +76,7 @@ class PushNotificationService : LifecycleJobService() {
 		val keyStoreFacade = createAndroidKeyStoreFacade()
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(this, crypto, appDatabase)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
-		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		localNotificationsFacade = TutaLocalNotificationsFacade(this, sseStorage)
 		val dateProvider = DateProviderImpl()
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,

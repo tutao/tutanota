@@ -28,7 +28,7 @@ import java.io.File
 import java.util.*
 
 class TutaNotificationsHandler(
-	private val localNotificationsFacade: LocalNotificationsFacade,
+	private val localNotificationsFacade: TutaLocalNotificationsFacade,
 	private val sseStorage: SseStorage,
 	private val credentialsEncryption: NativeCredentialsFacade,
 	private val alarmNotificationsManager: AlarmNotificationsManager,

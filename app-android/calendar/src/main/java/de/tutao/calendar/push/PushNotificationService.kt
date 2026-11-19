@@ -78,7 +78,7 @@ class PushNotificationService : LifecycleJobService() {
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(this, crypto, appDatabase)
 		val keyStoreFacade = createAndroidKeyStoreFacade()
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
-		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		val localNotificationsFacade = CalendarLocalNotificationsFacade(this, sseStorage)
 		val systemAlarmFacade = SystemAlarmFacade(this, CalendarAlarmIntentFactory())
 		val dateProvider = DateProviderImpl()
 		val alarmNotificationsManager = AlarmNotificationsManager(sseStorage, crypto, systemAlarmFacade, localNotificationsFacade, dateProvider, TimeZone.getDefault())
@@ -180,6 +180,4 @@ class PushNotificationService : LifecycleJobService() {
 			return intent
 		}
 	}
-
-
 }

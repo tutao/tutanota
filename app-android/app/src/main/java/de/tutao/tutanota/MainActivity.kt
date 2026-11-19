@@ -60,7 +60,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.MailAlarmIntentFactory
 import de.tutao.tutanota.push.AndroidNativePushFacade
-import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.tutanota.push.TutaLocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutashared.ActivityResult
@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 		val tempDir = TempDir(applicationContext)
 		val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 
-		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		val localNotificationsFacade = TutaLocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
 			AndroidFileFacade(
 				this,
