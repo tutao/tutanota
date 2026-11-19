@@ -1,5 +1,5 @@
-import m, { Children, ClassComponent, CVnode } from "mithril"
-import { rem, font_size, px, size } from "../size"
+import m, { Children, ClassComponent, CVnode, VnodeDOM } from "mithril"
+import { font_size, px, rem, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { theme } from "../theme"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
@@ -25,7 +25,7 @@ export type LegacyTextFieldAttrs = {
 	// only used by the BubbleTextField (-> uses old TextField) to display bubbles and out of office notification
 	injectionsRight?: lazy<Children>
 	keyHandler?: keyHandler
-	onDomInputCreated?: (dom: HTMLInputElement) => void
+	onDomInputCreated?: (dom: HTMLInputElement, vnode: VnodeDOM) => void
 	// interceptor used by the BubbleTextField to react on certain keys
 	onfocus?: (dom: HTMLElement, input: HTMLInputElement) => unknown
 	onblur?: (...args: Array<any>) => any
@@ -262,7 +262,7 @@ export class LegacyTextField implements ClassComponent<LegacyTextFieldAttrs> {
 						oncreate: (vnode) => {
 							this.domInput = vnode.dom as HTMLInputElement
 							this.domInput.value = a.value
-							a.onDomInputCreated?.(this.domInput)
+							a.onDomInputCreated?.(this.domInput, vnode)
 							if (a.type !== LegacyTextFieldType.Area) {
 								;(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
 									if (e.animationName === "onAutoFillStart") {

@@ -148,7 +148,10 @@ import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DriveFile } from "@tutao/entities/drive"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
-import type { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp" // Interval where we save drafts locally.
+import type { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
+import { formatDate, formatDateWithWeekdayAndYear } from "../../../../ui/utils/Formatter"
+import { AriaPopupType } from "../../../../ui/AriaUtils"
+import { keyboardEventFrom } from "../../../../ui/base/GuiUtils" // Interval where we save drafts locally.
 
 // Interval where we save drafts locally.
 //
@@ -785,15 +788,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 													minWidth: "125px",
 												},
 											},
-											m(dateComponents.DatePicker, {
-												date: sendAt,
-												onDateSelected: (date) => {
-													model.setSendAtDate(date)
-												},
-												startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
-												label: lang.getTranslation("sendDate_label"),
-												forMailSendTime: true,
-											}),
+											this.renderDatePicker(dateComponents, sendAt, model),
 										),
 										m(
 											"",
@@ -880,6 +875,46 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".pb-16"),
 			],
 		)
+	}
+
+	private renderDatePicker(
+		dateComponents: {
+			DatePicker: Class<DatePicker>
+			TimePicker: Class<TimePicker>
+		},
+		sendAt: Date,
+		model: SendMailModel,
+	): Children {
+		return m(dateComponents.DatePicker, {
+			date: sendAt,
+			onDateSelected: (date) => {
+				model.setSendAtDate(date)
+			},
+			startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
+			label: lang.getTranslation("sendDate_label"),
+			renderCustomTextField: ({ value, label, disabled, focused, onfocus, onkeydown, oncreateTextField, onblur, oninput }) =>
+				m(LegacyTextField, {
+					value: focused ? value : formatDate(sendAt),
+					label,
+					disabled,
+					helpLabel: () => formatDateWithWeekdayAndYear(sendAt),
+					hasPopup: AriaPopupType.Dialog,
+					onDomInputCreated: (_, vnode) => {
+						oncreateTextField(vnode)
+					},
+					keyHandler: (key) => {
+						onkeydown(keyboardEventFrom(key))
+						return true // HACK for TS
+					},
+					oninput: () => {
+						oninput({} as InputEvent)
+					},
+					onfocus: () => {
+						onfocus({ relatedTarget: null } as FocusEvent)
+					},
+					onblur,
+				}),
+		})
 	}
 
 	private renderInvalidSendAtMessage(): Children | null {

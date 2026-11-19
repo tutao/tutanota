@@ -1,13 +1,10 @@
-import m, { Children, ClassComponent, CommonAttributes, Component, Vnode } from "mithril"
+import m, { Children, ClassComponent, CommonAttributes, Component, Vnode, VnodeDOM } from "mithril"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import type { MaybeTranslation, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
-import { rem, font_size, px } from "../../../../../ui/size.js"
+import { font_size, px, rem } from "../../../../../ui/size.js"
 import { theme } from "../../../../../ui/theme.js"
-
-import { LegacyTextField } from "../../../../../ui/base/LegacyTextField"
-import { AriaPopupType } from "../../../../../ui/AriaUtils"
 import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "../../../../../platform-kit/utils"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -27,6 +24,18 @@ export enum PickerPosition {
 	BOTTOM, // Default. Never explicitly used.
 }
 
+export interface DatePickerTextFieldAttrs {
+	value: string
+	label: Translation
+	disabled?: boolean
+	focused: boolean
+	oncreateTextField: (vnode: VnodeDOM) => void
+	oninput: (ev: InputEvent & { redraw?: false }) => void
+	onfocus: (ev: FocusEvent) => void
+	onblur: (ev: FocusEvent) => void
+	onkeydown: (ev: KeyboardEvent) => void
+}
+
 export interface DatePickerAttrs {
 	date: Date | null // Force explicit null passing; using `?:` aka undefined might be an accident
 	onDateSelected: (date: Date) => unknown
@@ -36,7 +45,8 @@ export interface DatePickerAttrs {
 	disabled?: boolean
 	position?: PickerPosition
 	classes?: Array<string>
-	forMailSendTime?: boolean
+	/** render your own shiny text field instead of a default one */
+	renderCustomTextField?: (attrs: DatePickerTextFieldAttrs) => Children
 }
 
 /**
@@ -108,16 +118,21 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		const inputContent =
 			this.inputTextEl && document.activeElement === this.inputTextEl
 				? this.inputTextEl.value // Don't interrupt the user as they're typing, keep the state as is
-				: this.showingDropdown || document.activeElement === this.inputDateEl || attrs.forMailSendTime
+				: this.showingDropdown || document.activeElement === this.inputDateEl
 					? formatDate(attrs.date ?? new Date()) // If null, show today in their locale format (DD/MM/YYYY)
 					: attrs.date
 						? formatDateWithWeekdayAndYear(attrs.date) // Long locale format (Fri, Jun 5, 2026)
 						: attrs.nullSelectionText
 							? lang.getTranslationText(attrs.nullSelectionText)
 							: NBSP
-		const sharedAttrs = {
+		const textFieldAttrs: DatePickerTextFieldAttrs = {
 			value: inputContent,
+			label: attrs.label,
 			disabled: attrs.disabled,
+			focused: this.inputTextEl != null && document.activeElement === this.inputTextEl,
+			oncreateTextField: (vnode) => {
+				this.inputTextEl = vnode.dom as HTMLInputElement
+			},
 			oninput: (ev: InputEvent & { redraw?: false }) => {
 				const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
 				if (parsedDate) attrs.onDateSelected(parsedDate)
@@ -157,61 +172,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				}
 			},
 		}
-		// TODO(gg): Normalize/Fix attribute abuse across codebase, then remove this shim and use `...sharedAttrs`
-		const { onkeydown, oninput, onfocus, ...sharedAttrsLegacyTextField } = sharedAttrs
 		return m(".rel", { class: attrs.classes?.join(" ") }, [
-			attrs.forMailSendTime
-				? m(LegacyTextField, {
-						label: attrs.label,
-						helpLabel: () =>
-							attrs.date
-								? formatDateWithWeekdayAndYear(attrs.date) // Long locale format (Fri, Jun 5, 2026)
-								: attrs.nullSelectionText
-									? lang.getTranslationText(attrs.nullSelectionText)
-									: NBSP,
-						hasPopup: AriaPopupType.Dialog,
-						onDomInputCreated: (input) => {
-							this.inputTextEl = input as HTMLInputElement
-						},
-						// HACK: Need to fix codebase to use real standard web APIs. Bad component design is hiding
-						// real event objects, including `relatedTarget` info and Mithril's `redraw` boolean. Lost. Sad.
-						keyHandler: (key) => {
-							onkeydown(
-								new KeyboardEvent("keydown", {
-									key: key.key,
-									shiftKey: key.shift,
-									ctrlKey: key.ctrl,
-									altKey: key.alt,
-									metaKey: key.meta,
-								}),
-							)
-							return true // HACK for TS
-						},
-						// HACK: Ditto
-						oninput: (inputElValue, inputEl) => {
-							oninput({} as InputEvent)
-						},
-						// HACK: Ditto
-						onfocus: (wrapperEl, inputEl) => {
-							onfocus({ relatedTarget: null } as FocusEvent)
-						},
-						// HACK: Switch to `...sharedAttrs` soon
-						...sharedAttrsLegacyTextField,
-					})
-				: m("input[type=text].tutaui-button-outline.full-width", {
-						ariaLabel: attrs.label.text,
-						style: {
-							"border-color": theme.outline,
-							fontSize: rem(font_size.smaller_em),
-							opacity: attrs.disabled ? 0.7 : 1.0,
-						},
-						oncreate: (vnode) => {
-							this.inputTextEl = vnode.dom as HTMLInputElement
-						},
-						...sharedAttrs,
-					}),
-			// Zero-width <input type="date">
-			// Note: This cannot be `display:none` else browsers (esp iOS) won't render the native picker at all
 			m("input[type=date]", {
 				// We don't want users to enter via tab; if they do, they have to hit tab like 3-4 times to get out
 				tabindex: TabIndex.Programmatic,
@@ -220,7 +181,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					width: 0,
 					// Help the browser decide where to put the native picker (under/over the input) see `.rel` above
 					position: "absolute",
-					top: attrs.forMailSendTime ? "16px" : 0,
+					bottom: 0,
 					left: 0,
 					// We want exactly the same height at the input[type=text] above so the native picker doesn't
 					// block any words in the input field. Chose to match the border/padding instead of setting a height
@@ -252,6 +213,28 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				// clear or reset button in their native picker UI, which sets null. We ignore that for now, since our
 				// parent component won't expect null in their onDateSelected() function.
 			}),
+			// Zero-width <input type="date">
+			// Note: This cannot be `display:none` else browsers (esp iOS) won't render the native picker at all
+			attrs.renderCustomTextField != null
+				? attrs.renderCustomTextField(textFieldAttrs)
+				: m("input[type=text].tutaui-button-outline.full-width", {
+						"data-testid": lang.getTestId(attrs.label),
+						ariaLabel: lang.getTranslationText(attrs.label),
+						style: {
+							"border-color": theme.outline,
+							fontSize: rem(font_size.smaller_em),
+							opacity: attrs.disabled ? 0.7 : 1.0,
+						},
+						oncreate: (vnode) => {
+							textFieldAttrs.oncreateTextField(vnode)
+						},
+						value: textFieldAttrs.value,
+						disabled: textFieldAttrs.disabled,
+						oninput: textFieldAttrs.oninput,
+						onfocus: textFieldAttrs.onfocus,
+						onblur: textFieldAttrs.onblur,
+						onkeydown: textFieldAttrs.onkeydown,
+					}),
 			this.showingDropdown &&
 				m(
 					DropdownWithRootCaptureListener,

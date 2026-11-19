@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { LegacyTextFieldAttrs, LegacyTextField, LegacyTextFieldType as TextFieldType, LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
+import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
 import { Time } from "../../../../common/calendar/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
-import { InputAttrs, SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
-import { rem, font_size } from "../../../../../ui/size.js"
+import { SingleLineTextField } from "../../../../../ui/base/SingleLineTextField.js"
+import { font_size, rem } from "../../../../../ui/size.js"
 import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
@@ -151,7 +151,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					width: 0,
 					// Help the browser decide where to put the native picker (under/over the input) see `.rel` above
 					position: "absolute",
-					top: attrs.forMailSendTime ? "16px" : 0,
+					bottom: 0,
 					left: 0,
 					// We want exactly the same height at the input[type=text] above so the native picker doesn't
 					// block any words in the input field. Chose to match the border/padding instead of setting a height
