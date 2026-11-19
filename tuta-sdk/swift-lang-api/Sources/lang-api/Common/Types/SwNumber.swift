@@ -1,6 +1,6 @@
 public typealias TsInt = SwInt
 public final class SwInt: Sendable, EquitableIsStructural, Hashable, Comparable {
-  private let inner: Int
+  internal let inner: Int
 
   public init(_ value: Int) {
     self.inner = value
@@ -11,7 +11,7 @@ public final class SwInt: Sendable, EquitableIsStructural, Hashable, Comparable 
   }
 
   public static func parseInt(_ str: SwString) -> SwInt {
-    return SwInt(Int(str.asPrimitiveString()) ?? 0)
+    return SwInt(Int(str.inner) ?? 0)
   }
 
   public static func toString(_ value: TsInt) -> SwString {
@@ -82,7 +82,7 @@ public final class SwDouble: Sendable, EquitableIsStructural, Hashable, Comparab
   }
 
   public static func parseDouble(_ str: SwString) -> SwDouble {
-    return SwDouble(Double(str.asPrimitiveString()) ?? Double.nan)
+    return SwDouble(Double(str.inner) ?? Double.nan)
   }
 
   public func asPrimitive() -> Double {
