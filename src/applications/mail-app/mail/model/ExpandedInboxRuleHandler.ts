@@ -6,7 +6,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel, MoveMode } from "./MailModel"
 import { ExpandedInboxRule, Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { InboxRuleConditionType, InboxRuleActionType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, getElementId } from "@tutao/meta"
+import { elementIdPart, elementIdToId, getElementId } from "@tutao/meta"
 import { getMailHeaders } from "./MailUtils"
 import { _checkContainsRuleCondition, _checkEmailAddresses, _shouldApplyRule, InboxRuleHandler } from "./InboxRuleHandler"
 import { InboxRuleModel } from "./InboxRuleModel"
@@ -34,7 +34,11 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		if (!this.logins.getUserController().isPaidAccount() || !_shouldApplyRule(mail, sourceFolder, ignoreProcessingState)) {
 			return null
 		}
-		const rules = await this.inboxRuleModel.getOrderedInboxRules()
+		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
+		if (mailboxDetail === null) {
+			return null
+		}
+		const rules = await this.inboxRuleModel.getOrderedInboxRules(mailboxDetail)
 		return await this.findMatchingInboxRuleForRules(mail, rules)
 	}
 
@@ -142,22 +146,22 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		return !isEmpty(conditions)
 	}
 
-	async applyRulesToAllMails(progress: Stream<number>, abort: AbortController, rules?: Array<ExpandedInboxRule>): Promise<number> {
+	async applyRulesToAllMails(
+		progress: Stream<number>,
+		abort: AbortController,
+		mailboxDetails: MailboxDetail,
+		rules?: Array<ExpandedInboxRule>,
+	): Promise<number> {
 		if (rules == null) {
-			rules = await this.inboxRuleModel.getOrderedInboxRules()
+			rules = await this.inboxRuleModel.getOrderedInboxRules(mailboxDetails)
 		}
 
 		if (isEmpty(rules)) {
 			return 0
 		}
 
-		const userController = mailLocator.logins.getUserController()
-		const folderSystem = assertNotNull(
-			mailLocator.mailModel.getFolderSystemByGroupId(userController.getUserMailGroupMembership().group),
-			"no folder system?",
-		)
+		const folderSystem = assertNotNull(mailLocator.mailModel.getFolderSystemByGroupId(elementIdToId(mailboxDetails.mailGroup._id)), "no folder system?")
 		const inbox = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX), "no inbox?")
-		const mailboxDetails = await mailLocator.mailboxModel.getUserMailboxDetails()
 
 		let totalProcessed = 0
 		let totalMailsAffected = 0
@@ -194,7 +198,7 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 
 	async applyRulesToGivenMails(mails: Array<Mail>, mailboxDetail: MailboxDetail, rules?: Array<ExpandedInboxRule> | null): Promise<number> {
 		if (rules == null) {
-			rules = await this.inboxRuleModel.getOrderedInboxRules()
+			rules = await this.inboxRuleModel.getOrderedInboxRules(mailboxDetail)
 		}
 
 		const mailsToActUpon: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }> = []
