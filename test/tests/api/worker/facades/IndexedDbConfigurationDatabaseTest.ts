@@ -363,6 +363,7 @@ o.spec("IndexedDbConfigurationDatabase", function () {
 					"1234@something.com": NewsletterBannerRule.Allow,
 					"5678@something.com": NewsletterBannerRule.Block,
 				},
+				failedToDecryptRulesCount: 0,
 			})
 		})
 	})

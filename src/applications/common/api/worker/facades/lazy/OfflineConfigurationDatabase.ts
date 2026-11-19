@@ -1,5 +1,4 @@
 import { ConfigurationDatabase } from "./ConfigurationDatabase"
-import { EntityUpdateData } from "../../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../../entities/tutanota/Utils"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import type { OfflineStorageTable } from "../../../../../../app-kit/local-store/OfflineStorage"
@@ -108,7 +107,7 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 			return
 		}
 
-		const { imageRules, newsletterBannerRules } = rules
+		const { imageRules, newsletterBannerRules, failedToDecryptRulesCount } = rules
 		for (const [address, rule] of Object.entries(imageRules)) {
 			await this.addExternalImageRule(address, rule)
 		}
@@ -118,7 +117,7 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 
 		console.log(
 			TAG,
-			`Imported ${Object.keys(imageRules).length} image rule(s) and ${Object.keys(newsletterBannerRules).length} newsletter banner rule(s) from IndexedDbConfigurationDatabase.`,
+			`Imported ${Object.keys(imageRules).length} image rule(s) and ${Object.keys(newsletterBannerRules).length} newsletter banner rule(s) from IndexedDbConfigurationDatabase. ${failedToDecryptRulesCount} rule(s) failed to decrypt.`,
 		)
 
 		await db.delete(userIdProvider())

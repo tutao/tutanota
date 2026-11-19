@@ -266,7 +266,11 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 		return rule
 	}
 
-	async dumpRules(): Promise<{ imageRules: Record<string, ExternalImageRule>; newsletterBannerRules: Record<string, NewsletterBannerRule> } | null> {
+	async dumpRules(): Promise<{
+		imageRules: Record<string, ExternalImageRule>
+		newsletterBannerRules: Record<string, NewsletterBannerRule>
+		failedToDecryptRulesCount: number
+	} | null> {
 		// NOTE: We are just doing this for migrating from IndexedDbConfigurationDatabase to OfflineConfigurationDatabase.
 		// Therefore, if anything is added, we don't need to handle it.
 
@@ -278,14 +282,19 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 
 		const imageRules: Record<string, ExternalImageRule> = {}
 		const newsletterBannerRules: Record<string, NewsletterBannerRule> = {}
+		let failedToDecryptRulesCount = 0
 
 		{
 			const transaction = await db.createTransaction(true, [ExternalImageListOS])
 			const entry = await transaction.getAll(ExternalImageListOS)
 
 			for (const e of entry) {
-				const address = this.decryptItem(e.value.address, metaData.key, metaData.initializationVector)
-				imageRules[address] = e.value.rule as ExternalImageRule
+				try {
+					const address = this.decryptItem(e.value.address, metaData.key, metaData.initializationVector)
+					imageRules[address] = e.value.rule as ExternalImageRule
+				} catch (_) {
+					failedToDecryptRulesCount++
+				}
 			}
 		}
 
@@ -294,12 +303,16 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 			const entry = await transaction.getAll(NewsletterBannerListOS)
 
 			for (const e of entry) {
-				const address = this.decryptItem(e.value.address, metaData.key, metaData.initializationVector)
-				newsletterBannerRules[address] = e.value.rule as NewsletterBannerRule
+				try {
+					const address = this.decryptItem(e.value.address, metaData.key, metaData.initializationVector)
+					newsletterBannerRules[address] = e.value.rule as NewsletterBannerRule
+				} catch (_) {
+					failedToDecryptRulesCount++
+				}
 			}
 		}
 
-		return { imageRules, newsletterBannerRules }
+		return { imageRules, newsletterBannerRules, failedToDecryptRulesCount }
 	}
 
 	async addNewsletterBannerRule(address: string, rule: NewsletterBannerRule): Promise<void> {
