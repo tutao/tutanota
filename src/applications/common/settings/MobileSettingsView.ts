@@ -249,7 +249,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 		m.route.set(url + location.hash)
 	}
 
-	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, _eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				m.redraw()
@@ -259,8 +259,8 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 			this.setUrl(this.settingSections[0].settings[0].url)
 		}
 
-		await this.currentViewer?.onEntityUpdatesReceived(updates)
-		await this.detailsViewer?.onEntityUpdatesReceived(updates)
+		await this.currentViewer?.onEntityUpdatesReceived(updates, eventOwnerGroupId)
+		await this.detailsViewer?.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 	}
 
 	getViewSlider(): ViewSlider | null {

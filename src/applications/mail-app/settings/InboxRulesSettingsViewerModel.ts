@@ -1,66 +1,97 @@
-import { ExpandedInboxRule, ExpandedInboxRuleTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { getElementId, isSameId, OperationType } from "@tutao/meta"
+import { ExpandedInboxRule, ExpandedInboxRuleTypeRef, MailboxGroupRoot, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
+import { elementIdToId, getElementId, isSameId, OperationType } from "@tutao/meta"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
-import { assertNotNull, isNotNull, lazyAsync } from "@tutao/utils"
+import { assertNotNull, isNotNull, lazyAsync, promiseMap } from "@tutao/utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
+import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality/MailboxModel"
 import { IdTupleWrapper } from "@tutao/entities/sys"
 
+interface MailboxInboxRules {
+	readonly mailboxDetail: MailboxDetail
+	inboxRulesById: Map<Id, ExpandedInboxRule>
+	inboxRulesOrder: IdTupleWrapper[]
+	orderedInboxRules: ExpandedInboxRule[]
+}
+
 export class InboxRulesSettingsViewerModel {
-	private inboxRulesById: Map<Id, ExpandedInboxRule> = new Map()
-	private inboxRulesOrder: IdTupleWrapper[] = []
-	private _orderedInboxRules: ExpandedInboxRule[] = []
+	private readonly mailboxes: Map<Id, MailboxInboxRules> = new Map()
 
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly inboxRuleModel: lazyAsync<InboxRuleModel>,
+		private readonly mailboxModel: MailboxModel,
 	) {}
 
 	async init(): Promise<void> {
 		const inboxRuleModel = await this.inboxRuleModel()
-		if (!inboxRuleModel.isUsingLegacyInboxRules()) {
-			const [rulesById, rulesOrder] = await Promise.all([inboxRuleModel.getInboxRulesMap(), inboxRuleModel.getInboxRuleOrder()])
-			this.inboxRulesById = rulesById
-			this.inboxRulesOrder = rulesOrder
-			this.computeOrderedInboxRules()
+		if (inboxRuleModel.isUsingLegacyInboxRules()) {
+			return
+		}
+
+		const mailboxDetails = await this.mailboxModel.getMailboxDetails()
+		const mailboxInboxRules = await promiseMap(mailboxDetails, async (mailboxDetail) => {
+			const [inboxRulesById, inboxRulesOrder] = await Promise.all([
+				inboxRuleModel.getInboxRulesMap(mailboxDetail.mailboxGroupRoot),
+				inboxRuleModel.getInboxRuleOrder(mailboxDetail.mailboxGroupRoot),
+			])
+			const mailboxInboxRules = { mailboxDetail, inboxRulesById, inboxRulesOrder, orderedInboxRules: [] }
+			this.computeOrderedInboxRules(mailboxInboxRules)
+			return mailboxInboxRules
+		})
+		this.mailboxes.clear()
+		for (const mailbox of mailboxInboxRules) {
+			this.mailboxes.set(elementIdToId(mailbox.mailboxDetail.mailboxGroupRoot._id), mailbox)
 		}
 	}
 
-	private computeOrderedInboxRules() {
-		this._orderedInboxRules = this.inboxRulesOrder.map(({ listElementId }) => this.inboxRulesById.get(listElementId) ?? null).filter(isNotNull)
+	private computeOrderedInboxRules(mailbox: MailboxInboxRules) {
+		mailbox.orderedInboxRules = mailbox.inboxRulesOrder.map(({ listElementId }) => mailbox.inboxRulesById.get(listElementId) ?? null).filter(isNotNull)
 	}
 
-	get orderedInboxRules(): ExpandedInboxRule[] {
-		return this._orderedInboxRules
+	get mailboxDetails(): MailboxDetail[] {
+		return Array.from(this.mailboxes.values(), (mailbox) => mailbox.mailboxDetail)
 	}
 
-	async onEntityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	getOrderedInboxRules(mailboxGroupRoot: MailboxGroupRoot): ExpandedInboxRule[] {
+		return this.mailboxes.get(elementIdToId(mailboxGroupRoot._id))?.orderedInboxRules ?? []
+	}
+
+	async onEntityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ExpandedInboxRuleTypeRef, update)) {
+				const mailbox = this.mailboxes.get(eventOwnerGroupId)
+				if (mailbox === undefined) {
+					return
+				}
 				if (update.operation === OperationType.DELETE) {
-					this.inboxRulesById.delete(update.instanceId)
+					mailbox.inboxRulesById.delete(update.instanceId)
 					continue
 				}
 
 				const updatedRule = await this.entityClient.load(ExpandedInboxRuleTypeRef, [assertNotNull(update.instanceListId), update.instanceId])
-				this.inboxRulesById.set(getElementId(updatedRule), updatedRule)
+				mailbox.inboxRulesById.set(getElementId(updatedRule), updatedRule)
 
 				if (update.operation === OperationType.UPDATE) {
-					const ruleIndex = this._orderedInboxRules.findIndex((rule) => isSameId(updatedRule._id, rule._id))
+					const ruleIndex = mailbox.orderedInboxRules.findIndex((rule) => isSameId(updatedRule._id, rule._id))
 					if (ruleIndex !== -1) {
-						this._orderedInboxRules[ruleIndex] = updatedRule
+						mailbox.orderedInboxRules[ruleIndex] = updatedRule
 					}
 				}
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
+				const mailbox = this.mailboxes.get(eventOwnerGroupId)
+				if (mailbox === undefined) {
+					return
+				}
 				const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, [null, update.instanceId])
-				this.inboxRulesOrder = mailboxProperties.inboxRuleOrder
-				this.computeOrderedInboxRules()
+				mailbox.inboxRulesOrder = mailboxProperties.inboxRuleOrder
+				this.computeOrderedInboxRules(mailbox)
 			}
 		}
 	}
 
-	async saveInboxRuleOrder() {
-		await (await this.inboxRuleModel()).updateInboxRuleOrder(this.orderedInboxRules)
+	private async saveInboxRuleOrder(mailbox: MailboxInboxRules) {
+		await (await this.inboxRuleModel()).updateInboxRuleOrder(mailbox.orderedInboxRules, mailbox.mailboxDetail.mailboxGroupRoot)
 	}
 
 	async saveInboxRule(rule: ExpandedInboxRule) {
@@ -71,37 +102,52 @@ export class InboxRulesSettingsViewerModel {
 		await (await this.inboxRuleModel()).deleteInboxRule(rule)
 	}
 
-	async moveRuleToFirst(rule: ExpandedInboxRule, index: number) {
-		this.orderedInboxRules.splice(index, 1)
-		this.orderedInboxRules.unshift(rule)
-		await this.saveInboxRuleOrder()
+	async moveRuleToFirst(mailboxGroupRoot: MailboxGroupRoot, rule: ExpandedInboxRule, index: number) {
+		const mailbox = this.mailboxes.get(elementIdToId(mailboxGroupRoot._id))
+		if (mailbox) {
+			mailbox.orderedInboxRules.splice(index, 1)
+			mailbox.orderedInboxRules.unshift(rule)
+			await this.saveInboxRuleOrder(mailbox)
+		}
 	}
 
-	async moveRuleUp(rule: ExpandedInboxRule, index: number) {
-		let prev = this.orderedInboxRules[index - 1]
-		this.orderedInboxRules[index - 1] = rule
-		this.orderedInboxRules[index] = prev
-		await this.saveInboxRuleOrder()
+	async moveRuleUp(mailboxGroupRoot: MailboxGroupRoot, rule: ExpandedInboxRule, index: number) {
+		const mailbox = this.mailboxes.get(elementIdToId(mailboxGroupRoot._id))
+		if (mailbox) {
+			const prev = mailbox.orderedInboxRules[index - 1]
+			mailbox.orderedInboxRules[index - 1] = rule
+			mailbox.orderedInboxRules[index] = prev
+			await this.saveInboxRuleOrder(mailbox)
+		}
 	}
 
-	async moveRuleDown(rule: ExpandedInboxRule, index: number) {
-		let next = this.orderedInboxRules[index + 1]
-		this.orderedInboxRules[index + 1] = rule
-		this.orderedInboxRules[index] = next
-		await this.saveInboxRuleOrder()
+	async moveRuleDown(mailboxGroupRoot: MailboxGroupRoot, rule: ExpandedInboxRule, index: number) {
+		const mailbox = this.mailboxes.get(elementIdToId(mailboxGroupRoot._id))
+		if (mailbox) {
+			const next = mailbox.orderedInboxRules[index + 1]
+			mailbox.orderedInboxRules[index + 1] = rule
+			mailbox.orderedInboxRules[index] = next
+			await this.saveInboxRuleOrder(mailbox)
+		}
 	}
 
-	async moveRuleToLast(rule: ExpandedInboxRule, index: number) {
-		this.orderedInboxRules.splice(index, 1)
-		this.orderedInboxRules.push(rule)
-		await this.saveInboxRuleOrder()
+	async moveRuleToLast(mailboxGroupRoot: MailboxGroupRoot, rule: ExpandedInboxRule, index: number) {
+		const mailbox = this.mailboxes.get(elementIdToId(mailboxGroupRoot._id))
+		if (mailbox) {
+			mailbox.orderedInboxRules.splice(index, 1)
+			mailbox.orderedInboxRules.push(rule)
+			await this.saveInboxRuleOrder(mailbox)
+		}
 	}
 
-	async moveRuleToIndex(rule: ExpandedInboxRule, currentIndex: number, insertAtIndex: number) {
+	async moveRuleToIndex(mailboxGroupRoot: MailboxGroupRoot, rule: ExpandedInboxRule, currentIndex: number, insertAtIndex: number) {
 		if (currentIndex === insertAtIndex || currentIndex + 1 === insertAtIndex) return
 
-		this.orderedInboxRules.splice(insertAtIndex, 0, rule)
-		this.orderedInboxRules.splice(currentIndex > insertAtIndex ? currentIndex + 1 : currentIndex, 1)
-		await this.saveInboxRuleOrder()
+		const mailbox = this.mailboxes.get(elementIdToId(mailboxGroupRoot._id))
+		if (mailbox) {
+			mailbox.orderedInboxRules.splice(insertAtIndex, 0, rule)
+			mailbox.orderedInboxRules.splice(currentIndex > insertAtIndex ? currentIndex + 1 : currentIndex, 1)
+			await this.saveInboxRuleOrder(mailbox)
+		}
 	}
 }

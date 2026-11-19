@@ -61,6 +61,7 @@ import {
 	getMailboxName,
 	isSharedMailbox,
 	isTutaTeamMail,
+	isUserMailbox,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
@@ -811,13 +812,18 @@ export class MailViewerViewModel {
 		return (
 			this.logins.isInternalUserLoggedIn() &&
 			isNotNull(this.mailboxDetails) &&
-			!isSharedMailbox(this.mailboxDetails) &&
+			this.supportsInboxRules(this.mailboxDetails) &&
 			this.getFolderInfo()?.folderType === MailSetKind.INBOX
 		)
 	}
 
 	canCreateInboxRule(): boolean {
-		return this.logins.isInternalUserLoggedIn() && isNotNull(this.mailboxDetails) && !isSharedMailbox(this.mailboxDetails)
+		return this.logins.isInternalUserLoggedIn() && isNotNull(this.mailboxDetails) && this.supportsInboxRules(this.mailboxDetails)
+	}
+
+	private supportsInboxRules(mailboxDetails: MailboxDetail): boolean {
+		// inbox rules for shared mailboxes are supported for non-legacy inbox rules
+		return !this.inboxRuleModel.isUsingLegacyInboxRules() || isUserMailbox(mailboxDetails)
 	}
 
 	canShowHeaders(): boolean {

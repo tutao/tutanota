@@ -26,7 +26,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../../ui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../../ui/cards.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
-import { createNewContact, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { createNewContact, isTutaTeamMail, isUserMailbox } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getExistingInboxRuleForType, getExistingLegacyInboxRuleForType } from "../model/MailUtils.js"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
@@ -646,31 +646,32 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 			const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
 
-			if (mailboxDetails && mailboxDetails.mailGroup.user) {
-				// Only allow the addition of inbox and spam rules if it is not a shared mailbox
-				// Shared mailboxes currently do not support inbox rules
+			if (mailboxDetails) {
 				if (defaultInboxRuleField && !locator.logins.isEnabled(FeatureType.InternalCommunication)) {
 					if (this.viewModel.inboxRuleModel.isUsingLegacyInboxRules()) {
-						const rule = getExistingLegacyInboxRuleForType(
-							locator.logins.getUserController().props,
-							mailAddress.address.trim().toLowerCase(),
-							defaultInboxRuleField,
-						)
-						buttons.push({
-							label: rule ? "editInboxRule_action" : "addInboxRule_action",
-							click: async () => {
-								const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
-								if (mailboxDetails == null) {
-									return
-								}
-								const { show, createLegacyInboxRuleTemplate } = await import("../../settings/AddLegacyInboxRuleDialog")
+						// legacy inbox rules do not support shared mailboxes
+						if (isUserMailbox(mailboxDetails)) {
+							const rule = getExistingLegacyInboxRuleForType(
+								locator.logins.getUserController().props,
+								mailAddress.address.trim().toLowerCase(),
+								defaultInboxRuleField,
+							)
+							buttons.push({
+								label: rule ? "editInboxRule_action" : "addInboxRule_action",
+								click: async () => {
+									const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+									if (mailboxDetails == null) {
+										return
+									}
+									const { show, createLegacyInboxRuleTemplate } = await import("../../settings/AddLegacyInboxRuleDialog")
 
-								show(mailboxDetails, rule ?? createLegacyInboxRuleTemplate(defaultInboxRuleField, mailAddress.address))
-							},
-						})
+									show(mailboxDetails, rule ?? createLegacyInboxRuleTemplate(defaultInboxRuleField, mailAddress.address))
+								},
+							})
+						}
 					} else {
 						const rule = getExistingInboxRuleForType(
-							await this.viewModel.inboxRuleModel.getOrderedInboxRules(),
+							await this.viewModel.inboxRuleModel.getOrderedInboxRules(mailboxDetails.mailboxGroupRoot),
 							mailAddress.address.trim().toLowerCase(),
 							defaultInboxRuleField,
 						)
