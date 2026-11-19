@@ -7,7 +7,7 @@ import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
-import de.tutao.tutashared.push.CommonNotificationsHandler
+import de.tutao.tutashared.push.NotificationsHandler
 import de.tutao.tutashared.push.MissedNotification
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.launch
@@ -26,7 +26,7 @@ class CalendarNotificationsHandler(
 	private val appDir: File,
 	private val suspensionHandler: SuspensionHandler
 
-) : CommonNotificationsHandler(localNotificationsFacade, sseStorage, alarmNotificationsManager, defaultClient, suspensionHandler) {
+) : NotificationsHandler(localNotificationsFacade, sseStorage, alarmNotificationsManager, defaultClient, suspensionHandler) {
 
 
 	override fun onNewNotificationAvailable(sseInfo: SseInfo?) = lifecycleScope.launch {

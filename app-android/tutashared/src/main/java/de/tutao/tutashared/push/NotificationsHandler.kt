@@ -27,18 +27,18 @@ import java.util.concurrent.TimeUnit
 /** Contains basic notification functionality that is likely to be shared among apps.
  * No default implementation is provided for onNewNotificationAvailable because we expect it to be quite different
  * in each app. */
-abstract class CommonNotificationsHandler(private val localNotificationsFacade: ILocalNotificationsFacade,
-										  private val sseStorage: SseStorage,
-										  private val alarmNotificationsManager: AlarmNotificationsManager,
-										  private val defaultClient: OkHttpClient,
-										  private val suspensionHandler: SuspensionHandler): INotificationsHandler
+abstract class NotificationsHandler(private val localNotificationsFacade: LocalNotificationsFacade,
+									private val sseStorage: SseStorage,
+									private val alarmNotificationsManager: AlarmNotificationsManager,
+									private val defaultClient: OkHttpClient,
+									private val suspensionHandler: SuspensionHandler)
 {
 	protected val json = Json { ignoreUnknownKeys = true }
 
 	/** Override this with app-specific notification behavior in your implementation */
-	abstract override fun onNewNotificationAvailable(sseInfo: SseInfo?): Job
+	abstract fun onNewNotificationAvailable(sseInfo: SseInfo?): Job
 
-	override fun onConnect(): Boolean {
+	fun onConnect(): Boolean {
 		if (hasNotificationTTLExpired()) {
 			Log.d(TAG, "Notification TTL expired - resetting stored state")
 			alarmNotificationsManager.unscheduleAlarms(null)
@@ -221,7 +221,7 @@ abstract class CommonNotificationsHandler(private val localNotificationsFacade: 
 		return lastMissedNotificationCheckTime != null && System.currentTimeMillis() - lastMissedNotificationCheckTime.time > MISSED_NOTIFICATION_TTL
 	}
 
-	override fun onNotAuthorized(userId: String) {
+	fun onNotAuthorized(userId: String) {
 		// If we get notAuthorized, then user removed push identifier and we should try the next one.
 		// It will be done automatically when we remove the user from DB because there's already an observer for users
 		// in PushNotificationService which restarts the connection.

@@ -17,7 +17,7 @@ import de.tutao.tutashared.R
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.isSameDay
-import de.tutao.tutashared.push.ILocalNotificationsFacade
+import de.tutao.tutashared.push.LocalNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
@@ -26,12 +26,12 @@ import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 class AlarmNotificationsManager(
-	private val sseStorage: SseStorage,
-	private val crypto: AndroidNativeCryptoFacade,
-	private val systemAlarmFacade: SystemAlarmFacade,
-	private val localNotificationsFacade: ILocalNotificationsFacade,
-	private val dateProvider: DateProvider,
-	private val timeZone: TimeZone
+    private val sseStorage: SseStorage,
+    private val crypto: AndroidNativeCryptoFacade,
+    private val systemAlarmFacade: SystemAlarmFacade,
+    private val localNotificationsFacade: LocalNotificationsFacade,
+    private val dateProvider: DateProvider,
+    private val timeZone: TimeZone
 ) {
 	private val pushKeyResolver: PushKeyResolver = PushKeyResolver(sseStorage)
 
