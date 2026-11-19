@@ -16,7 +16,7 @@ import java.io.File
 import java.util.*
 
 class CalendarNotificationsHandler(
-	private val localNotificationsFacade: LocalNotificationsFacade,
+	private val localNotificationsFacade: CalendarLocalNotificationsFacade,
 	private val sseStorage: SseStorage,
 	private val credentialsEncryption: NativeCredentialsFacade,
 	private val alarmNotificationsManager: AlarmNotificationsManager,

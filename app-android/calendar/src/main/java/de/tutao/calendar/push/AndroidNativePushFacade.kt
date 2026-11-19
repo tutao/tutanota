@@ -17,7 +17,7 @@ class AndroidNativePushFacade(
 	private val activity: MainActivity,
 	private val sseStorage: SseStorage,
 	private val alarmNotificationsManager: AlarmNotificationsManager,
-	private val localNotificationsFacade: LocalNotificationsFacade,
+	private val localNotificationsFacade: CalendarLocalNotificationsFacade,
 ) : NativePushFacade {
 	private val json = Json { ignoreUnknownKeys = true }
 
