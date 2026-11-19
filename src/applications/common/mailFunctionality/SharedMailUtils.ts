@@ -2,7 +2,7 @@ import { ALLOWED_IMAGE_FORMATS, EncryptionAuthStatus, EnvProvider, MAX_BASE64_IM
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { UserController } from "../api/main/UserController.js"
-import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils.js"
+import { getEnabledMailAddressesForGroupInfo, isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils.js"
 import { lang, Language, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
@@ -139,10 +139,12 @@ export function getSenderNameForUser(mailboxDetails: MailboxDetail, userControll
 export function getMailboxName(logins: LoginController, mailboxDetails: MailboxDetail): string {
 	if (!logins.isInternalUserLoggedIn()) {
 		return lang.get("mailbox_label")
-	} else if (isUserMailbox(mailboxDetails)) {
-		return neverNull(logins.getUserController().userGroupInfo.mailAddress)
 	} else {
-		return getGroupInfoDisplayName(assertNotNull(mailboxDetails.mailGroupInfo, "mailboxDetails without mailGroupInfo?"))
+		const userGroupInfo = logins.getUserController().userGroupInfo
+		const mailGroupInfo = mailboxDetails.mailGroupInfo
+		return isUserMailbox(mailboxDetails)
+			? neverNull(userGroupInfo.name !== "" ? userGroupInfo.name : userGroupInfo.mailAddress)
+			: neverNull(mailGroupInfo.name !== "" ? mailGroupInfo.name : mailGroupInfo.mailAddress)
 	}
 }
 
