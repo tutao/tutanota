@@ -20,7 +20,9 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.PowerManager
+import android.os.StatFs
 import android.print.PrintDocumentAdapter
 import android.provider.Settings
 import android.util.Log
@@ -468,6 +470,11 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 				}
 			}
 			connectivityManager.registerDefaultNetworkCallback(networkObserverCallback)
+
+			val stat = StatFs(Environment.getDataDirectory().path)
+			val bytesAvailable = stat.blockSizeLong * stat.blockCountLong
+			val megAvailable = bytesAvailable / 1048576
+			Log.e("", "Available MB : " + megAvailable)
 		}
 
 		// Exclude bottom left screen area from system (back) gestures to open the drawer menu with a swipe from the
