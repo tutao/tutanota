@@ -9,7 +9,7 @@ import de.tutao.calendar.push.makeOpenCalendarIntent
 import de.tutao.tutashared.alarms.AlarmNotificationsManager.Companion.showAlarmNotification
 import de.tutao.tutashared.alarms.NotificationResources
 
-class CalendarAlarmBroadcastReceiver : BroadcastReceiver() {
+class CalendarAppAlarmBroadcastReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context, intent: Intent) {
 		Log.d(TAG, "Received alarm broadcast")
 		val timestamp = intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis())

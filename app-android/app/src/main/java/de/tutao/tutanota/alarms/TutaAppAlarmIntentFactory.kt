@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import de.tutao.tutanota.MainActivity
-import de.tutao.tutanota.alarms.MailAlarmBroadcastReceiver.Companion.EVENT_DATE_EXTRA
-import de.tutao.tutanota.alarms.MailAlarmBroadcastReceiver.Companion.IS_ALL_DAY_EVENT
-import de.tutao.tutanota.alarms.MailAlarmBroadcastReceiver.Companion.SUMMARY_EXTRA
+import de.tutao.tutanota.alarms.TutaAppAlarmBroadcastReceiver.Companion.EVENT_DATE_EXTRA
+import de.tutao.tutanota.alarms.TutaAppAlarmBroadcastReceiver.Companion.IS_ALL_DAY_EVENT
+import de.tutao.tutanota.alarms.TutaAppAlarmBroadcastReceiver.Companion.SUMMARY_EXTRA
 import de.tutao.tutashared.alarms.AlarmIntentFactory
 import java.util.Date
 
-class MailAlarmIntentFactory : AlarmIntentFactory {
+class TutaAppAlarmIntentFactory : AlarmIntentFactory {
 
 	override fun makeAlarmIntent(
 		context: Context,
@@ -22,7 +22,7 @@ class MailAlarmIntentFactory : AlarmIntentFactory {
 		userId: String?
 	): Intent {
 		val occurrenceIdentifier = "$identifier#$occurrence"
-		val intent = Intent(context, MailAlarmBroadcastReceiver::class.java)
+		val intent = Intent(context, TutaAppAlarmBroadcastReceiver::class.java)
 		intent.data = Uri.fromParts("alarm", occurrenceIdentifier, "")
 		intent.putExtra(SUMMARY_EXTRA, summary)
 		intent.putExtra(EVENT_DATE_EXTRA, eventDate.time)
