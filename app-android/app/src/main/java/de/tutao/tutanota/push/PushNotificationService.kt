@@ -20,9 +20,9 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
-import de.tutao.tutashared.push.IPushNotificationJobState
 import de.tutao.tutashared.push.LooperThread
 import de.tutao.tutashared.push.NetworkObserver
+import de.tutao.tutashared.push.PushNotificationJobState
 import de.tutao.tutashared.push.PushNotificationServiceStateIndicator
 import de.tutao.tutashared.push.PushNotificationServiceState
 import de.tutao.tutashared.push.SseClient
@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit
 class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
-	private val jobState: IPushNotificationJobState = PushNotificationJobState(false)
+	private val jobState = PushNotificationJobState(false)
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sseClient: SseClient
 	/** Indicates the overall lifecycle status of the service. A wrapper class is used so that the job's
@@ -89,7 +89,7 @@ class PushNotificationService : LifecycleJobService() {
 		alarmNotificationsManager.reScheduleAlarms()
 
 		val suspensionHandler = SuspensionHandler(dateProvider)
-		val notificationsHandler = TutanotaNotificationsHandler(localNotificationsFacade, sseStorage, nativeCredentialsFacade, alarmNotificationsManager, NetworkUtils.defaultClient, lifecycleScope, { AndroidSqlCipherFacade(this@PushNotificationService) }, this.filesDir, suspensionHandler)
+		val notificationsHandler = TutaNotificationsHandler(localNotificationsFacade, sseStorage, nativeCredentialsFacade, alarmNotificationsManager, NetworkUtils.defaultClient, lifecycleScope, { AndroidSqlCipherFacade(this@PushNotificationService) }, this.filesDir, suspensionHandler)
 		sseClient = SseClient(
 			crypto,
 			sseStorage,
@@ -190,11 +190,4 @@ class PushNotificationService : LifecycleJobService() {
 			return intent
 		}
 	}
-
-
-	internal class PushNotificationJobState(
-		/** Whether jobParameters is not null; should be true when a job is currently running. */
-		override var active: Boolean
-	) : IPushNotificationJobState
-
 }

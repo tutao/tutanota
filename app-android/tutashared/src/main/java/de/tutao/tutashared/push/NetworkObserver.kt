@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 class NetworkObserver (
     context: Context,
     lifecycleOwner: LifecycleOwner,
-    private val pushNotificationJobState: IPushNotificationJobState
+    private val pushNotificationJobState: PushNotificationJobState
 ) : BroadcastReceiver(), DefaultLifecycleObserver {
 	private val connectivityManager: ConnectivityManager = context.getSystemService<ConnectivityManager>()!!
 	private var networkConnectivityListener: NetworkConnectivityListener? = null
