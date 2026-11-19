@@ -172,8 +172,8 @@ export function migrationMailToImportMailParams(
 	return {
 		subject: migrationMail.envelope?.subject ?? "",
 		bodyText: bodyText,
-		sentDate: sentDate ?? new Date(Date.now()),
-		receivedDate: receivedDate ?? new Date(Date.now()),
+		sentDate: sentDate ?? new Date(0),
+		receivedDate: receivedDate ?? new Date(0),
 		state: mailStateFromMigrationMailbox(migrationMail),
 		unread: unreadFromMigrationMail(migrationMail),
 		messageId: migrationMail.envelope?.messageId ?? null,

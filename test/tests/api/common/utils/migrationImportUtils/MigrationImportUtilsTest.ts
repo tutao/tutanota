@@ -349,18 +349,15 @@ o.spec("MigrationImportUtils", () => {
 			o.check(result.bodyText.includes("<br>")).equals(true)
 		})
 
-		o.test("falls back to the current date when sent and received dates are invalid", () => {
+		o.test("falls back to the 1 Jan 1970 when sent and received dates are invalid", () => {
 			migrationMail.envelope!.date = new Date(Number.NaN)
 			migrationMail.internalDate = new Date(Date.parse("not a date"))
-			const before = Date.now()
-
 			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
-			const after = Date.now()
 
 			o.check(Number.isNaN(result.sentDate.getTime())).equals(false)
 			o.check(Number.isNaN(result.receivedDate.getTime())).equals(false)
-			o.check(result.sentDate.getTime() >= before && result.sentDate.getTime() <= after).equals(true)
-			o.check(result.receivedDate.getTime() >= before && result.receivedDate.getTime() <= after).equals(true)
+			o.check(result.sentDate.getTime()).equals(0)
+			o.check(result.receivedDate.getTime()).equals(0)
 		})
 
 		o.test("handles missing subject", () => {
