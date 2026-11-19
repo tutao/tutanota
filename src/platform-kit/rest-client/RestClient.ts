@@ -5,7 +5,7 @@ import { handleRestError, PayloadTooLargeError } from "./error.js"
 import { HttpMethod, InterceptedResponse, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
 import { isNull } from "../utils/Utils"
 import { TsDate } from "../app-env/TranspileCompatibility"
-import { HttpUtils, HttpResponse, MediaType, RestBinaryBody, RestBody, RestTextBody, XhrError } from "@tutao/http-client"
+import { HttpUtils, HttpResponse, MediaType, RestBinaryBody, RestBody, RestTextBody, XhrError, HttpClient } from "@tutao/http-client"
 import { SuspensionError } from "@tutao/http-client/error"
 
 EnvProvider.assertWorkerOrNode()
@@ -52,7 +52,7 @@ export class RestClient implements RestClientInterface {
 		private readonly suspensionHandler: restSuspension.SuspensionHandler,
 		private readonly domainConfig: DomainConfig,
 		private readonly clientPlatform: string,
-		private readonly httpClient: HttpUtils,
+		private readonly httpClient: HttpClient,
 	) {}
 
 	addMiddleware(middleware: RestClientMiddleware): RestClient {

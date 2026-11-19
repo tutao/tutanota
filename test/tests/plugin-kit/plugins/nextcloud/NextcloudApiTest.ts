@@ -6,7 +6,7 @@ import { PluginHostApi } from "../../../../../src/plugin-kit/sdk/hostApi/PluginH
 import { CustomerConfigPluginError, GeneralPluginError } from "../../../../../src/plugin-kit/sdk/PluginError"
 import { PluginFileReference } from "../../../../../src/plugin-kit/sdk/FileImportExtensionPoint"
 import { PluginDataFile } from "../../../../../src/plugin-kit/sdk/PluginDataFile"
-import { HttpUtils, HttpMethod, HttpResponse, MediaType, RestBinaryBody, RestTextBody } from "../../../../../src/platform-kit/http-client"
+import { HttpUtils, HttpMethod, HttpResponse, MediaType, RestBinaryBody, RestTextBody, HttpClient } from "../../../../../src/platform-kit/http-client"
 
 const LOGIN_URL = "https://nc.example.com/index.php/apps/tutamail/api/v1/proxy/index.php/login/v2"
 const POLL_URL_PREFIX = "https://nc.example.com/index.php/apps/tutamail/api/v1/proxy/index.php/login/v2/poll?token="
@@ -28,13 +28,13 @@ function emptyResponse(status: number, statusText: string): HttpResponse {
 }
 
 o.spec("NextcloudApiTest", () => {
-	let httpClient: HttpUtils
+	let httpClient: HttpClient
 	let hostApi: PluginHostApi
 	let nextcloudPlugin: NextcloudPlugin
 	let api: NextcloudApi
 
 	o.beforeEach(() => {
-		httpClient = object<HttpUtils>()
+		httpClient = object<HttpClient>()
 		;(NextcloudApi as any).httpClient = httpClient
 		hostApi = object<PluginHostApi>()
 		nextcloudPlugin = object<NextcloudPlugin>()

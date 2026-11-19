@@ -1,6 +1,6 @@
 import { newPromise, once, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import { isNotNull, isNull, TypeChecks } from "@tutao/lang-api"
-import { HttpUtils } from "./HttpClient"
+import { HttpClient, HttpUtils } from "./HttpClient"
 import { HttpMethod, MediaType, ProgressListener, XhrError } from "./HttpTypes"
 import { HttpResponse, RestBinaryBody, RestBody, RestTextBody } from "./HttpResponse"
 import { CancelledError, EnvProvider } from "@tutao/app-env"
@@ -12,7 +12,7 @@ const TAG = "[HttpClient]"
  * Uses XmlHttpRequest as there is still no support for tracking
  * upload progress with fetch (see https://stackoverflow.com/a/69400632)
  */
-export class HttpClientJavascript implements HttpUtils {
+export class HttpClientJavascript implements HttpClient {
 	private lastRequestId: number
 	private readonly usingTimeoutAbort: boolean
 	private readonly verbose: boolean
