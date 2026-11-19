@@ -6,7 +6,7 @@ import { NextcloudPlugin } from "./NextcloudPlugin"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { CustomerConfigPluginError, GeneralPluginError } from "../../sdk/PluginError"
 import { PluginVersion } from "../../sdk/PluginManifest"
-import { HttpUtils, HttpClientJavascript, HttpMethod, HttpResponse, MediaType, RestBinaryBody, HttpClient } from "../../../platform-kit/http-client"
+import { HttpUtils, HttpClientJavascript, HttpMethod, HttpResponse, MediaType, RestBinaryBody } from "../../../platform-kit/http-client"
 import { TimeConstants } from "../../../platform-kit/app-env"
 import { Singletons } from "../../../platform-kit/singletons/singleton"
 
@@ -17,7 +17,7 @@ export type NextcloudCredentials = {
 }
 
 export class NextcloudApi {
-	private static httpClient: HttpClient = null!
+	private static httpClient: HttpUtils = null!
 	private nextCloudCredentials: Nullable<NextcloudCredentials>
 
 	public constructor(
