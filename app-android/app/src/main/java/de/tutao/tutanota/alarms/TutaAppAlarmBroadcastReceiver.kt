@@ -10,7 +10,7 @@ import de.tutao.tutashared.alarms.AlarmNotificationsManager.Companion.showAlarmN
 import de.tutao.tutashared.alarms.NotificationResources
 
 
-class MailAlarmBroadcastReceiver : BroadcastReceiver() {
+class TutaAppAlarmBroadcastReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context, intent: Intent) {
 		Log.d(TAG, "Received alarm broadcast")
 		val timestamp = intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis())
@@ -30,7 +30,7 @@ class MailAlarmBroadcastReceiver : BroadcastReceiver() {
 	}
 
 	companion object {
-		const val TAG = "AlarmBroadcastReceiver"
+		const val TAG = "TutaAlarmBroadcastReceiver"
 		const val SUMMARY_EXTRA = "summary"
 		const val EVENT_DATE_EXTRA = "eventDate"
 		const val IS_ALL_DAY_EVENT = "isAllDayEvent"

@@ -58,10 +58,10 @@ import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import de.tutao.tutanota.alarms.MailAlarmIntentFactory
+import de.tutao.tutanota.alarms.TutaAppAlarmIntentFactory
 import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.TutaLocalNotificationsFacade
-import de.tutao.tutanota.push.PushNotificationService
+import de.tutao.tutanota.push.TutaAppPushNotificationService
 import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.ActivityUtils
@@ -204,7 +204,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this, MailAlarmIntentFactory()),
+			SystemAlarmFacade(this, TutaAppAlarmIntentFactory()),
 			localNotificationsFacade,
 			DateProviderImpl(),
 			TimeZone.getDefault()
@@ -750,7 +750,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 
 	fun setupPushNotifications() {
 		try {
-			val serviceIntent = PushNotificationService.startIntent(
+			val serviceIntent = TutaAppPushNotificationService.startIntent(
 				this,
 				"MainActivity#setupPushNotifications",
 			)
@@ -760,7 +760,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 		}
 		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 		jobScheduler.schedule(
-			JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
+			JobInfo.Builder(1, ComponentName(this, TutaAppPushNotificationService::class.java))
 				.setPeriodic(TimeUnit.MINUTES.toMillis(15))
 				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
 				.setPersisted(true).build()

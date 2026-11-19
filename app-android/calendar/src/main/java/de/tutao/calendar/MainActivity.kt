@@ -50,10 +50,10 @@ import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
+import de.tutao.calendar.alarms.CalendarAppAlarmIntentFactory
 import de.tutao.calendar.push.AndroidNativePushFacade
 import de.tutao.calendar.push.CalendarLocalNotificationsFacade
-import de.tutao.calendar.push.PushNotificationService
+import de.tutao.calendar.push.CalendarAppPushNotificationService
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.calendar.widget.WidgetRefresher
 import de.tutao.tutashared.ActivityResult
@@ -189,7 +189,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this, CalendarAlarmIntentFactory()),
+			SystemAlarmFacade(this, CalendarAppAlarmIntentFactory()),
 			localNotificationsFacade,
 			DateProviderImpl(),
 			TimeZone.getDefault()
@@ -700,7 +700,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 
 	fun setupPushNotifications() {
 		try {
-			val serviceIntent = PushNotificationService.startIntent(
+			val serviceIntent = CalendarAppPushNotificationService.startIntent(
 				this,
 				"MainActivity#setupPushNotifications",
 			)
@@ -710,7 +710,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 		}
 		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 		jobScheduler.schedule(
-			JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
+			JobInfo.Builder(1, ComponentName(this, CalendarAppPushNotificationService::class.java))
 				.setPeriodic(TimeUnit.MINUTES.toMillis(15))
 				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
 				.setPersisted(true).build()

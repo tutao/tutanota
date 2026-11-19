@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import de.tutao.calendar.MainActivity
-import de.tutao.calendar.alarms.CalendarAlarmBroadcastReceiver.Companion.EVENT_DATE_EXTRA
-import de.tutao.calendar.alarms.CalendarAlarmBroadcastReceiver.Companion.IS_ALL_DAY_EVENT
-import de.tutao.calendar.alarms.CalendarAlarmBroadcastReceiver.Companion.SUMMARY_EXTRA
+import de.tutao.calendar.alarms.CalendarAppAlarmBroadcastReceiver.Companion.EVENT_DATE_EXTRA
+import de.tutao.calendar.alarms.CalendarAppAlarmBroadcastReceiver.Companion.IS_ALL_DAY_EVENT
+import de.tutao.calendar.alarms.CalendarAppAlarmBroadcastReceiver.Companion.SUMMARY_EXTRA
 import de.tutao.tutashared.alarms.AlarmIntentFactory
 import java.util.Date
 
-class CalendarAlarmIntentFactory : AlarmIntentFactory {
+class CalendarAppAlarmIntentFactory : AlarmIntentFactory {
 	override fun makeAlarmIntent(
 		context: Context,
 		occurrence: Int,
@@ -21,7 +21,7 @@ class CalendarAlarmIntentFactory : AlarmIntentFactory {
 		userId: String?
 	): Intent {
 		val occurrenceIdentifier = "$identifier#$occurrence"
-		val intent = Intent(context, CalendarAlarmBroadcastReceiver::class.java)
+		val intent = Intent(context, CalendarAppAlarmBroadcastReceiver::class.java)
 		intent.data = Uri.fromParts("alarm", occurrenceIdentifier, "")
 		intent.putExtra(SUMMARY_EXTRA, summary)
 		intent.putExtra(EVENT_DATE_EXTRA, eventDate.time)
