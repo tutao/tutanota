@@ -27,7 +27,7 @@ import {
 	SqlCipherFacadeSendDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { DateProvider, lazyAsync, lazyMemoized, noOp } from "../../../../platform-kit/utils"
+import { DateProvider, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
@@ -391,7 +391,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
-		noOp,
+		async () => {},
 		locator.base.rolloutFacade,
 		locator.base.groupManagement,
 		locator.base.identityKeyCreator,

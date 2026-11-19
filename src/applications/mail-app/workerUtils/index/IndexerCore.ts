@@ -41,6 +41,7 @@ import {
 	findLastIndex,
 	getFromMap,
 	groupByAndMap,
+	isNotNull,
 	last,
 	lastThrow,
 	mergeMaps,
@@ -925,11 +926,12 @@ export class IndexerCore {
 
 	_updateGroupDataBatchId(groupId: Id, batchId: Id, transaction: DbTransaction): Promise<void> {
 		return transaction.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
-			if (!groupData) {
-				throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
+			if (isNotNull(groupData)) {
+				groupData.lastBatchIds = [batchId]
+				return transaction.put(GroupDataOS, groupId, groupData)
+			} else {
+				console.warn(`Tried to update group ${groupId}, which is unknown to the transaction`)
 			}
-			groupData.lastBatchIds = [batchId]
-			return transaction.put(GroupDataOS, groupId, groupData)
 		})
 	}
 

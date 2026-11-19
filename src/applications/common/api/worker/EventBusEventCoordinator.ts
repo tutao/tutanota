@@ -38,7 +38,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly keyRotationFacade: KeyRotationFacade,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
 		private readonly sendError: (error: Error) => Promise<void>,
-		private readonly appSpecificBatchHandling: (events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean) => void,
+		private readonly appSpecificBatchHandling: (events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean) => Promise<void>,
 		private readonly rolloutFacade: RolloutFacade,
 		private readonly groupManagementFacade: lazyAsync<GroupManagementFacade>,
 		private readonly identityKeyCreator: lazyAsync<IdentityKeyCreator>,
@@ -55,7 +55,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient() && !EnvProvider.get().isOfflineStorageAvailable()) {
 			const configurationDatabase = (await this.configurationDatabase()) as IndexedDbConfigurationDatabase
 			await configurationDatabase.onEntityUpdatesReceived(events, batchId, groupId)
-			this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
+			await this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
 		}
 	}
 

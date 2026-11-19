@@ -7,7 +7,7 @@ import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../../platform-kit/utils/NoZoneDateProvider.js"
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
-import { DateProvider, lazyAsync, lazyMemoized, noOp } from "../../../../platform-kit/utils"
+import { DateProvider, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
@@ -326,7 +326,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
-		noOp,
+		async () => {},
 		locator.base.rolloutFacade,
 		locator.base.groupManagement,
 		locator.base.identityKeyCreator,
