@@ -37,8 +37,10 @@ import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem, SelectorItemList } from "../../../ui/base/DropDownSelector"
 import { getInboxRuleActionTypeNameMapping, getInboxRuleConditionTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
-import { applyRuleWithProgress } from "./InboxRuleSettingsViewer"
+import { applyRulesWithProgress } from "./InboxRuleSettingsViewer"
 import { LabelsDropDownSelector } from "../mail/view/LabelsDropDownSelector"
 import { Label } from "../../../ui/base/Label"
 import { prependParentLabelNamesToLabel } from "../mail/view/MailSetTreeUtils"
@@ -73,31 +75,39 @@ interface TargetMailSet {
 }
 
 export async function show(
-	mailBoxDetail: MailboxDetail,
+	initialMailboxDetail: MailboxDetail,
 	inboxRuleModel: InboxRuleModel,
 	originalInboxRule: ExpandedInboxRule | null,
 	defaultConditions?: Pick<InboxRuleCondition, "type" | "value">[],
 ) {
 	if (locator.logins.getUserController().isFreeAccount()) {
 		void showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
-	} else if (mailBoxDetail) {
-		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.mailSets._id)
-		let targetFolders = folders.getIndentedList().map((folderInfo: IndentedMailSet) => {
-			return {
-				name: getIndentedFolderNameForDropdown(folderInfo),
-				value: folderInfo.mailSet,
-			}
-		})
+	} else if (initialMailboxDetail) {
+		// the mailbox the rule is created in, can be changed for new rules
+		let mailboxDetail = initialMailboxDetail
 
-		const labels = mailLocator.mailModel.getLabelsByGroupId(assertNotNull(mailBoxDetail.mailbox._ownerGroup))
-		const targetLabels =
-			mailLocator.mailModel
-				.getLabelFolderSystemByGroupId(assertNotNull(mailBoxDetail.mailbox._ownerGroup))
-				?.getIndentedList()
-				.map((label) => ({
-					name: getIndentedFolderNameForDropdown(label),
-					value: label.mailSet,
-				})) ?? []
+		const loadMailboxSets = async (mailboxDetail: MailboxDetail) => {
+			const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
+			const targetFolders = folders.getIndentedList().map((folderInfo: IndentedMailSet) => {
+				return {
+					name: getIndentedFolderNameForDropdown(folderInfo),
+					value: folderInfo.mailSet,
+				}
+			})
+
+			const labels = mailLocator.mailModel.getLabelsByGroupId(assertNotNull(mailboxDetail.mailbox._ownerGroup))
+			const targetLabels =
+				mailLocator.mailModel
+					.getLabelFolderSystemByGroupId(assertNotNull(mailboxDetail.mailbox._ownerGroup))
+					?.getIndentedList()
+					.map((label) => ({
+						name: getIndentedFolderNameForDropdown(label),
+						value: label.mailSet,
+					})) ?? []
+			return { folders, targetFolders, labels, targetLabels }
+		}
+		let { folders, targetFolders, labels, targetLabels } = await loadMailboxSets(mailboxDetail)
+		const allMailboxes = await mailLocator.mailboxModel.getMailboxDetails()
 
 		const inboxRuleName: stream<string> = stream(originalInboxRule?.name ?? "")
 
@@ -192,9 +202,36 @@ export async function show(
 		}
 
 		let nameValid = true
-		const renderName = () => {
+		const changeMailbox = async (newMailboxDetail: MailboxDetail) => {
+			;({ folders, targetFolders, labels, targetLabels } = await loadMailboxSets(newMailboxDetail))
+			mailboxDetail = newMailboxDetail
+			// folders and labels belong to the mailbox, so the previous values are not valid anymore
+			for (const action of inboxRuleActions) {
+				action.valueFolder(defaultActionOfType(action.type()))
+				action.valueLabels([])
+				action.valid = null
+			}
+			m.redraw()
+		}
+
+		const renderMailboxSelector = (): Children => {
 			return m(
-				".mt-16.max-width-m",
+				".flex-grow",
+				{ style: { "min-width": px(200) } },
+				m(DropDownSelectorNew<MailboxDetail>, {
+					label: "mailbox_label",
+					items: allMailboxes.map((mailboxDetail) => ({ name: getMailboxName(mailLocator.logins, mailboxDetail), value: mailboxDetail })),
+					selectedValue: mailboxDetail,
+					selectionChangedHandler: changeMailbox,
+					// the mailbox of an existing rule can not be changed
+					disabled: originalInboxRule !== null,
+				}),
+			)
+		}
+
+		const renderName = () => {
+			const nameField = m(
+				".flex-grow",
 				m(TextField, {
 					label: "name_label",
 					value: inboxRuleName(),
@@ -211,6 +248,13 @@ export async function show(
 					class: nameValid ? "" : "error-text-field",
 					helpLabel: nameValid ? null : () => lang.getTranslationText("enterName_msg"),
 				}),
+			)
+			if (allMailboxes.length < 2) {
+				return m(".mt-16.max-width-m", nameField)
+			}
+			return m(
+				".mt-16.flex.gap-16" + (ClientDetector.get().isMobileDevice() ? ".flex-column" : ""),
+				ClientDetector.get().isMobileDevice() ? [renderMailboxSelector(), nameField] : [nameField, renderMailboxSelector()],
 			)
 		}
 
@@ -516,12 +560,12 @@ export async function show(
 
 			isAlreadySaving = true
 			const rule = prepareRule(validatedName, ruleConditions, ruleActions)
-			const savePromise = isNewInboxRule ? inboxRuleModel.createInboxRule(rule) : inboxRuleModel.updateInboxRule(rule)
+			const savePromise = isNewInboxRule ? inboxRuleModel.createInboxRule(rule, mailboxDetail) : inboxRuleModel.updateInboxRule(rule)
 
 			showProgressDialog("pleaseWait_msg", savePromise, { delayDisplayMillis: 200, minDialogVisibilityMillis: 0 })
 				.then(async () => {
 					if (applyRule) {
-						return applyRuleWithProgress([rule], <ExpandedInboxRuleHandler>await mailLocator.inboxRuleHandler())
+						return applyRulesWithProgress([{ mailboxDetail, rules: [rule] }], <ExpandedInboxRuleHandler>await mailLocator.inboxRuleHandler())
 					}
 				})
 				.then(() => {

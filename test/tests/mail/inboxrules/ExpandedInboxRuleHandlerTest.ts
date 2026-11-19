@@ -63,6 +63,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 	o.spec("findMatchingInboxRule", () => {
 		let userController: UserController
+		const mailboxDetail: MailboxDetail = object()
 		const inboxFolder = createTestEntity(MailSetTypeRef, {
 			_id: ["listId", "inboxFolderId"],
 			folderType: MailSetKind.INBOX,
@@ -72,6 +73,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			userController = object()
 			when(logins.getUserController()).thenReturn(userController)
 			when(userController.isPaidAccount()).thenReturn(true)
+			when(mailModel.getMailboxDetailsForMail(anything())).thenResolve(mailboxDetail)
 		})
 
 		o.test("return matching rule when there is one", async () => {
@@ -84,7 +86,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				_createRule([_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "someonecc@tuta.com")], []),
 			]
 
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve(rules)
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve(rules)
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -96,7 +98,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -108,7 +110,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -123,7 +125,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -138,7 +140,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -153,7 +155,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -172,7 +174,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -187,7 +189,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(null)
@@ -199,7 +201,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -210,7 +212,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -229,7 +231,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			})
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -243,7 +245,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).equals(null)
@@ -267,7 +269,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 			o.test("matching rule for HAS_NO_ATTACHMENT, mail without attachments", async () => {
 				when(mailFacade.loadMailDetailsBlob(mailWithoutAttachments)).thenResolve(mailDetails)
-				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHasNot])
+				when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([ruleHasNot])
 
 				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithoutAttachments, inboxFolder, true)
 				o.check(foundRule).equals(ruleHasNot)
@@ -275,7 +277,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 			o.test("matching no rule for HAS_NO_ATTACHMENT, mail with one attachment", async () => {
 				when(mailFacade.loadMailDetailsBlob(mailWithAttachments)).thenResolve(mailDetails)
-				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHasNot])
+				when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([ruleHasNot])
 
 				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithAttachments, inboxFolder, true)
 				o.check(foundRule).equals(null)
@@ -283,7 +285,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 			o.test("matching no rule for HAS_ATTACHMENT, mail without attachments", async () => {
 				when(mailFacade.loadMailDetailsBlob(mailWithoutAttachments)).thenResolve(mailDetails)
-				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHas])
+				when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([ruleHas])
 
 				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithoutAttachments, inboxFolder, true)
 				o.check(foundRule).equals(null)
@@ -291,7 +293,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 			o.test("matching rule for HAS_ATTACHMENT, mail with one attachment", async () => {
 				when(mailFacade.loadMailDetailsBlob(mailWithAttachments)).thenResolve(mailDetails)
-				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHas])
+				when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([ruleHas])
 
 				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithAttachments, inboxFolder, true)
 				o.check(foundRule).equals(ruleHas)
@@ -316,7 +318,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			})
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
@@ -339,7 +341,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			})
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(null)
@@ -352,7 +354,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).equals(null)
@@ -369,7 +371,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(null)
@@ -386,7 +388,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const mailDetails = _createMailDetails()
 
 			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+			when(inboxRuleModel.getOrderedInboxRules(mailboxDetail)).thenResolve([rule])
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
