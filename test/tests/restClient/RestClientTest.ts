@@ -22,7 +22,7 @@ import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientDet
 import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "../../../src/platform-kit/instance-pipeline"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { ApplicationTypesService_GET } from "@tutao/entities/base"
-import { HttpUtils, HttpClientJavascript, HttpResponse } from "../../../src/platform-kit/http-client"
+import { HttpUtils, HttpClientJavascript, HttpResponse, HttpClient } from "../../../src/platform-kit/http-client"
 import { Singletons } from "../../../src/platform-kit/singletons/singleton"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
@@ -526,9 +526,9 @@ class CountingMiddleWare implements RestClientMiddleware {
 
 /** Records the exact arguments it was called with so tests can assert on their order/identity. */
 class RecordingHttpClient implements HttpUtils {
-	public lastArgs: Parameters<HttpUtils["request"]> | null = null
+	public lastArgs: Parameters<HttpClient["request"]> | null = null
 
-	async request(...args: Parameters<HttpUtils["request"]>): Promise<HttpResponse> {
+	async request(...args: Parameters<HttpClient["request"]>): Promise<HttpResponse> {
 		this.lastArgs = args
 		return new HttpResponse(200, "OK", null, new Map())
 	}
