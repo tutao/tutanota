@@ -180,7 +180,8 @@ export class IndexedDbIndexer implements Indexer {
 			await this.mailIndexer.mailboxIndexingPromise
 
 			this.eventQueue.pause()
-			this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp).then(() => this.eventQueue.resume())
+			await this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp)
+			this.eventQueue.resume()
 		} catch (e) {
 			if (retryOnError !== false && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 				// in case of MembershipRemovedError mail or contact group has been removed from user.
@@ -437,10 +438,8 @@ export class IndexedDbIndexer implements Indexer {
 	_loadGroupData(user: User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
 		let memberships = filterIndexMemberships(user).concat(user.userGroup)
 
-		const restrictTo = restrictToTheseGroups // type check
-
-		if (restrictTo) {
-			memberships = memberships.filter((membership) => contains(restrictTo, membership.group))
+		if (isNotNull(restrictToTheseGroups)) {
+			memberships = memberships.filter((membership) => contains(restrictToTheseGroups, membership.group))
 		}
 
 		return promiseMap(memberships, async (membership: GroupMembership) => {
@@ -457,7 +456,7 @@ export class IndexedDbIndexer implements Indexer {
 					groupType: getMembershipGroupType(membership),
 				} as GroupData,
 			}
-		}).then((data) => data.filter(isNotNull))
+		})
 	}
 
 	/**

@@ -75,7 +75,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			keyRotationFacadeMock,
 			async () => cacheManagementFacade,
 			async (_error: Error) => {},
-			(_) => {},
+			async () => {},
 			rolloutFacadeMock,
 			async () => groupManagementFacade,
 			async () => identityKeyCreator,
