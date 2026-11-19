@@ -16,7 +16,7 @@ public final class SwRegex {
   }
 
   public func firstMatch(in value: SwString) -> Nullable<SwString> {
-    let str = value.asPrimitiveString()
+    let str = value.inner
     let range = NSRange(str.startIndex..., in: str)
     guard let match = regex.firstMatch(in: str, range: range),
       let matchRange = Range(match.range, in: str)

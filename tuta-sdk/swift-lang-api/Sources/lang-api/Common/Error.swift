@@ -16,8 +16,8 @@ open class TutanotaError: Error, @unchecked Sendable, EquitableIsIdentity {
 
   public init(_ name: SwString, _ message: SwString) throws {
     try thisFunctionDoesNothing()
-    self._name = name.asPrimitiveString()
-    self._message = message.asPrimitiveString()
+    self._name = name.inner
+    self._message = message.inner
   }
 }
 

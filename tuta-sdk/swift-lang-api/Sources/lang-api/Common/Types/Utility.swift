@@ -19,7 +19,7 @@ public class TypeChecks {
   }
   public static func hasProperty(_ propertyName: SwString, parentObj: Any? = nil) -> Bool {
     if parentObj == nil {
-      return propertyName.asPrimitiveString() == "env"
+      return propertyName.inner == "env"
     }
     return false
   }

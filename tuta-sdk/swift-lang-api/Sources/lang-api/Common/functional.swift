@@ -14,7 +14,7 @@ public func assertNotNull<T>(_ value: Nullable<T>, _ message: SwString = SwStrin
   if let value {
     return value
   }
-  throw try ProgrammingError(SwString("AssertNotNull failed: " + message.asPrimitiveString()))
+  throw try ProgrammingError(SwString("AssertNotNull failed: " + message.inner))
 }
 
 public func assertNotNaN(
@@ -31,7 +31,7 @@ public func assertNotNaN(
 /// @param message optional error message
 public func assertNull<T>(_ value: Nullable<T>, _ message: SwString = SwString("not null")) throws {
   if isNotNull(value) {
-    throw try ProgrammingError(SwString("AssertNull failed : " + message.asPrimitiveString()))
+    throw try ProgrammingError(SwString("AssertNull failed : " + message.inner))
   }
 }
 
@@ -45,7 +45,7 @@ public func isNull<T>(_ t: Nullable<T>) -> Bool {
 
 public func assert(_ assertion: Bool, _ message: SwString) throws {
   if !assertion {
-    throw try ProgrammingError(SwString("Assertion failed: " + message.asPrimitiveString()))
+    throw try ProgrammingError(SwString("Assertion failed: " + message.inner))
   }
 }
 
