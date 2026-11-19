@@ -3167,27 +3167,16 @@ pub struct OrderProcessingAgreement {
 	pub _format: i64,
 	#[serde(rename = "1331")]
 	pub _ownerGroup: Option<GeneratedId>,
-	#[serde(rename = "1332")]
-	#[serde(with = "serde_bytes")]
-	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1333")]
 	pub version: String,
 	#[serde(rename = "1334")]
 	pub customerAddress: String,
 	#[serde(rename = "1335")]
 	pub signatureDate: DateTime,
-	#[serde(rename = "2231")]
-	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2718")]
-	#[serde(with = "serde_bytes")]
-	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1336")]
 	pub signerUserGroupInfo: IdTupleGenerated,
 	#[serde(rename = "1337")]
 	pub customer: GeneratedId,
-
-	#[serde(default)]
-	pub _errors: Errors,
 }
 
 impl Entity for OrderProcessingAgreement {

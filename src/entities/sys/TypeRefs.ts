@@ -4878,12 +4878,9 @@ export type OrderProcessingAgreement = {
 	_permissions: Id
 	_format: NumberString
 	_ownerGroup: null | Id
-	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	version: string
 	customerAddress: string
 	signatureDate: Date
-	_ownerKeyVersion: null | NumberString
-	_kdfNonce: null | Uint8Array<ArrayBuffer>
 
 	// == associations
 
@@ -4894,12 +4891,14 @@ export type OrderProcessingAgreement = {
 
 	bucketKey: null
 
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
 	_type: TypeRef<OrderProcessingAgreement>
-	_errors: Object
 	_original: Nullable<OrderProcessingAgreement>
 	isAdapter: false
 }
