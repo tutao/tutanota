@@ -23,16 +23,9 @@ export interface ExportFacade {
 	endMailboxExport(userId: string): Promise<MailboxExportState | null>
 
 	/**
-	 * Pick a directory for storing the export data and persist the export state. If exportFolderStructure is set, folderPaths (relative paths of segments) are created up front.
+	 * Pick a directory for storing the export data and persist the export state. exportFolderStructure is persisted with the export state. Folders are created lazily when individual mails are saved.
 	 */
-	startMailboxExport(
-		userId: string,
-		mailboxId: string,
-		mailBagId: string,
-		mailId: string,
-		exportFolderStructure: boolean,
-		folderPaths: ReadonlyArray<ReadonlyArray<string>>,
-	): Promise<void>
+	startMailboxExport(userId: string, mailboxId: string, mailBagId: string, mailId: string, exportFolderStructure: boolean): Promise<void>
 
 	/**
 	 * Save current state of the export and write export data to the export directory

@@ -61,18 +61,18 @@ o.spec("DesktopExportFacade", function () {
 				mailId: "",
 				mailBagId: "",
 			})
-			await o(() => facade.startMailboxExport(userId, "", "", "", false, [])).asyncThrows(ExportError)
+			await o(() => facade.startMailboxExport(userId, "", "", "", false)).asyncThrows(ExportError)
 		})
 
 		o.test("if export is locked for user it throws an ExportError", async function () {
 			when(desktopExportLock.acquireLock(userId)).thenReturn(LockResult.AlreadyLocked)
-			await o(() => facade.startMailboxExport(userId, "", "", "", false, [])).asyncThrows(ExportError)
+			await o(() => facade.startMailboxExport(userId, "", "", "", false)).asyncThrows(ExportError)
 		})
 
 		o.test("if no directory is selected it throws an error", async function () {
 			when(persistence.getStateForUser(userId)).thenResolve(null)
 			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: [] })
-			await o(() => facade.startMailboxExport(userId, "", "", "", false, [])).asyncThrows(CancelledError)
+			await o(() => facade.startMailboxExport(userId, "", "", "", false)).asyncThrows(CancelledError)
 			verify(desktopExportLock.unlock(userId))
 		})
 
@@ -83,7 +83,7 @@ o.spec("DesktopExportFacade", function () {
 			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: [selectedDirectory] })
 			when(fsPromises.stat(finalExportDirectoryPath)).thenReject(enoentError())
 
-			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, false, [])
+			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, false)
 
 			verify(fsPromises.mkdir(finalExportDirectoryPath))
 			verify(
@@ -108,7 +108,7 @@ o.spec("DesktopExportFacade", function () {
 			const exportDirectoryPath = "path/TutaExport-2024-12-05"
 			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: [selectedDirectory] })
 			when(fsPromises.stat(exportDirectoryPath)).thenReject(enoentError())
-			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, false, [])
+			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, false)
 			verify(fsPromises.mkdir(exportDirectoryPath))
 			verify(
 				persistence.setStateForUser({
@@ -124,23 +124,6 @@ o.spec("DesktopExportFacade", function () {
 					failedMailIds: [],
 				}),
 			)
-		})
-	})
-
-	o.spec("startMailboxExport with folder structure", function () {
-		o.test("it creates the folders up front and persists the flag", async function () {
-			when(persistence.getStateForUser(userId)).thenResolve(null)
-			const exportDirectoryPath = "path/TutaExport-2024-12-05"
-			when(dialog.showOpenDialog(matchers.anything(), { properties: ["openDirectory"] })).thenResolve({ filePaths: ["path"] })
-			when(fsPromises.stat(exportDirectoryPath)).thenReject(enoentError())
-
-			await facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, true, [["Inbox"], ["Custom", "Sub/../folder"], ["..", "x"]])
-
-			verify(fsPromises.mkdir(exportDirectoryPath))
-			verify(fsPromises.mkdir(path.join(exportDirectoryPath, "Inbox"), { recursive: true }))
-			verify(fsPromises.mkdir(path.join(exportDirectoryPath, "Custom", "Sub_.._folder"), { recursive: true }))
-			verify(fsPromises.mkdir(path.join(exportDirectoryPath, ".._", "x"), { recursive: true }))
-			verify(persistence.setStateForUser(matchers.contains({ type: "running", shouldExportFolderStructure: true })))
 		})
 	})
 

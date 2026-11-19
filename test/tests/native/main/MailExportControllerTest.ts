@@ -125,12 +125,11 @@ o.spec("MailExportController", function () {
 					assertNotNull(mailboxDetail.mailbox.currentMailBag)._id,
 					GENERATED_MAX_ID,
 					false,
-					[],
 				),
 			)
 		})
 
-		o.test("when exporting with folder structure it passes all paths", async function () {
+		o.test("when exporting with folder structure it passes the folder path of each mail", async function () {
 			const custom = createTestEntity(MailSetTypeRef, { _id: ["setList", "customId"], folderType: MailSetKind.CUSTOM, name: "Custom" })
 			const sub = createTestEntity(MailSetTypeRef, { _id: ["setList", "subId"], folderType: MailSetKind.CUSTOM, name: "Sub", parentFolder: custom._id })
 			const label = createTestEntity(MailSetTypeRef, { _id: ["setList", "labelId"], folderType: MailSetKind.LABEL, name: "Label" })
@@ -148,11 +147,7 @@ o.spec("MailExportController", function () {
 
 			await controller.startExport(mailboxDetail, true)
 
-			const folderPaths = matchers.captor()
-			verify(
-				exportFacade.startMailboxExport(userId, elementIdToId(mailboxDetail.mailbox._id), mailBag._id, GENERATED_MAX_ID, true, folderPaths.capture()),
-			)
-			o(folderPaths.value).deepEquals([["Custom"], ["Custom", "Sub"]])
+			verify(exportFacade.startMailboxExport(userId, elementIdToId(mailboxDetail.mailbox._id), mailBag._id, GENERATED_MAX_ID, true))
 			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail), ["Custom", "Sub"]))
 		})
 
@@ -178,7 +173,6 @@ o.spec("MailExportController", function () {
 					assertNotNull(mailboxDetail.mailbox.currentMailBag)._id,
 					GENERATED_MAX_ID,
 					false,
-					[],
 				),
 			).thenReject(new ExportError("message", ExportErrorReason.LockedForUser))
 			await controller.startExport(mailboxDetail)

@@ -39,8 +39,7 @@ export class ExportFacadeReceiveDispatcher {
 				const mailBagId: string = arg[2]
 				const mailId: string = arg[3]
 				const exportFolderStructure: boolean = arg[4]
-				const folderPaths: ReadonlyArray<ReadonlyArray<string>> = arg[5]
-				return this.facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, exportFolderStructure, folderPaths)
+				return this.facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, exportFolderStructure)
 			}
 			case "saveMailboxExport": {
 				const bundle: MailBundle = arg[0]

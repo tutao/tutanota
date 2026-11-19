@@ -86,7 +86,6 @@ export class MailExportController {
 				allMailBags[0]._id,
 				GENERATED_MAX_ID,
 				shouldExportFolderStructure,
-				this.exportedFoldersFolderSystem ? this.getAllFolderPaths(this.exportedFoldersFolderSystem) : [],
 			)
 		} catch (e) {
 			if (e instanceof CancelledError) {
@@ -339,12 +338,12 @@ export class MailExportController {
 		await delay(timeToWait)
 	}
 
-	private getAllFolderPaths(folderSystem: FolderSystem): string[][] {
-		return folderSystem.getIndentedList().map(({ mailSet }) => folderSystem.getPathToFolder(mailSet._id).map(getMailSetName))
-	}
-
 	private getFolderPathForMail(mail: Mail): string[] {
-		const folder = this.exportedFoldersFolderSystem?.getFolderByMail(mail)
+		if (this.exportedFoldersFolderSystem == null) {
+			return []
+		}
+
+		const folder = this.exportedFoldersFolderSystem.getFolderByMail(mail)
 		return folder && this.exportedFoldersFolderSystem ? this.exportedFoldersFolderSystem.getPathToFolder(folder._id).map(getMailSetName) : []
 	}
 

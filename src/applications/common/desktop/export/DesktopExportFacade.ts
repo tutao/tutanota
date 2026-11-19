@@ -85,14 +85,7 @@ export class DesktopExportFacade implements ExportFacade {
 		})
 	}
 
-	async startMailboxExport(
-		userId: string,
-		mailboxId: string,
-		mailBagId: string,
-		mailId: string,
-		exportFolderStructure: boolean,
-		folderPaths: ReadonlyArray<ReadonlyArray<string>>,
-	): Promise<void> {
+	async startMailboxExport(userId: string, mailboxId: string, mailBagId: string, mailId: string, exportFolderStructure: boolean): Promise<void> {
 		if (this.desktopExportLock.acquireLock(userId) === LockResult.AlreadyLocked) {
 			throw new ExportError(`Export is locked for user: ${userId}`, ExportErrorReason.LockedForUser)
 		}
@@ -110,18 +103,13 @@ export class DesktopExportFacade implements ExportFacade {
 			throw new CancelledError("Directory picking canceled")
 		}
 		const folderName = `TutaExport-${formatSortableDate(new Date(this.dateProvider.now()))}`
-		const fullPath = await this.pickUniqueFileName(path.join(directory, folderName))
-		await this.fs.promises.mkdir(fullPath)
-		if (exportFolderStructure) {
-			for (const folderPath of folderPaths) {
-				await this.fs.promises.mkdir(this.resolveExportSubdirectory(fullPath, folderPath), { recursive: true })
-			}
-		}
+		const exportDirectoryPath = await this.pickUniqueFileName(path.join(directory, folderName))
+		await this.fs.promises.mkdir(exportDirectoryPath)
 		await this.mailboxExportPersistence.setStateForUser({
 			type: "running",
 			userId,
 			mailboxId,
-			exportDirectoryPath: fullPath,
+			exportDirectoryPath,
 			shouldExportFolderStructure: exportFolderStructure,
 			mailBagId,
 			mailId,
@@ -131,15 +119,14 @@ export class DesktopExportFacade implements ExportFacade {
 		})
 	}
 
-	private resolveExportSubdirectory(root: string, folderPath: ReadonlyArray<string>): string {
-		const segments = folderPath.map((segment) => {
+	private sanitizeExportFolderPath(folderPath: ReadonlyArray<string>): string[] {
+		return folderPath.map((segment) => {
 			const sanitized = sanitizeFilename(segment)
 			if (sanitized === "" || sanitized === "." || sanitized === "..") {
 				return "_"
 			}
 			return sanitized
 		})
-		return path.join(root, ...segments)
 	}
 
 	private async pickUniqueFileName(path: string): Promise<string> {
@@ -202,12 +189,13 @@ export class DesktopExportFacade implements ExportFacade {
 			throw new ProgrammingError("Export is not running")
 		}
 		const filename = generateExportFileName(elementIdPart(bundle.mailId), bundle.subject, new Date(bundle.sentOn), "eml")
-		const targetDirectory = this.resolveExportSubdirectory(exportState.exportDirectoryPath, folderPath)
-		const fullPath = path.join(targetDirectory, filename)
+		const sanitizedFolderPath = this.sanitizeExportFolderPath(folderPath)
+		const fullFolderPath = path.join(exportState.exportDirectoryPath, ...sanitizedFolderPath)
+		const fullPath = path.join(fullFolderPath, filename)
 		const file = mailToEmlFile(bundle, filename)
 		try {
-			if (folderPath.length > 0) {
-				await this.fs.promises.mkdir(targetDirectory, { recursive: true })
+			if (sanitizedFolderPath.length > 0) {
+				await this.fs.promises.mkdir(fullFolderPath, { recursive: true })
 			}
 			await this.fs.promises.writeFile(fullPath, file.data)
 		} catch (e) {
