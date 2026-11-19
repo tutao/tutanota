@@ -14,7 +14,7 @@ import { getElementId, getListId, idToElementId, isSameId, isSameSingleId, listI
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { deepEqual, findAllAndRemove, isNotEmpty, stringToBase64 } from "@tutao/utils"
+import { deepEqual, findAllAndRemove, isNotEmpty, mod, stringToBase64 } from "@tutao/utils"
 import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "@tutao/app-env"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController.js"
@@ -38,6 +38,8 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
+
+const UNKNOWN_BIRTH_YEAR_PLACEHOLDER = -99999
 
 const TAG = "[CalendarEventRepository]"
 
@@ -365,7 +367,7 @@ export class CalendarEventsRepository {
 		for (const birthdayEvent of birthdayEventsInMonth) {
 			const birthYear = birthdayEvent.startTime.getUTCFullYear()
 			const birthdayMonth = birthdayEvent.startTime.getUTCMonth() + 1
-			if (year >= birthYear) {
+			if (birthYear === UNKNOWN_BIRTH_YEAR_PLACEHOLDER || year >= birthYear) {
 				this.addBirthdayOccurrenceToEventMap(year, birthdayMonth, birthdayEvent, eventsMap)
 			}
 		}
@@ -475,7 +477,7 @@ export class CalendarEventsRepository {
 		const birthday = isoDateToBirthday(contact.birthdayIso)
 
 		// If the year is missing from the ISO string, e.g. "--01-01", we set it to 0, to indicate that it is missing
-		const birthYear = birthday.year ?? 0
+		const birthYear = birthday.year ?? UNKNOWN_BIRTH_YEAR_PLACEHOLDER
 		const birthdayMonth = birthday.month
 		const birthdayDay = birthday.day
 		const startDate = getAllDateUTCFromYearMonthDay(birthYear, birthdayMonth, birthdayDay)
@@ -517,7 +519,7 @@ export class CalendarEventsRepository {
 		let didUpdateEventMap = false
 		for (const yyyymm of this.monthYYYYMMToLoadedCalendarIds.keys()) {
 			const [year, month] = decodeYYYYMM(yyyymm)
-			if (year >= birthYear && month === birthdayMonth) {
+			if ((year === UNKNOWN_BIRTH_YEAR_PLACEHOLDER || year >= birthYear) && month === birthdayMonth) {
 				if (this.addBirthdayOccurrenceToEventMap(year, birthdayMonth, birthdayEventProgenitor, eventMap)) {
 					didUpdateEventMap = true
 				}
@@ -554,33 +556,16 @@ export class CalendarEventsRepository {
 				const birthdayDay = event.startTime.getDate()
 				for (const yyyymm of this.monthYYYYMMToLoadedCalendarIds.keys()) {
 					const [year, month] = decodeYYYYMM(yyyymm)
-					if (year >= birthYear && month === birthdayMonth) {
+					if ((year === UNKNOWN_BIRTH_YEAR_PLACEHOLDER || year >= birthYear) && month === birthdayMonth) {
 						const eventMapKey = getEventMapKey(year, birthdayMonth, birthdayDay)
 						const eventsOnDay = eventMap.get(eventMapKey)
 						if (eventsOnDay) {
-							let didRemoveEventFromEventsOnDay = false
-							let destinationIndex = 0
-							for (let sourceIndex = 0; sourceIndex < eventsOnDay.length; ++sourceIndex) {
-								const eventWrapper = eventsOnDay[sourceIndex]
-								if (getElementId(eventWrapper.event).includes(encodedContactId)) {
-									if (didRemoveEventFromEventsOnDay) {
-										// If you see this warning, it's a bug: fix it
-										console.warn(
-											`${TAG} Duplicate birthday event "${eventWrapper.event.summary}" in eventMap on day ${year}-${birthdayMonth}-${birthdayDay} with key=${eventMapKey}`,
-										)
-									}
-									didRemoveEventFromEventsOnDay = true
-								} else {
-									eventsOnDay[destinationIndex] = eventWrapper
-									++destinationIndex
-								}
+							if (this.removeBirthdayOccurrenceFromEventsOnDay(eventsOnDay, encodedContactId)) {
+								didUpdateEventMap = true
 							}
-							if (destinationIndex <= 0) {
+							if (eventsOnDay.length === 0) {
 								eventMap.delete(eventMapKey)
-							} else {
-								eventsOnDay.length = destinationIndex
 							}
-							didUpdateEventMap = didRemoveEventFromEventsOnDay
 						} else {
 							// If you see this warning, it's a bug: fix it
 							console.warn(
@@ -610,10 +595,15 @@ export class CalendarEventsRepository {
 		eventMap: Map<number, EventWrapper[]>,
 	): boolean {
 		const birthYear = birthdayEventProgenitor.startTime.getUTCFullYear()
-		const age = year - birthYear
-		if (age < 0) {
-			return false
+		let birthYearIsUnknown = birthYear === UNKNOWN_BIRTH_YEAR_PLACEHOLDER
+		let age = 0
+		if (!birthYearIsUnknown) {
+			age = year - birthYear
+			if (age < 0) {
+				return false
+			}
 		}
+
 		const birthdayMonth = birthdayEventProgenitor.startTime.getUTCMonth() + 1
 		if (birthdayMonth !== month) {
 			// If you see this warning, it's a bug: fix it
@@ -636,7 +626,7 @@ export class CalendarEventsRepository {
 			event = {
 				...birthdayEventProgenitor,
 				summary:
-					birthYear && age > 0
+					!birthYearIsUnknown && age > 0
 						? `${birthdayEventProgenitor.summary} (${lang.get("birthdayEventAge_title", { "{age}": age })})`
 						: birthdayEventProgenitor.summary,
 				startTime: getAllDateUTCFromYearMonthDay(year, birthdayMonth, birthdayDay),
@@ -644,7 +634,10 @@ export class CalendarEventsRepository {
 			}
 		}
 
-		// TODO: Ensure birthdays on day are sorted alphabetically
+		// Remove any pre-existing birthday events on the day to avoid duplicates
+		const encodedContactId = getElementId(birthdayEventProgenitor).split("#")[1]
+		this.removeBirthdayOccurrenceFromEventsOnDay(eventsOnDay, encodedContactId)
+
 		eventsOnDay.push({
 			event,
 			color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
@@ -655,6 +648,26 @@ export class CalendarEventsRepository {
 			},
 		})
 		return true
+	}
+
+	private removeBirthdayOccurrenceFromEventsOnDay(eventsOnDay: EventWrapper[], encodedContactId: string): boolean {
+		let didRemoveEvent = false
+		let destinationIndex = 0
+		for (let sourceIndex = 0; sourceIndex < eventsOnDay.length; ++sourceIndex) {
+			const eventWrapper = eventsOnDay[sourceIndex]
+			if (getElementId(eventWrapper.event).includes(encodedContactId)) {
+				if (didRemoveEvent) {
+					// If you see this warning, it's a bug: fix it
+					console.warn(`${TAG} Duplicate birthday event "${eventWrapper.event.summary}" in eventMap!`)
+				}
+				didRemoveEvent = true
+			} else {
+				eventsOnDay[destinationIndex] = eventWrapper
+				++destinationIndex
+			}
+		}
+		eventsOnDay.length = destinationIndex
+		return didRemoveEvent
 	}
 }
 
@@ -689,5 +702,5 @@ function encodeYYYYMM(year: number, month: number): number {
 }
 
 function decodeYYYYMM(yyyymm: number): [number, number] {
-	return [Math.floor(yyyymm / 100), yyyymm % 100]
+	return [Math.floor(yyyymm / 100), mod(yyyymm, 100)]
 }

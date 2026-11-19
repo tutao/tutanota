@@ -575,8 +575,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					_id: ["something", "something"],
 				} as unknown as Contact
 
-				const minLoadedYear = 1900
-				const maxLoadedYear = 2100
+				const years = [2026, 2027, 2025, 2024, 1900, 2100, 100, 1, 0, -1, -100]
 
 				const eventMap: DaysToEvents = new Map()
 
@@ -590,14 +589,17 @@ o.spec("CalendarEventRepositoryTest", function () {
 				})
 
 				o.test("Test with months loaded before the contact creation", async function () {
-					for (let yearToLoad = minLoadedYear; yearToLoad <= maxLoadedYear; ++yearToLoad) {
+					for (const yearToLoad of years) {
 						await calendarEventsRepository.loadMonthsIfNeeded([[yearToLoad, birthdayMonth]], null, null)
 					}
 
 					await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
 
-					for (let loadedYear = minLoadedYear; loadedYear <= maxLoadedYear; ++loadedYear) {
-						const eventsOnDay = eventMap.get(new Date(loadedYear, birthdayMonth - 1, birthdayDay).getTime())
+					for (const loadedYear of years) {
+						let startOfDay = new Date(0)
+						startOfDay.setFullYear(loadedYear, birthdayMonth - 1, birthdayDay)
+						startOfDay.setHours(0, 0, 0, 0)
+						const eventsOnDay = eventMap.get(startOfDay.getTime())
 						o.check(eventsOnDay?.length).equals(1)
 						o.check(eventsOnDay?.[0].event.summary).equals(`Alice's birthday`)
 					}
@@ -605,10 +607,13 @@ o.spec("CalendarEventRepositoryTest", function () {
 				o.test("Test with contact creation before loading months", async function () {
 					await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
 
-					for (let year = minLoadedYear; year <= maxLoadedYear; ++year) {
+					for (const year of years) {
 						await calendarEventsRepository.loadMonthsIfNeeded([[year, birthdayMonth]], null, null)
 
-						const eventsOnDay = eventMap.get(new Date(year, birthdayMonth - 1, birthdayDay).getTime())
+						let startOfDay = new Date(0)
+						startOfDay.setFullYear(year, birthdayMonth - 1, birthdayDay)
+						startOfDay.setHours(0, 0, 0, 0)
+						const eventsOnDay = eventMap.get(startOfDay.getTime())
 						o.check(eventsOnDay?.length).equals(1)
 						o.check(eventsOnDay?.[0].event.summary).equals(`Alice's birthday`)
 					}
