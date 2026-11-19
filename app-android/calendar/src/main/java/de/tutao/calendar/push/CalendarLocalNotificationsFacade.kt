@@ -29,7 +29,7 @@ import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
-import de.tutao.tutashared.push.ILocalNotificationsFacade
+import de.tutao.tutashared.push.LocalNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
 import kotlin.math.abs
@@ -44,7 +44,7 @@ private const val EMAIL_ADDRESS_EXTRA = "email_address"
 /** @see [de.tutao.tutashared.push.INotificationsHandler]
  */
 class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
-	ILocalNotificationsFacade, FileNotificationSender {
+	LocalNotificationsFacade, FileNotificationSender {
 	companion object {
 		private const val TAG = "LocalNotifications"
 	}

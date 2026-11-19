@@ -251,22 +251,6 @@ class SseClient (
 		}
 	}
 
-	interface SseListener {
-		/**
-		 * @return `true` to continue connecting
-		 */
-		fun onStartingConnection(): Boolean
-
-		/**
-		 * Will block reading from SSE until this returns
-		 */
-		fun onMessage(data: String, sseInfo: SseInfo?)
-		fun onConnectionEstablished()
-		fun onConnectionBroken()
-		fun onNotAuthorized(userId: String)
-		fun onStoppingReconnectionAttempts()
-	}
-
 	private class ConnectionData constructor(val userId: String, val url: URL)
 	companion object {
 		private const val TAG = "SSE"

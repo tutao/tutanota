@@ -16,7 +16,7 @@ import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.wrap
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.offline.sqlTagged
-import de.tutao.tutashared.push.CommonNotificationsHandler
+import de.tutao.tutashared.push.NotificationsHandler
 import de.tutao.tutashared.push.MissedNotification
 import de.tutao.tutashared.push.NotificationInfo
 import de.tutao.tutashared.push.SseStorage
@@ -27,7 +27,7 @@ import okhttp3.OkHttpClient
 import java.io.File
 import java.util.*
 
-class TutanotaNotificationsHandler(
+class TutaNotificationsHandler(
 	private val localNotificationsFacade: LocalNotificationsFacade,
 	private val sseStorage: SseStorage,
 	private val credentialsEncryption: NativeCredentialsFacade,
@@ -37,7 +37,7 @@ class TutanotaNotificationsHandler(
 	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
 	private val appDir: File,
 	private val suspensionHandler: SuspensionHandler
-) : CommonNotificationsHandler(localNotificationsFacade, sseStorage, alarmNotificationsManager, defaultClient, suspensionHandler
+) : NotificationsHandler(localNotificationsFacade, sseStorage, alarmNotificationsManager, defaultClient, suspensionHandler
 	) {
 	override fun onNewNotificationAvailable(sseInfo: SseInfo?) = lifecycleScope.launch {
 		Log.d(TAG, "onNewNotificationAvailable")

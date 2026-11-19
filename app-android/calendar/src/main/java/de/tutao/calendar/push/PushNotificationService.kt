@@ -21,8 +21,8 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
-import de.tutao.tutashared.push.IPushNotificationJobState
 import de.tutao.tutashared.push.LooperThread
+import de.tutao.tutashared.push.PushNotificationJobState
 import de.tutao.tutashared.push.SseListener
 import de.tutao.tutashared.push.PushNotificationServiceStateIndicator
 import de.tutao.tutashared.push.PushNotificationServiceState
@@ -181,8 +181,5 @@ class PushNotificationService : LifecycleJobService() {
 		}
 	}
 
-	internal class PushNotificationJobState(
-		/** Whether jobParameters is not null; should be true when a job is currently running. */
-		override var active: Boolean
-	) : IPushNotificationJobState
+
 }
