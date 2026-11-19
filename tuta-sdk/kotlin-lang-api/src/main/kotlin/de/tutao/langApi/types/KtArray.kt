@@ -1,5 +1,6 @@
 package de.tutao.langApi.types
 
+import java.util.function.Consumer
 import java.util.function.Predicate
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -8,6 +9,15 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 	constructor(vararg items: T) : this(mutableListOf(*items))
 
 	val length: KtInt get() = KtInt(inner.size)
+
+	operator fun set(index: KtInt, value: T) {
+		val i = index.asKotlinInt()
+		if (i == this.inner.size) {
+			this.inner.add(value)
+		} else {
+			this.inner[i] = value
+		}
+	}
 
 	fun first(): T {
 		return this.inner[0]
@@ -49,6 +59,22 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 
 	fun <R> map(transform: (T) -> R): KtArray<R> {
 		return KtArray(this.inner.map { transform(it) }.toMutableList())
+	}
+
+	fun sort(compareFn: (T, T) -> KtInt): KtArray<T> {
+		this.inner.sortWith { a, b -> compareFn(a, b).asKotlinInt() }
+		return this
+	}
+	fun pop(): T? {
+		return this.inner.removeLastOrNull()
+	}
+
+	fun shift(): T? {
+		return this.inner.removeFirstOrNull()
+	}
+
+	fun <R> flatMap(transform: (T) -> Iterable<R>): KtArray<R> {
+		return KtArray(this.inner.flatMap { transform(it) }.toMutableList())
 	}
 
 	override fun iterator(): Iterator<T> {
