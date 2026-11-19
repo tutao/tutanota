@@ -96,13 +96,13 @@
 			</intent-filter>
 		</activity>
 		<service
-				android:name=".push.PushNotificationService"
+				android:name=".push.CalendarAppPushNotificationService"
 				android:enabled="true"
 				android:exported="false"
 				android:permission="android.permission.BIND_JOB_SERVICE"
 				android:process=":pushprocess"/>
 		<receiver
-				android:name=".push.BootBroadcastReceiver"
+				android:name=".push.CalendarAppBootBroadcastReceiver"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -110,7 +110,7 @@
 			</intent-filter>
 		</receiver>
 		<receiver
-				android:name=".alarms.CalendarAlarmBroadcastReceiver"
+				android:name=".alarms.CalendarAppAlarmBroadcastReceiver"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="de.tutao.tutanota.ALARM"/>

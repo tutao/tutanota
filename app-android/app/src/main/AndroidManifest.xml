@@ -156,7 +156,7 @@
 		</provider>
 
 		<service
-				android:name=".push.PushNotificationService"
+				android:name=".push.TutaAppPushNotificationService"
 				android:enabled="true"
 				android:exported="false"
 				android:permission="android.permission.BIND_JOB_SERVICE"
@@ -191,7 +191,7 @@
 		</service>
 
 		<receiver
-				android:name=".push.BootBroadcastReceiver"
+				android:name=".push.TutaAppBootBroadcastReceiver"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -200,7 +200,7 @@
 		</receiver>
 
 		<receiver
-				android:name=".alarms.MailAlarmBroadcastReceiver"
+				android:name=".alarms.TutaAppAlarmBroadcastReceiver"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="de.tutao.tutanota.ALARM"/>

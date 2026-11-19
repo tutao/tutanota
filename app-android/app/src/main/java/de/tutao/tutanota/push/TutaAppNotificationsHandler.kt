@@ -27,7 +27,7 @@ import okhttp3.OkHttpClient
 import java.io.File
 import java.util.*
 
-class TutaNotificationsHandler(
+class TutaAppNotificationsHandler(
 	private val localNotificationsFacade: TutaLocalNotificationsFacade,
 	private val sseStorage: SseStorage,
 	private val credentialsEncryption: NativeCredentialsFacade,
