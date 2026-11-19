@@ -1,13 +1,13 @@
 import { lang, Translation } from "../utils/LanguageViewModel"
 import m, { Component, Vnode } from "mithril"
 import { Dialog } from "./Dialog"
-import { EnvProvider } from "../../platform-kit/app-env"
 import { LegacyTextField } from "./LegacyTextField.js"
 import type { Shortcut } from "../utils/KeyManager"
 import { Keys } from "../utils/KeyboardKeys"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 function makeShortcutName(shortcut: Shortcut): Translation {
-	const mainModifier = EnvProvider.get().isAppleDevice() ? Keys.META.name : Keys.CTRL.name
+	const mainModifier = Singletons.envProvider.isAppleDevice() ? Keys.META.name : Keys.CTRL.name
 
 	return lang.makeTranslation(
 		shortcut.help,

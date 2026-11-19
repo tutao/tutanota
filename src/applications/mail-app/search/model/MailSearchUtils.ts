@@ -19,6 +19,7 @@ import { SearchQuery } from "../../../common/search/SearchUtils"
 import { nanToNull } from "../../../../platform-kit/utils/Utils"
 import { compareMails } from "../../mail/model/MailUtils"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -192,8 +193,8 @@ export function isIncompleteMailResult(searchResult: SearchResult, currentIndexT
  * @return true if non-blocking search is used on the current client
  */
 export function isNonBlockingSearchAvailable(): boolean {
-	return EnvProvider.get().isBrowser()
+	return Singletons.envProvider.isBrowser()
 }
-export const mailSearchComparator: (l: Mail, r: Mail) => number = EnvProvider.get().isOfflineStorageAvailable()
+export const mailSearchComparator: (l: Mail, r: Mail) => number = Singletons.envProvider.isOfflineStorageAvailable()
 	? (l, r) => compareMails(l, r)
 	: (l, r) => sortCompareByReverseId(l, r, EntityIdEncoding.Base64Ext)

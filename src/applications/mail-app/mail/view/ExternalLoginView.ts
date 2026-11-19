@@ -4,7 +4,6 @@ import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "../.
 import type { MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
 import { Autocomplete } from "../../../../ui/base/LegacyTextField.js"
@@ -27,6 +26,7 @@ import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import { asKdfType, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -58,7 +58,7 @@ export class ExternalLoginViewModel {
 
 	private async doFormLogin() {
 		const password = this.password
-		const clientIdentifier = ClientDetector.get().browser + " " + ClientDetector.get().device
+		const clientIdentifier = Singletons.clientDetector.browser + " " + Singletons.clientDetector.device
 		const persistentSession = this.doSavePassword
 
 		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login

@@ -40,8 +40,13 @@ export interface DialogAdapter {
 export abstract class PluginApi {
 	protected constructor(protected readonly pluginHost: PluginHostApi) {}
 
-	public static newPluginFromFile(pluginId: PluginId, pluginHost: PluginHostApiCollection, dialogAdapter: DialogAdapter): PluginWorker {
-		const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
+	public static newPluginFromFile(
+		pluginId: PluginId,
+		pluginHost: PluginHostApiCollection,
+		dialogAdapter: DialogAdapter,
+		envProvider: EnvProvider,
+	): PluginWorker {
+		const pluginFilePath = `${envProvider.getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
 		const pluginAsWorker = new Worker(pluginFilePath, { type: "module", name: `plugin:${pluginId}` })
 		pluginAsWorker.onerror = (e: any) => {
 			const msg = `could not setup plugin ${pluginId} worker: ${e.name} ${e.stack} ${e.message} ${e}`

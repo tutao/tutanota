@@ -17,10 +17,8 @@ import { PowChallengeParameters } from "../utils/ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { PowSolution } from "../../api/common/pow-worker"
-import { EnvProvider } from "@tutao/app-env"
-import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }
@@ -73,7 +71,7 @@ export async function runCaptchaFlow({
 		let captchaReturn
 		try {
 			let attributionToken: string | null = null
-			if (EnvProvider.get().isIOSApp()) {
+			if (Singletons.envProvider.isIOSApp()) {
 				attributionToken = await locator.systemFacade.getAppleAdsAttributionToken()
 			}
 
@@ -87,7 +85,7 @@ export async function runCaptchaFlow({
 					paidSubscriptionSelected: isPaidSubscription,
 					timelockChallengeSolution: solution.toString(),
 					language: lang.languageTag,
-					isAutomatedBrowser: ClientDetector.get().isAutomatedBrowser,
+					isAutomatedBrowser: Singletons.clientDetector.isAutomatedBrowser,
 					adAttribution: attributionToken
 						? createAdAttribution({
 								attributionId: attributionToken,
@@ -179,7 +177,7 @@ export async function runPowChallenge(signupToken: string): Promise<PowSolution>
 
 	const data = createTimelockCaptchaGetIn({
 		signupToken,
-		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: ClientDetector.get().isAutomatedBrowser }),
+		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: Singletons.clientDetector.isAutomatedBrowser }),
 		timeToSolveCalibrationChallenge: powWorker.timeToSolveCalibrationChallenge.toString(),
 	})
 	const ret = await locator.serviceExecutor.execute(TimelockCaptchaService_GET, data, null)

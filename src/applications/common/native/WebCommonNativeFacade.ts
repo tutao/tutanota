@@ -17,6 +17,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade"
 import { isHighestTierPlan } from "../../../entities/sys/Utils"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -118,7 +119,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 						},
 						{ text: "attachFiles_action", value: false },
 					])
-				} else if (EnvProvider.get().isDesktop() && allFilesAreMail) {
+				} else if (Singletons.envProvider.isDesktop() && allFilesAreMail) {
 					// importing mails is currently only allowed on plan LEGEND and UNLIMITED
 					const currentPlanType = await locator.logins.getUserController().getPlanType()
 

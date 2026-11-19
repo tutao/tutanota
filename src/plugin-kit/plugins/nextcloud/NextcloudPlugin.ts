@@ -10,6 +10,7 @@ import { NextcloudApi } from "./NextcloudApi"
 import { PluginId } from "../../sdk/PluginId"
 import { CustomerConfigPluginError } from "../../sdk/PluginError"
 import { PluginManifest } from "../../sdk/PluginManifest"
+import { EnvProvider } from "../../../platform-kit/app-env"
 
 type UserPluginConfig = {
 	credentials: Nullable<NextcloudCredentials>
@@ -39,6 +40,8 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	override async load(manifest: PluginManifest): Promise<void> {
 		this.manifest = manifest
+		NextcloudApi.initializeHttpClient()
+
 		await this.applyConfigExtensionPoints()
 		await this.loadCustomerConfig()
 		await this.loadUserConfig()

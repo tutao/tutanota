@@ -199,6 +199,7 @@ import { InstanceKeyFacade } from "../../../../../../platform-kit/base/base-cryp
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 import { InboxRuleModel } from "../../../../../mail-app/mail/model/InboxRuleModel"
 import { isNull } from "../../../../../../platform-kit/utils/Utils"
+import { Singletons } from "../../../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -443,7 +444,7 @@ export class MailFacade {
 			)
 		} else {
 			// user added attachment
-			if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+			if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 				const { location } = await this.fileApp.writeDataFile(providedFile)
 				referenceTokens = await this.blobFacade.encryptAndUploadNative(
 					ArchiveDataType.Attachments,
@@ -742,7 +743,7 @@ export class MailFacade {
 			.then((attachments) => attachments.filter(isNotNull))
 			.then((it) => {
 				// only delete the temporary files after all attachments have been uploaded
-				if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+				if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 					this.fileApp.clearFileData().catch((e) => console.warn("Failed to clear files", e))
 				}
 

@@ -17,6 +17,7 @@ import {
 	SignOrderProcessingAgreementService_POST,
 } from "@tutao/entities/sys"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 const PRINT_DIV_ID = "print-div"
@@ -120,7 +121,9 @@ export function showForViewing(agreement: OrderProcessingAgreement, signerUserGr
 	Dialog.showActionDialog({
 		title: "orderProcessingAgreement_label",
 		okAction:
-			!EnvProvider.get().isApp() && "function" === typeof window.print ? () => printElementContent(document.getElementById("agreement-content")) : null,
+			!Singletons.envProvider.isApp() && "function" === typeof window.print
+				? () => printElementContent(document.getElementById("agreement-content"))
+				: null,
 		okActionTextId: "print_action",
 		cancelActionTextId: "close_alt",
 		type: DialogType.EditLarge,

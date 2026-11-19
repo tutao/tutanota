@@ -36,17 +36,8 @@ import { InfoLink, lang, Translation } from "../../../../ui/utils/LanguageViewMo
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
-import {
-	ALLOWED_IMAGE_FORMATS,
-	EnvProvider,
-	FeatureType,
-	MailAuthenticationStatus,
-	ProgrammingError,
-	TimeConstants,
-	UNDO_SEND_TIMEOUT_SECONDS,
-	UpgradePromptType,
-} from "../../../../platform-kit/app-env"
-import { isOfflineError, TooManyRequestsError } from "../../../../platform-kit/rest-client/error"
+import { FeatureType, MailAuthenticationStatus, ProgrammingError, TimeConstants, TutanotaConstants, UpgradePromptType } from "@tutao/app-env"
+import { isOfflineError, TooManyRequestsError } from "@tutao/rest-client/error"
 import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../../ui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown.js"
@@ -143,12 +134,12 @@ import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
 import { loadMailDetails } from "../view/MailViewerUtils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DriveFile } from "@tutao/entities/drive"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
-import type { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp" // Interval where we save drafts locally.
+import type { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
+import { Singletons } from "../../../../platform-kit/singletons/singleton" // Interval where we save drafts locally.
 
 // Interval where we save drafts locally.
 //
@@ -160,7 +151,7 @@ const AUTOSAVE_LOCAL_TIMEOUT: number = TimeConstants.secondsToMillis(5)
 const AUTOSAVE_REMOTE_TIMEOUT: number = TimeConstants.minutesToMillis(5)
 
 // Maximum allowed time before the undo button hides.
-const UNDO_SEND_TIMEOUT: number = TimeConstants.secondsToMillis(UNDO_SEND_TIMEOUT_SECONDS)
+const UNDO_SEND_TIMEOUT: number = TimeConstants.secondsToMillis(TutanotaConstants.UNDO_SEND_TIMEOUT_SECONDS)
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -257,7 +248,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					blockExternalContent: !isPaste && this.blockExternalContent,
 				})
 
-				if (isPaste && EnvProvider.get().isIOSApp()) {
+				if (isPaste && Singletons.envProvider.isIOSApp()) {
 					// For iOS, we want to clear styling because WebKit, when copying, includes way more styling than
 					// desired (regardless of the origin of the text) and all of this styling is then pasted in. This
 					// results in emails being sent with light text and sans-serif fonts that the user did not manually
@@ -860,7 +851,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					this.templateModel ? m(IconButton, templatePopupButtonAttrs) : null,
 					toolbarButton(),
 					m(IconButton, attachFilesButtonAttrs),
-					this.sendMailModel.isDriveEnabled() && !EnvProvider.get().isApp() ? m(IconButton, attachDriveFilesButtonAttrs) : null,
+					this.sendMailModel.isDriveEnabled() && !Singletons.envProvider.isApp() ? m(IconButton, attachDriveFilesButtonAttrs) : null,
 				]),
 				m("hr.hr"),
 				m(
@@ -975,7 +966,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(RichTextToolbar, {
 					editor: this.editor,
 					//Inline images require transporting over IPC boundary and we have not implemented a suitable way yet
-					imageButtonClickHandler: EnvProvider.get().isApp()
+					imageButtonClickHandler: Singletons.envProvider.isApp()
 						? null
 						: (event: Event) => this.imageButtonClickHandler(model, (event.target as HTMLElement).getBoundingClientRect()),
 				}),
@@ -985,7 +976,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private async imageButtonClickHandler(model: SendMailModel, rect: DOMRect): Promise<void> {
-		const files = await chooseAndAttachFile(model, rect, ALLOWED_IMAGE_FORMATS)
+		const files = await chooseAndAttachFile(model, rect, TutanotaConstants.ALLOWED_IMAGE_FORMATS)
 		if (!files || files.length === 0) return
 		return await this.insertInlineImages(model, files)
 	}
@@ -1398,7 +1389,7 @@ async function createMailEditorDialog(
 			saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 		}
 
-		if (ClientDetector.get().isCalendarApp()) {
+		if (Singletons.clientDetector.isCalendarApp()) {
 			return dialog.close()
 		}
 
@@ -1446,10 +1437,10 @@ async function createMailEditorDialog(
 		},
 		middle: dialogTitleTranslationKey(model.getConversationType()),
 		create: () => {
-			if (EnvProvider.get().isBrowser()) {
+			if (Singletons.envProvider.isBrowser()) {
 				// Have a simple listener on browser, so their browser will make the user ask if they are sure they want to close when closing the tab/window
 				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
-			} else if (EnvProvider.get().isDesktop()) {
+			} else if (Singletons.envProvider.isDesktop()) {
 				// Simulate clicking the Close button when on the desktop so they can see they can save a draft rather than completely closing it
 				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
 					minimize()
@@ -1705,7 +1696,7 @@ async function confirmNewEditor(autosaveFacade: AutosaveFacade, minimizedEditorV
  * Prompts for confirmation, resolves attachments, check for the size limit.
  */
 async function processMailtoAttachmentsOnDesktop(fileApp: NativeFileApp, rawAttachmentUrls: readonly string[]): Promise<Attachment[]> {
-	if (!EnvProvider.get().isDesktop()) {
+	if (!Singletons.envProvider.isDesktop()) {
 		throw new ProgrammingError()
 	}
 	// Limit number of attachments as untrusted URL could lock up the app otherwise
@@ -1764,7 +1755,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 	const mailTo = parseMailtoUrl(mailtoUrl)
 	let attachments: readonly Attachment[]
 
-	if (EnvProvider.get().isDesktop() && mailTo.attach) {
+	if (Singletons.envProvider.isDesktop() && mailTo.attach) {
 		attachments = await processMailtoAttachmentsOnDesktop(locator.fileApp, mailTo.attach)
 	} else {
 		attachments = []
@@ -1804,7 +1795,7 @@ export async function newMailEditorFromTemplate(
 		model,
 		new AttachmentDownloader(
 			locator.fileController,
-			EnvProvider.get().isBrowser() ? null : mailLocator.fileApp,
+			Singletons.envProvider.isBrowser() ? null : mailLocator.fileApp,
 			locator.transferProgressDispatcher,
 			driveModel,
 			(action) => mailLocator.showDriveDestinationPickerDialog(action),
@@ -1881,7 +1872,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 				model,
 				new AttachmentDownloader(
 					locator.fileController,
-					EnvProvider.get().isBrowser() ? null : locator.fileApp,
+					Singletons.envProvider.isBrowser() ? null : locator.fileApp,
 					locator.transferProgressDispatcher,
 					driveModel,
 					(action) => mailLocator.showDriveDestinationPickerDialog(action),

@@ -3,7 +3,7 @@ import m, { Children } from "mithril"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { assertNotNull, lazy } from "../../../platform-kit/utils"
-import { getMailSetName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
+import { getIndentedFolderNameForDropdown, getMailSetName, getPathToFolderString } from "../mail/model/MailUtils"
 import { UpgradePromptType } from "../../../platform-kit/app-env"
 import { IndentedMailSet } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
@@ -24,7 +24,7 @@ import { FileImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 import { AvailablePlanType, HighestTierPlans, isHighestTierPlan } from "../../../entities/sys/Utils"
 import { elementIdPart, elementIdToId, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.
@@ -67,7 +67,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 
 		const allowedExtensions = ["eml", "mbox"]
-		const fileUris = ClientDetector.get().isMacOS
+		const fileUris = Singletons.clientDetector.isMacOS
 			? await mailLocator.fileApp.openMacImportFileChooser()
 			: await mailLocator.fileApp.openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
 		await this.fileMailImportController().onStartBtnClick(fileUris.map((fp) => fp.location))

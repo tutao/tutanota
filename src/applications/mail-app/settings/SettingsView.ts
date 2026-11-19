@@ -81,6 +81,7 @@ import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import MigrationSettingsViewer from "./migration/MigrationSettingsViewer.js"
 import { InboxRuleSettingsViewer } from "./InboxRuleSettingsViewer"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -115,7 +116,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		super()
 		this.logins = vnode.attrs.logins
 		this._userFolders = [
-			loginSettings(locator.credentialsProvider, EnvProvider.get().isApp() ? locator.systemFacade : null),
+			loginSettings(locator.credentialsProvider, Singletons.envProvider.isApp() ? locator.systemFacade : null),
 			new SettingsFolder(
 				() => "email_label",
 				() => Icons.MailFilled,
@@ -174,7 +175,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			),
 		]
 
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			this._userFolders.push(
 				new SettingsFolder(
 					() => "desktop_label",
@@ -199,7 +200,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					() => Icons.CloudUploadFilled,
 					"mailImport",
 					() => {
-						if (EnvProvider.get().isDesktop()) {
+						if (Singletons.envProvider.isDesktop()) {
 							return new DesktopMailImportSettingsViewer(() => mailLocator.getMailImporter())
 						} else {
 							return new WebMailImportSettingsViewer(true)
@@ -218,7 +219,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => Icons.DownloadFilled,
 						"migration",
 						() => {
-							if (EnvProvider.get().isDesktop()) {
+							if (Singletons.envProvider.isDesktop()) {
 								return new MigrationSettingsViewer(() => mailLocator.getMailboxMigrationController())
 							} else {
 								return new WebMailImportSettingsViewer(false)
@@ -447,7 +448,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						new UserListView(
 							(viewer) => this.replaceDetailsViewer(viewer),
 							() => this.focusSettingsDetailsColumn(),
-							() => !EnvProvider.get().isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0,
+							() => !Singletons.envProvider.isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0,
 							() => showUserImportDialog(this._customDomains.getLoaded()),
 							() => this.doExportUsers(),
 						),
@@ -513,7 +514,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => Icons.TrophyFilled,
 						"subscription",
 						() =>
-							new SubscriptionSettingsViewer(EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default ? locator.mobilePaymentsFacade : null),
+							new SubscriptionSettingsViewer(
+								Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default ? locator.mobilePaymentsFacade : null,
+							),
 						undefined,
 					),
 				)

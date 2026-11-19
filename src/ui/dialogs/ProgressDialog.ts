@@ -10,6 +10,7 @@ import Stream from "mithril/stream"
 import { delay } from "../../platform-kit/utils"
 import { MaybeLazy, resolveMaybeLazy } from "../base/MaybeLazy"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -27,7 +28,7 @@ export async function showProgressDialog<T>(
 		progressStream,
 		headerBarAttrs,
 		delayDisplayMillis = 0,
-		minDialogVisibilityMillis = EnvProvider.get().isAdminClient() ? 0 : 1000,
+		minDialogVisibilityMillis = Singletons.envProvider.isAdminClient() ? 0 : 1000,
 	}: ProgressDialogAttrs = {},
 ): Promise<T> {
 	if (progressStream != null) {

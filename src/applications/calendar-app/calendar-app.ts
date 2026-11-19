@@ -1,4 +1,3 @@
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
@@ -40,33 +39,30 @@ import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accou
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
+import { CheckBrowser } from "../../ui/CheckBrowser"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
 import { KeyManager } from "../../ui/utils/KeyManager"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
 
 const urlQueryParams = m.parseQueryString(location.search)
 
-assignEnvPlatformId(urlQueryParams)
 assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
+await Singletons.init(navigator.userAgent, navigator.platform, AppType.Calendar)
+CheckBrowser.ensureIsSupported(Singletons.clientDetector)
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
-	client: ClientDetector.get(),
+	client: Singletons.clientDetector,
 	m,
 	lang,
 	root,
 	currentView,
 	locator: null,
-}
-
-ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Calendar)
-
-if (!ClientDetector.get().isSupported()) {
-	throw new Error("Unsupported")
 }
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
@@ -105,7 +101,7 @@ import("../../ui/translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel)
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
 		}
 
@@ -134,7 +130,7 @@ import("../../ui/translations/en.js")
 		calendarLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess() {
-					if (EnvProvider.get().isApp()) {
+					if (Singletons.envProvider.isApp()) {
 						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
 				},
@@ -142,7 +138,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()) {
 			calendarLocator.logins.addPostLoginAction(async () => {
 				const { CalendarPostLoginAction } = await import("../common/offline/CalendarPostLoginAction.js")
 				return new CalendarPostLoginAction(
@@ -458,7 +454,7 @@ import("../../ui/translations/en.js")
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 			await calendarLocator.native.init()
 		}
 		// if (isDesktop()) {
@@ -635,22 +631,6 @@ function makeOldViewResolver(
 		render: (vnode) => {
 			return m(root, vnode)
 		},
-	}
-}
-
-// PlatformId is passed by the native part in the URL
-function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
-	const platformId = urlQueryParams["platformId"]
-
-	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
-		if (
-			(EnvProvider.get().isApp() && (platformId === "android" || platformId === "ios")) ||
-			(EnvProvider.get().isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
-		) {
-			env.platformId = platformId
-		} else {
-			throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
-		}
 	}
 }
 

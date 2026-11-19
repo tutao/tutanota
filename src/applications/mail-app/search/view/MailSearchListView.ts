@@ -8,12 +8,13 @@ import { YEAR_IN_MILLIS } from "@tutao/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Button, ButtonType } from "../../../../ui/base/Button"
 import { CircleLoadingBar } from "../../../../ui/CircleLoadingBar"
-import { EnvProvider, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { formatDate } from "../../../../ui/utils/Formatter"
 import { component_size, px, size } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MailRow } from "../../mail/view/MailRow"
 import { CommonSearchListViewAttrs, renderListColumnWrapper } from "../../../common/search/SearchUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface MailSearchListViewAttrs extends CommonSearchListViewAttrs<Mail> {
 	getLabelsForMail: (mail: Mail) => MailSet[]
@@ -84,11 +85,11 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 			]
 		} else if (
 			(this.attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
-				this.attrs.indexState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
-				EnvProvider.get().isOfflineStorageAvailable()) ||
+				this.attrs.indexState.currentMailIndexTimestamp !== TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
+				Singletons.envProvider.isOfflineStorageAvailable()) ||
 			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < this.attrs.indexState.currentMailIndexTimestamp)
 		) {
-			const extendToDate = EnvProvider.get().isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
+			const extendToDate = Singletons.envProvider.isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
 
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(
@@ -102,7 +103,7 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 			)
 		} else if (
 			this.attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
-			this.attrs.indexState.currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP &&
+			this.attrs.indexState.currentMailIndexTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
 			this.attrs.isIncompleteMailList
 		) {
 			innerChildren = m(

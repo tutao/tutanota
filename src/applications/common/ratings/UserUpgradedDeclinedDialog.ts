@@ -11,10 +11,10 @@ import { UpgradedPage } from "./pages/UpgradedPage"
 import { locator } from "../api/main/CommonLocator"
 import { createSurveyData, createSurveyDataPostIn, SurveyService_POST } from "@tutao/entities/sys"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { SurveyDataType } from "./pages/SuggestionPage"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { showSnackBar } from "../../../ui/base/SnackBar"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 let lastUpgradeDeclined: number = 0
 export type UserUpgradedDeclinedDialogPages = "upgraded" | "declined"
@@ -91,7 +91,7 @@ export async function sendSurveyData(attrs: UserUpgradedDeclinedDialogState, tri
 					details: attrs.feedbackInputText,
 					reason: "33", // 33 == "Provide details"
 					clientVersion: env.versionNumber,
-					clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
+					clientPlatform: Singletons.clientDetector.getClientPlatform().valueOf().toString(),
 				}),
 				surveyType: triggerType === "DidUpgrade" ? SurveyDataType.UPGRADED.toString() : SurveyDataType.DECLINED.toString(),
 			}),

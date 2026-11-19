@@ -16,7 +16,7 @@ import { locator } from "../../api/main/CommonLocator"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
 import { SurveyDataType } from "../../ratings/pages/SuggestionPage"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export type CancelSubscriptionPages =
 	| "cancelSubscriptionOptionPage"
@@ -41,7 +41,7 @@ async function sendCancellationSurveyData(surveyType: SurveyDataType) {
 				details: reason.details,
 				version: SURVEY_VERSION_NUMBER,
 				clientVersion: env.versionNumber,
-				clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
+				clientPlatform: Singletons.clientDetector.getClientPlatform().valueOf().toString(),
 			}),
 		})
 		await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.execute(SurveyService_POST, data, null))

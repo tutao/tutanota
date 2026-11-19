@@ -5,6 +5,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { EnvProvider } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -170,7 +171,7 @@ export class QrCodeScanner implements Component<QrCodeScannerAttrs> {
 
 	private async requestDefaultCameraPermission(): Promise<boolean> {
 		let hasPermission = true
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			hasPermission = await locator.systemFacade.hasPermission(PermissionType.Camera)
 			if (!hasPermission) {
 				try {
@@ -180,7 +181,7 @@ export class QrCodeScanner implements Component<QrCodeScannerAttrs> {
 					hasPermission = false
 				}
 			}
-		} else if (EnvProvider.get().isDesktop() && EnvProvider.get().isAppleDevice()) {
+		} else if (Singletons.envProvider.isDesktop() && Singletons.envProvider.isAppleDevice()) {
 			hasPermission = await locator.desktopSystemFacade.requestVideoPermission()
 		}
 

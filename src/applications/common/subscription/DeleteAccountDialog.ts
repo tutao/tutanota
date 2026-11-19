@@ -8,10 +8,9 @@ import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/CommonLocator"
 import { getEtId } from "@tutao/meta"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { SurveyData } from "@tutao/entities/sys"
-import { EnvProvider } from "@tutao/app-env"
 import { CloseEventBusOption } from "../../../platform-kit/network/Constants"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	let takeover = ""
@@ -23,7 +22,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
-					!(EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp())
+					!(Singletons.envProvider.isIOSApp() && Singletons.clientDetector.isCalendarApp())
 						? m(LegacyTextField, {
 								label: "targetAddress_label",
 								value: takeover,

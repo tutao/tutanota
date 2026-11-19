@@ -28,7 +28,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @type {object}
  * @property projectRoot {string} directory this was called from
  * @property version {string} application version that gets built
- * @property platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
+ * @property platform {"Windows"|"Linux"|"Darwin"} - Canonical platform name of the desktop target to be built
  * @property architecture {ArchParam} the instruction set used in the built desktop binary
  * @property updateUrl {string | undefined} where the client should pull its updates from, if any
  * @property nameSuffix {string} suffix used to distinguish test-, prod- or snapshot builds on the same machine
@@ -158,7 +158,7 @@ export async function buildDesktop({
  * @param dirname {string}
  * @param outDir {string}
  * @param version {string}
- * @param platform {string}
+ * @param platform {import("../src/platform-kit/app-env/Env.ts").PlatformId}
  * @param architecture {ArchParam}
  * @param disableMinify {boolean}
  * @param networkDebugging {boolean}
@@ -186,7 +186,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			}),
 			nodeGypPlugin({
 				rootDir: projectRoot,
-				platform: canonicalPlatform,
+				platform: canonicalPlatform.toLowerCase(),
 				architecture: architecture,
 				nodeModule: "@signalapp/sqlcipher",
 				// we build for Electron, but it uses NAPI so it's fine to build for node
@@ -194,7 +194,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				targetName: "node_sqlcipher",
 			}),
 			// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
-			canonicalPlatform === "win32"
+			canonicalPlatform === "Win32"
 				? nodeGypPlugin({
 						rootDir: projectRoot,
 						platform: canonicalPlatform,
@@ -205,7 +205,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 					})
 				: undefined,
 			napiPlugin({
-				platform: canonicalPlatform,
+				platform: canonicalPlatform.toLowerCase(),
 				architecture,
 				modulePath: "src/app-kit/mimimi",
 			}),
@@ -223,7 +223,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			commonjs(),
 			disableMinify ? undefined : terser(),
 			// bundleDependencyCheckPlugin(),
-			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging })),
+			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: platform, dist: true, domainConfigs, networkDebugging })),
 		],
 	})
 	await mainBundle.write({ sourcemap: true, format: "esm", dir: outDir })

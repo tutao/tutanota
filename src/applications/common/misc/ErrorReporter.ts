@@ -9,7 +9,7 @@ import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
 import { convertTextToHtml, downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { EnvProvider, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
+import { Mode, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { px } from "../../../ui/size"
 import { createLogFile } from "../api/common/Logger.js"
@@ -18,10 +18,10 @@ import { getTimeZone } from "../calendar/date/CalendarUtils.js"
 import { ConversationType, DataFile, MailMethod, RecipientType } from "../../../entities/tutanota/Utils"
 import { AccountType } from "../../../entities/sys/Utils"
 import { createErrorReportData, createErrorReportFile, createReportErrorIn, ReportErrorService_POST } from "@tutao/entities/monitor"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { ErrorInfo, errorToString } from "../../../platform-kit/utils/ErrorInfo"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 type FeedbackContent = {
 	message: string
@@ -333,28 +333,25 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 }
 
 async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: DataFile[]) {
-	function getReportingClientType(): ErrorReportClientType {
-		if (EnvProvider.get().isBrowser()) {
-			return ErrorReportClientType.Browser
-		} else {
-			switch (env.platformId) {
-				case "ios":
-					return ErrorReportClientType.Ios
-				case "android":
-					return ErrorReportClientType.Android
-				case "darwin":
-					return ErrorReportClientType.MacOS
-				case "linux":
-					return ErrorReportClientType.Linux
-				case "win32":
-					return ErrorReportClientType.Windows
-				default:
-					return ErrorReportClientType.Linux
-			}
+	const clientType = (() => {
+		switch (Singletons.envProvider.getMode()) {
+			case Mode.Browser:
+				return ErrorReportClientType.Browser
+			case Mode.Android:
+				return ErrorReportClientType.Android
+			case Mode.Ios:
+				return ErrorReportClientType.Ios
+			case Mode.Linux:
+			case Mode.Admin:
+				return ErrorReportClientType.Linux
+			case Mode.Win32:
+				return ErrorReportClientType.Windows
+			case Mode.Darwin:
+				return ErrorReportClientType.MacOS
+			case Mode.Test:
+				throw new ProgrammingError(`Not supoprted for test. Use overrideWithEnv() if you are trying to test this function`)
 		}
-	}
-
-	const clientType = getReportingClientType()
+	})()
 
 	const errorData = createReportErrorIn({
 		data: createErrorReportData({
@@ -365,7 +362,7 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 			errorMessage: error.message,
 			userMessage: userMessage,
 			stackTrace: error.stack ?? "",
-			additionalInfo: ClientDetector.get().getUserAgent(),
+			additionalInfo: Singletons.clientDetector.getUserAgent(),
 			time: new Date(),
 		}),
 		files: logs.map((log) => {
@@ -408,16 +405,7 @@ export function clientInfoString(
 		? neverNull(typedKeys(AccountType).find((typeName) => AccountType[typeName] === locator.logins.getUserController().user.accountType))
 		: "UNKNOWN"
 
-	const client = (() => {
-		switch (env.mode) {
-			case Mode.Browser:
-			case Mode.Test:
-				return env.mode
-			default:
-				return env.platformId ?? ""
-		}
-	})()
-
+	const client: string = Singletons.envProvider.getMode()
 	let message = `${lineBreak}${lineBreak} Client: ${client}`
 	message += `${lineBreak} Type: ${type}`
 	message += `${lineBreak} Tutanota version: ${env.versionNumber}`
@@ -444,9 +432,9 @@ export async function getLogAttachments(timestamp?: Date): Promise<Array<DataFil
 		logs.push(workerLogFile)
 	}
 
-	if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
+	if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isApp()) {
 		const nativeLog = await locator.commonSystemFacade.getLog()
-		const nativeLogFile = createLogFile(nativeLog, EnvProvider.get().isDesktop() ? "desktop" : "device", timestamp?.getTime())
+		const nativeLogFile = createLogFile(nativeLog, Singletons.envProvider.isDesktop() ? "desktop" : "device", timestamp?.getTime())
 		logs.push(nativeLogFile)
 	}
 

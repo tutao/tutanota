@@ -30,6 +30,7 @@ import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
 import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
 import { DateTime } from "luxon"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -355,8 +356,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					m(SingleLineTextField, {
 						classes: ["tutaui-button-outline", "text-center", "border-content-message-bg"],
 						value: isNaN(this.repeatOccurrences) ? "" : this.repeatOccurrences.toString(),
-						inputMode: EnvProvider.get().isApp() ? InputMode.NONE : InputMode.TEXT,
-						readonly: EnvProvider.get().isApp(),
+						inputMode: Singletons.envProvider.isApp() ? InputMode.NONE : InputMode.TEXT,
+						readonly: Singletons.envProvider.isApp(),
 						disabled: attrs.model.repeatEndType !== EndType.Count,
 						oninput: (val: string) => {
 							if (this.repeatOccurrences === Number(val)) {

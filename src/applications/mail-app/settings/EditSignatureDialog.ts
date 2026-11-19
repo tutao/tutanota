@@ -12,6 +12,7 @@ import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality
 import { TutanotaProperties } from "@tutao/entities/tutanota"
 import { EmailSignatureType } from "../../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
@@ -34,7 +35,7 @@ export function show(props: TutanotaProperties) {
 			.enableToolbar()
 			.setToolbarOptions({
 				//Inline images require transporting over IPC boundary and we have not implemented a suitable way yet
-				imageButtonClickHandler: EnvProvider.get().isApp() ? null : insertInlineImageB64ClickHandler,
+				imageButtonClickHandler: Singletons.envProvider.isApp() ? null : insertInlineImageB64ClickHandler,
 			})
 			.setEnabled(selectedType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
 

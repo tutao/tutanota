@@ -39,6 +39,7 @@ import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../..
 import { WebsocketCounterData } from "@tutao/entities/sys"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import type { InboxRuleModel } from "./InboxRuleModel"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -221,7 +222,7 @@ export class MailModel {
 					const processInboxHandler = await this.processInboxHandler()
 					targetFolder = await processInboxHandler.handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
 				}
-				if (EnvProvider.get().isBrowser()) {
+				if (Singletons.envProvider.isBrowser()) {
 					this._showNotification(targetFolder, mail)
 				}
 			}

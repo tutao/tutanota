@@ -14,6 +14,7 @@ import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupType
 import { GroupType } from "../../../entities/sys/Utils"
 import { CacheManager } from "./persistence/CacheManager"
 import { idToElementId } from "@tutao/meta"
+import { isNull } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -52,7 +53,7 @@ export class IdentityKeyCreator {
 		}
 		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
 		const currentGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
-		if (encryptingKey == null) {
+		if (isNull(encryptingKey)) {
 			// by default, we encrypt the private identity key with the group key.
 			encryptingKey = currentGroupKey
 		}
@@ -100,7 +101,7 @@ export class IdentityKeyCreator {
 		// Do not try to re-create the key pair in case it already exists
 		// We check down here to make race conditions less likely.
 		const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
-		if (group.identityKeyPair != null) {
+		if (isNotNull(group.identityKeyPair)) {
 			console.log(`Identity key pair already exists. Did not create it again for group: ${groupId}`)
 			return
 		}

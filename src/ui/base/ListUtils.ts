@@ -6,6 +6,7 @@ import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { SearchToken, splitTextForHighlighting } from "../utils/QueryTokenUtils"
 import { Keys } from "../utils/KeyboardKeys"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 export const ACTION_DISTANCE = 150
 export const PageSize = 100
@@ -101,7 +102,7 @@ export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode,
 			help: "selectAllLoaded_action",
 			// this specific shortcut conflicts with a chrome shortcut. it was chosen because it's adjacent to ctrl + A
 			// for select all.
-			enabled: () => multiselectionEnabled() && !EnvProvider.get().isBrowser(),
+			enabled: () => multiselectionEnabled() && !Singletons.envProvider.isBrowser(),
 		},
 	]
 }

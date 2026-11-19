@@ -1,9 +1,11 @@
+import { isNull } from "@tutao/lang-api"
+
 /**
  * return a list of words contained in a text, lowercased.
  * @param text
  */
 export function tokenize(text: string | null): string[] {
-	if (text == null) return []
+	if (isNull(text)) return []
 	let currentWord: string[] = []
 	let words: string[] = []
 

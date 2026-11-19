@@ -1,9 +1,14 @@
-// read from the offline db according to the list and element id on the entityUpdate
-// decrypt encrypted fields using the OwnerEncSessionKey on the entry from the offline db
-// apply patch operations using a similar logic from the server
-// update the instance in the offline db
-
-import { AssociationReprType, Entity, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "../meta"
+import {
+	AssociationReprType,
+	Entity,
+	getAssociationRepresentationType,
+	isSameId,
+	isSameSingleId,
+	isSameTypeRef,
+	PersistentEntity,
+	ServerTypeModel,
+	TypeRef,
+} from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, lazy, Nullable } from "@tutao/utils"
 import {
@@ -24,14 +29,12 @@ import {
 	VersionedEncryptedKey,
 } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
-import { ServerTypeModel } from "@tutao/meta"
 import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 import { IncomingServerJson } from "./TypeMapper"
-import { EnvProvider } from "@tutao/app-env"
-import { isNull } from "../utils/Utils"
+import { isNull, TsInt } from "@tutao/lang-api"
 import { AssociationPath, ValuePath } from "./EncryptionContextPath"
 import { InstanceTypeId, makeKeyDerivationContext } from "./InstanceTypeContext"
 
@@ -90,7 +93,13 @@ type PathResult = {
 	typeModel: ServerTypeModel
 }
 
+// read from the offline db according to the list and element id on the entityUpdate
+// decrypt encrypted fields using the OwnerEncSessionKey on the entry from the offline db
+// apply patch operations using a similar logic from the server
+// update the instance in the offline db
 export class PatchMerger {
+	private networkDebugging: boolean = false
+
 	constructor(
 		private readonly cacheStorage: GetOrPutInstance,
 		public readonly instancePipeline: InstancePipeline,
@@ -98,6 +107,10 @@ export class PatchMerger {
 		private readonly sessionKeyResolver: lazy<SessionAndInstanceKeyResolver>,
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
 	) {}
+
+	public enableNetworkDebugging(): void {
+		this.networkDebugging = true
+	}
 
 	// visible for testing
 	public async getPatchedInstanceParsed(
@@ -107,7 +120,7 @@ export class PatchMerger {
 		patches: Array<Patch>,
 	): Promise<DecryptedParsedInstance | null> {
 		const parsedInstance = await this.cacheStorage.getParsed(instanceType, listId, elementId)
-		if (parsedInstance != null) {
+		if (isNotNull(parsedInstance)) {
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
 
 			const instance = await this.instancePipeline.modelMapper.mapToInstance(parsedInstance)
@@ -140,7 +153,7 @@ export class PatchMerger {
 
 		try {
 			const patchAppliedInstance = await this.getPatchedInstanceParsed(typeRef, instanceListId, instanceId, assertNotNull(patches))
-			if (patchAppliedInstance == null || patchAppliedInstance.hasError()) {
+			if (isNull(patchAppliedInstance) || patchAppliedInstance.hasError()) {
 				return null
 			}
 			await this.cacheStorage.put(typeRef, patchAppliedInstance)
@@ -160,7 +173,7 @@ export class PatchMerger {
 		try {
 			const pathList: Array<string> = patch.attributePath.split("/")
 			const pathResult: PathResult | null = await this.traversePath(parsedInstance, typeModel, pathList)
-			if (pathResult == null) {
+			if (isNull(pathResult)) {
 				return false
 			}
 
@@ -203,7 +216,7 @@ export class PatchMerger {
 	}
 
 	private removeNetworkDebuggingSymbolsIfNeeded(path: string): string {
-		if (!EnvProvider.get().networkDebuggingEnabled()) {
+		if (!this.networkDebugging) {
 			return path
 		}
 		return path
@@ -399,13 +412,9 @@ export class PatchMerger {
 			throw new PatchOperationError("Invalid attributePath, expected non-empty attributePath")
 		}
 		try {
-			let attributeId: number
+			const attributeId = TsInt.parseInt(pathItem.split(":")[0])
 			const attributeIdsInServerTypeModel = Object.keys(serverTypeModel.values).concat(Object.keys(serverTypeModel.associations))
-			if (EnvProvider.get().networkDebuggingEnabled()) {
-				attributeId = parseInt(pathItem.split(":")[0])
-			} else {
-				attributeId = parseInt(pathItem)
-			}
+
 			if (!attributeIdsInServerTypeModel.some((attribute) => attribute === attributeId.toString())) {
 				// this would mean server sent an attribute id not in the current activated server schema
 				// this should not happen, and returning null would trigger a reload from the server
@@ -417,7 +426,7 @@ export class PatchMerger {
 					attributeId: attributeId,
 					instanceToChange: parsedInstance,
 					typeModel: serverTypeModel,
-				} as PathResult
+				} satisfies PathResult
 			}
 
 			const modelAssociation = serverTypeModel.associations[attributeId]

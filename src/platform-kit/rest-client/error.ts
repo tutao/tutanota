@@ -9,6 +9,7 @@ import {
 	BadGatewayError,
 	BadRequestError,
 	ConnectionError,
+	HttpClientError,
 	InsufficientStorageError,
 	InternalServerError,
 	InvalidDataError,
@@ -63,7 +64,7 @@ export function handleRestError(
 	path: Nullable<string> = null,
 	errorId: Nullable<string> = null,
 	precondition: Nullable<string> = null,
-): TutanotaError<string | null> {
+): HttpClientError {
 	const message = `${errorCode}: ${isNotNull(errorId) ? errorId + " " : ""}${isNotNull(precondition) ? precondition + " " : ""}${path}`
 
 	switch (errorCode) {
@@ -140,7 +141,7 @@ export function handleRestError(
 
 export class LoginIncompleteError extends TutanotaError {
 	constructor(message: string) {
-		super("LoginIncompleteError", message, null)
+		super("LoginIncompleteError", message)
 	}
 }
 

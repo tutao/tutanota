@@ -10,6 +10,7 @@ import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { ExternalLink } from "../../../../../ui/base/ExternalLink.js"
 import { EnvProvider } from "@tutao/app-env"
 import { NewsId } from "@tutao/entities/tutanota"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 const playstoreLink = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
 const appstoreLink = "https://apps.apple.com/app/tutanota/id922429609"
@@ -26,12 +27,12 @@ export class PinBiometricsNews implements NewsListItem {
 
 	isShown(newsId: NewsId): Promise<boolean> {
 		return Promise.resolve(
-			(EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId),
+			(Singletons.envProvider.isIOSApp() || Singletons.envProvider.isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId),
 		)
 	}
 
 	render(newsId: NewsId): Mithril.Children {
-		const displayedLink = EnvProvider.get().isAndroidApp() ? playstoreLink : appstoreLink
+		const displayedLink = Singletons.envProvider.isAndroidApp() ? playstoreLink : appstoreLink
 		return m(".full-width", [
 			m(".h4", { style: { "text-transform": "capitalize" } }, lang.get("pinBiometrics_action")),
 			m("p", lang.get("pinBiometrics1_msg", { "{secureNowAction}": lang.get("secureNow_action") })),

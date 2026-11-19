@@ -12,7 +12,6 @@ import { UserError } from "../../api/main/UserError"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { count, filterInt, noOp, ofClass } from "@tutao/utils"
 import { formatPrice, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import { UpgradePriceType } from "../FeatureListProvider"
@@ -26,6 +25,7 @@ import { GiftCard, GiftCardOption, GiftCardService_GET, GiftCardTypeRef } from "
 import { isExternalPaymentMethod, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { NULL_ENTITY } from "@tutao/meta"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
@@ -262,7 +262,7 @@ export async function showPurchaseGiftCardDialog(paymentMethodType: PaymentMetho
 		exec: () => dialog.close(),
 		help: "close_alt",
 	})
-	if (ClientDetector.get().isMobileDevice()) {
+	if (Singletons.clientDetector.isMobileDevice()) {
 		// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
 		dialog.setFocusOnLoadFunction(noOp)
 	}

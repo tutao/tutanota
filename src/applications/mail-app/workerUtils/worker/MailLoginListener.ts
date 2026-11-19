@@ -10,6 +10,7 @@ import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusCl
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
 import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
 import { OfflineConfigurationDatabase } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export class MailLoginListener extends DefaultLoginListener {
 	constructor(
@@ -23,7 +24,7 @@ export class MailLoginListener extends DefaultLoginListener {
 	}
 
 	async onPartialLoginSuccess(sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
-		if (!EnvProvider.isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isTest() && sessionType !== SessionType.Temporary && !Singletons.envProvider.isAdminClient()) {
 			const indexer = await locator.indexer()
 			await indexer.partialLoginInit()
 		}
@@ -32,13 +33,13 @@ export class MailLoginListener extends DefaultLoginListener {
 
 	async onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		if (sessionType !== SessionType.Temporary) {
-			if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient()) {
+			if (!Singletons.envProvider.isTest() && !Singletons.envProvider.isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer and SpamClassifier after log in")
 				await fullLoginIndexerInit(this.worker)
 			}
 
-			if (EnvProvider.get().isOfflineStorageAvailable()) {
+			if (Singletons.envProvider.isOfflineStorageAvailable()) {
 				const config = (await this.config()) as OfflineConfigurationDatabase
 				config.triggerMigrationIfNeeded()
 			}

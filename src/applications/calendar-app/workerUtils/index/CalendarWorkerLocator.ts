@@ -5,7 +5,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import { Const, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
@@ -63,6 +63,7 @@ import { initClientModels } from "../../../common/api/common/ClientModelInfoInit
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CachingOfflineStorage } from "../../../../app-kit/local-store/CachingOfflineStorage"
 import { random } from "@tutao/crypto"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -123,13 +124,13 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
+	if (!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 	}
 
 	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
 	let offlineStorageProvider: () => Promise<CachingOfflineStorage | null>
-	if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
+	if (!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
 				ref: UserTypeRef,
@@ -146,6 +147,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				offlineMapper,
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
+				locator.base.envProvider,
 			)
 			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
@@ -171,7 +173,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.cacheStorage = maybeUninitializedStorage
 
 	const lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider> = lazyMemoized(async () => {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
 		} else {
 			return new NoOpLastProcessedEventBatchStorageFacade()
@@ -195,8 +197,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		cacheManagement: locator.cacheManagement,
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
-		rsa: await createRsaImplementation(worker, random),
-		fileFacade: new FileFacadeSendDispatcher(worker),
+		rsa: await createRsaImplementation(worker, random, Singletons.envProvider),
+		fileFacade: Singletons.envProvider.isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
 		entityMigratorFactory: ({
@@ -227,6 +229,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			),
 		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
 			new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, patchMerger, lastProcessed),
+		envProvider: Singletons.envProvider,
 	})
 
 	locator.workerFacade = new WorkerFacade(locator.base.symmetricCipherUtils)
@@ -414,7 +417,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.base.cache as EntityRestCache,
 		locator.base.user,
 		locator.base.instancePipeline,
-		(path) => new WebSocket(EnvProvider.get().getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(Singletons.envProvider.getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		locator.base.typeModelResolver,
 		locator.base.crypto,
@@ -422,9 +425,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.base.lastProcessedEventBatchStorageFacade,
 		serverDateProvider,
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
+		locator.base.envProvider,
 	)
 
-	locator.Const = Const
+	locator.Const = TutanotaConstants.Const
 
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")

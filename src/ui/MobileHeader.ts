@@ -12,8 +12,8 @@ import { px } from "./size.js"
 import { theme } from "./theme.js"
 import { ClickHandler } from "./base/GuiUtils.js"
 import { lang, MaybeTranslation } from "./utils/LanguageViewModel.js"
-import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { Icons } from "./base/icons/Icons"
+import { Singletons } from "../platform-kit/singletons/singleton"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	columnType: "first" | "other"
@@ -59,7 +59,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 	}
 
 	private renderLeftAction(attrs: MobileHeaderAttrs) {
-		if (Styles.get().isMobileDesktopLayout() && !ClientDetector.get().isCalendarApp()) {
+		if (Styles.get().isMobileDesktopLayout() && !Singletons.clientDetector.isCalendarApp()) {
 			if (attrs.useBackButton) {
 				return m(MobileHeaderBackButton, { backAction: attrs.backAction })
 			} else {

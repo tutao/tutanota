@@ -5,7 +5,7 @@ import { handleRestError, PayloadTooLargeError } from "./error.js"
 import { HttpMethod, InterceptedResponse, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
 import { isNull } from "../utils/Utils"
 import { TsDate } from "../app-env/TranspileCompatibility"
-import { HttpClient, HttpResponse, MediaType, RestBinaryBody, RestBody, RestTextBody, XhrError } from "@tutao/http-client"
+import { HttpUtils, HttpResponse, MediaType, RestBinaryBody, RestBody, RestTextBody, XhrError } from "@tutao/http-client"
 import { SuspensionError } from "@tutao/http-client/error"
 
 EnvProvider.assertWorkerOrNode()
@@ -48,10 +48,11 @@ export class RestClient implements RestClientInterface {
 	private responseMiddlewares: Array<RestClientMiddleware> = new Array<RestClientMiddleware>()
 
 	constructor(
+		public readonly envProvider: EnvProvider,
 		private readonly suspensionHandler: restSuspension.SuspensionHandler,
 		private readonly domainConfig: DomainConfig,
 		private readonly clientPlatform: string,
-		private readonly httpClient: HttpClient,
+		private readonly httpClient: HttpUtils,
 	) {}
 
 	addMiddleware(middleware: RestClientMiddleware): RestClient {
@@ -72,8 +73,8 @@ export class RestClient implements RestClientInterface {
 			}
 
 			if (isNotNull(options.noCORS) && options.noCORS) {
-				queryParams["cv"] = EnvProvider.get().getVersionNumber()
-				if (EnvProvider.get().networkDebuggingEnabled()) {
+				queryParams["cv"] = this.envProvider.getVersionNumber()
+				if (this.envProvider.networkDebuggingEnabled()) {
 					queryParams["network-debugging"] = "enable-network-debugging"
 				}
 			}
@@ -88,7 +89,7 @@ export class RestClient implements RestClientInterface {
 			const url = addParamsToUrl(resourceURL, queryParams).toString()
 			const headers = this.createHeaders(options)
 			const { downloadProgressListener, uploadProgressListener, body, abortSignal, responseType, noCORS } = options
-			const timeout = options.body instanceof RestBinaryBody ? BLOB_REQUEST_TIMEOUT_MS : EnvProvider.get().getTimeOutValue()
+			const timeout = options.body instanceof RestBinaryBody ? BLOB_REQUEST_TIMEOUT_MS : this.envProvider.getTimeOutValue()
 
 			let response: HttpResponse
 			try {
@@ -168,7 +169,7 @@ export class RestClient implements RestClientInterface {
 		// are obsolete and accepted only for backwards compatibility.
 		const serverTimestamp = response.getResponseHeader("Date")
 
-		if (serverTimestamp != null) {
+		if (isNotNull(serverTimestamp)) {
 			// check that serverTimestamp has been returned
 			const serverTime = new TsDate(serverTimestamp).getTime()
 
@@ -195,7 +196,7 @@ export class RestClient implements RestClientInterface {
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
 	private checkRequestSizeLimit(path: string, method: HttpMethod, body: RestBody | null): void {
-		if (EnvProvider.get().isAdminClient()) {
+		if (this.envProvider.isAdminClient()) {
 			return
 		}
 
@@ -207,14 +208,14 @@ export class RestClient implements RestClientInterface {
 	}
 
 	private createHeaders(options: RestClientOptions): Dict {
-		if (options.headers == null) {
+		if (isNull(options.headers)) {
 			options.headers = {}
 		}
 		const { headers, body, responseType } = options
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (isNull(options.noCORS) || !options.noCORS) {
-			headers["cv"] = EnvProvider.get().getVersionNumber()
+			headers["cv"] = this.envProvider.getVersionNumber()
 			headers["cp"] = this.clientPlatform
 			if (body instanceof RestBinaryBody) {
 				headers["Content-Type"] = MediaType.Binary
@@ -225,12 +226,12 @@ export class RestClient implements RestClientInterface {
 			// add networkDebugging header iff network debugging is activated
 			// network debugging can be activated by building with --network-debugging,
 			// and essentially activates both attributeNames and attributeIds in the request/response payload
-			if (EnvProvider.get().networkDebuggingEnabled()) {
+			if (this.envProvider.networkDebuggingEnabled()) {
 				headers["Network-Debugging"] = "enable-network-debugging"
 			}
 		}
 
-		const clientName = EnvProvider.get().getClientName()
+		const clientName = this.envProvider.getClientName()
 		if (isNotNull(clientName)) {
 			headers["Client-Name"] = clientName
 		}
@@ -240,7 +241,7 @@ export class RestClient implements RestClientInterface {
 		} else {
 			headers["Accept"] = MediaType.Json
 		}
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (this.envProvider.isNextCloudPlugin()) {
 			headers["OCS-APIRequest"] = String(true)
 		}
 		return headers
@@ -261,7 +262,7 @@ export function addParamsToUrl(url: URL, urlParams: Nullable<Dict>): URL {
 
 function logFailedRequest(method: HttpMethod, url: string, response: HttpResponse, options: RestClientOptions): void {
 	const args: Array<unknown> = [TAG, "failed request", method, url.toString(), response.status, response.statusText]
-	if (options.headers != null) {
+	if (isNotNull(options.headers)) {
 		args.push(Object.keys(options.headers))
 	}
 	const body = options.body

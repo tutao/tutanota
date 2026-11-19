@@ -1,12 +1,12 @@
-import { lazyMemoized, Nullable } from "@tutao/utils"
+import { lazyMemoized } from "@tutao/utils"
 import { SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
-import { ProgrammingError } from "@tutao/app-env"
 import { AesKey } from "../../encryption/symmetric/AesKey"
 import { KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
 import { SessionKeyDecryptor } from "./SessionKeyDecryptor"
+import { isNull, Nullable, ProgrammingError } from "@tutao/lang-api"
 
 /**
  * Dummy class that can either hold SubKeyInfo or SubKeyProvider. As both are suitable to get the actual subkeys.
@@ -155,7 +155,7 @@ export class SubKeyProvider extends SubKeyFactory {
 }
 
 export function makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey: Nullable<AesKey>): Nullable<SubKeyInfoWithSessionKeyCbcThenHmac> {
-	if (sessionKey == null) {
+	if (isNull(sessionKey)) {
 		return null
 	}
 	return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)

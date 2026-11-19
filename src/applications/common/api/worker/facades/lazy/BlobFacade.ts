@@ -53,6 +53,7 @@ import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipe
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
 import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
+import { Singletons } from "../../../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -393,7 +394,7 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		transferId: TransferId,
 	): Promise<BlobReferenceTokenWrapper[]> {
-		if (!EnvProvider.get().isApp() && !EnvProvider.get().isDesktop()) {
+		if (!Singletons.envProvider.isApp() && !Singletons.envProvider.isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
 		const fileHandle = await this.fileApp.openFileForReading(fileUri)
@@ -762,7 +763,7 @@ export class BlobFacade {
 		mimeType: string,
 		transferId: TransferId,
 	): Promise<FileReference> {
-		if (!EnvProvider.get().isApp() && !EnvProvider.get().isDesktop()) {
+		if (!Singletons.envProvider.isApp() && !Singletons.envProvider.isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
@@ -1145,7 +1146,7 @@ export class BlobFacade {
 			v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
 			cv: env.versionNumber,
 		}
-		if (env.networkDebugging) {
+		if (Singletons.envProvider.networkDebuggingEnabled()) {
 			headers["Network-Debugging"] = "enable-network-debugging"
 		}
 		return headers

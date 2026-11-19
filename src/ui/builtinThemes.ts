@@ -4,7 +4,7 @@
 import type { Theme, ThemeId } from "./theme"
 import { EnvProvider } from "../platform-kit/app-env"
 import { getAppLogo } from "./base/Logo.js"
-import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -51,8 +51,8 @@ const semanticColorsDark = {
  * https://m3.material.io/styles/color/advanced/define-new-colors#baed14ce-4be8-46aa-8223-ace5d45af005
  */
 export const generateThemes = (): Themes => {
-	const isCalendarApp = ClientDetector.get().isCalendarApp()
-	const isDriveApp = ClientDetector.get().isDriveApp()
+	const isCalendarApp = Singletons.clientDetector.isCalendarApp()
+	const isDriveApp = Singletons.clientDetector.isDriveApp()
 	const lightRed = Object.freeze<Theme>({
 		...semanticColorsLight,
 		themeId: isCalendarApp ? "light_secondary" : "light",

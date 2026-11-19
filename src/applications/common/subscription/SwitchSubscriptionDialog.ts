@@ -27,7 +27,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 } from "../../../entities/sys/Utils"
-import { BookingFailureReason, Const, EnvProvider, UnsubscribeFailureReason } from "@tutao/app-env"
+import { BookingFailureReason, TutanotaConstants, UnsubscribeFailureReason } from "@tutao/app-env"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -36,7 +36,7 @@ import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, downcast, last, lazy, noOp } from "@tutao/utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, downcast, isNull, last, lazy, noOp } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
@@ -57,12 +57,12 @@ import { getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 import { getPrivateBusinessSwitchButton, InvoiceData, SubscriptionActionButtons } from "./utils/PaymentUtils"
 import { showManageSubscriptionThroughExternalStoreDialog } from "../misc/SubscriptionDialogs"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -82,11 +82,10 @@ export async function showSwitchDialog({
 	reason: TranslationKey | null
 }): Promise<void> {
 	const paymentMethod = getPaymentMethodType(accountingInfo)
-	if (paymentMethod == null) {
+	if (isNull(paymentMethod)) {
 		Dialog.message("noPaymentMethodError_msg")
 		return
-	}
-	if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
+	} else if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
 		await showManageSubscriptionThroughExternalStoreDialog(paymentMethod)
 		return
 	}
@@ -412,7 +411,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 				break
 
 			case UnsubscribeFailureReason.ACTIVE_APPSTORE_SUBSCRIPTION:
-				if (EnvProvider.get().isIOSApp()) {
+				if (Singletons.envProvider.isIOSApp()) {
 					await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 					return false
 				} else {
@@ -457,13 +456,13 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
-		date: Const.CURRENT_DATE,
+		date: TutanotaConstants.Const.CURRENT_DATE,
 		customer: elementIdToId(customer._id),
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
 		surveyData: null,
-		app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+		app: Singletons.clientDetector.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
 		await locator.serviceExecutor.execute(SwitchAccountTypeService_POST, switchAccountTypeData, null)
@@ -552,12 +551,12 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		const postIn = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			plan: targetSubscription,
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			referralCode: null,
 			customer: elementIdToId(customer._id),
 			specialPriceUserSingle: null,
 			surveyData: null,
-			app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+			app: Singletons.clientDetector.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 
 		try {

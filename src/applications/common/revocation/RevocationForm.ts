@@ -1,6 +1,5 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { assertNotNull } from "@tutao/utils"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
 import { liveDataAttrs } from "../../../ui/AriaUtils.js"
@@ -8,6 +7,7 @@ import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { LeavingUserSurveyData, showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export interface RevocationFormAttrs {
 	onSubmit: (surveyData: LeavingUserSurveyData | null) => unknown
@@ -60,7 +60,7 @@ export class RevocationForm implements Component<RevocationFormAttrs> {
 						},
 						type: LegacyTextFieldType.Email,
 						onDomInputCreated: (dom) => {
-							if (!ClientDetector.get().isMobileDevice()) {
+							if (!Singletons.clientDetector.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},

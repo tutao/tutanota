@@ -1,4 +1,4 @@
-import { KeyVersion } from "@tutao/utils"
+import { isNotNull, KeyVersion } from "@tutao/utils"
 import { PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../entities/sys/Utils"
 import { MaybeSignedPublicKey } from "../MaybeSignedPublicKey"
@@ -20,7 +20,7 @@ export class PublicEncryptionKeyCache {
 			return
 		}
 		if (
-			publicEncryptionKey.signature != null ||
+			isNotNull(publicEncryptionKey.signature) ||
 			(publicKeyIdentifier.identifierType === PublicKeyIdentifierType.MAIL_ADDRESS && publicKeyIdentifier.identifier === SYSTEM_GROUP_MAIL_ADDRESS)
 		) {
 			// we only want to cache keys with signatures to ensure that we can always verify them.

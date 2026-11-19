@@ -4,6 +4,8 @@ import type { BaseThemeProvider } from "../../ui/theme"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView"
 import { LoginController } from "./api/main/LoginController"
 import { RouteResolver } from "mithril"
+import { PrimaryNavigationType, RootView } from "../../ui/base/RootView"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -17,6 +19,8 @@ export async function initUiSingletons(windowFacade: IWindowFacade, themeControl
 	modal.init(windowFacade)
 
 	windowFacade.addKeyboardSizeListener(Dialog.onKeyboardSizeChanged)
+
+	RootView.currentNavigationType = Singletons.envProvider.isApp() ? PrimaryNavigationType.Touch : PrimaryNavigationType.Mouse
 }
 
 export type MakeViewResolverOptions<FullAttrs extends TopLevelAttrs, ComponentType extends TopLevelView<FullAttrs>, RouteCache> = {

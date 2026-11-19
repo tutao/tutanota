@@ -1,5 +1,5 @@
 import { newPromise } from "../../platform-kit/utils"
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 function fallbackCopyToClipboard(text: string): Promise<void> {
 	return newPromise((resolve, reject) => {
@@ -44,7 +44,7 @@ export async function copyToClipboard(text: string): Promise<void> {
 	} catch {
 		console.log("copy failed, trying fallback")
 
-		if (ClientDetector.get().isIos()) {
+		if (Singletons.clientDetector.isIos()) {
 			return iosCopyToClipboard(text)
 		} else {
 			return fallbackCopyToClipboard(text)

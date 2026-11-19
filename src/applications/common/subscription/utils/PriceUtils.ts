@@ -1,4 +1,4 @@
-import { Const, EnvProvider, PaymentSetup, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup, ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { assertTranslation, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
@@ -18,6 +18,7 @@ import {
 import { BookingItemFeatureType, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { PlanTypeToName } from "./SubscriptionUtils"
 import { reverse } from "../../misc/EnumUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export enum PaymentInterval {
 	Monthly = 1,
@@ -159,12 +160,12 @@ export class PriceAndConfigProvider {
 
 	private async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor, referralCode: string | null): Promise<void> {
 		const data = createUpgradePriceServiceData({
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			campaign: registrationDataId,
 			referralCode: referralCode,
 		})
 		this.upgradePriceData = await serviceExecutor.execute(UpgradePriceService_GET, data, null)
-		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		if (Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 			this.turnOffGlobalCampaign(this.upgradePriceData)
 			this.mobilePrices = new Map()
 			let allPrices: ReadonlyArray<MobilePlanPrice>
@@ -207,9 +208,9 @@ export class PriceAndConfigProvider {
 	 * Returns the subscription price with the currency formatting on iOS/google and as a plain period seperated number on other platforms
 	 */
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, targetPlanType: PlanType): OfferPrice {
-		if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+		if (Singletons.envProvider.getPaymentSetup() === PaymentSetup.None) {
 			return { displayPrice: "?", rawPrice: "?" }
-		} else if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		} else if (Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 			return this.getExternalPaymentsSubscriptionPrice(targetPlanType, paymentInterval)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, targetPlanType, type)
@@ -279,7 +280,7 @@ export class PriceAndConfigProvider {
 	 * Return if the user is eligible for paid plans with an introductory discount offer from appstore/playstore.
 	 */
 	isEligibleForIntroOffer(): boolean {
-		const paymentSetup = EnvProvider.get().getPaymentSetup()
+		const paymentSetup = Singletons.envProvider.getPaymentSetup()
 		if (paymentSetup !== PaymentSetup.Appstore && paymentSetup !== PaymentSetup.Playstore) return false
 		for (const price of this.mobilePrices?.values() ?? []) {
 			if (price.isEligibleForIntroOffer) return true

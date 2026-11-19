@@ -22,6 +22,7 @@ import { UserError } from "../../../api/main/UserError.js"
 import { NotAuthorizedError } from "@tutao/rest-client/error"
 import { PrimaryButton } from "../../../../../ui/base/buttons/VariantButtons.js"
 import { User } from "@tutao/entities/sys"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export interface SecondFactorEditDialogAttrs {
 	allowCancel?: boolean
@@ -145,12 +146,12 @@ export class SecondFactorEditDialog {
 		return m(".mb-16", [
 			m(LegacyTextField, {
 				label: "totpSecret_label",
-				helpLabel: () => lang.get(EnvProvider.get().isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
+				helpLabel: () => lang.get(Singletons.envProvider.isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
 				value: this.model.totpKeys.readableKey,
 				injectionsRight: () => m(IconButton, copyButtonAttrs),
 				isReadOnly: true,
 			}),
-			EnvProvider.get().isApp()
+			Singletons.envProvider.isApp()
 				? m(
 						".pt-16",
 						m(PrimaryButton, {

@@ -1,12 +1,10 @@
 import m from "mithril"
-import { Const } from "@tutao/app-env"
 import { createSwitchAccountTypePostIn, SwitchAccountTypeService_POST } from "@tutao/entities/sys"
 import { elementIdToId } from "@tutao/meta"
 import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/enums"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array } from "@tutao/utils"
 import { AccountType, isExternalPaymentMethod, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Dialog } from "../../../ui/base/Dialog"
 import { ExternalLink } from "../../../ui/base/ExternalLink"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -21,6 +19,8 @@ import {
 	UpgradeType,
 	waitUntilCustomerInfoPlanTypeIsCorrect,
 } from "./utils/SubscriptionUtils"
+import { TutanotaConstants } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 type SubscriptionCheckoutData = Pick<PaymentDetailsModel, "options" | "paymentData" | "customer" | "upgradeType"> & { targetPlanType: PlanType }
 
@@ -37,11 +37,11 @@ async function upgradeWithTuta(data: SubscriptionCheckoutData, referralCode: str
 		accountType: AccountType.PAID,
 		customer: null,
 		plan: data.targetPlanType,
-		date: Const.CURRENT_DATE,
+		date: TutanotaConstants.Const.CURRENT_DATE,
 		referralCode,
 		specialPriceUserSingle: null,
 		surveyData: null,
-		app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+		app: Singletons.clientDetector.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 
 	try {

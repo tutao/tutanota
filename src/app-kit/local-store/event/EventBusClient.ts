@@ -175,6 +175,7 @@ export class EventBusClient {
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 		private readonly serverDateProvider: DateProvider,
 		private readonly createProgressMonitor: (totalWork: number) => ProgressMonitorInterface,
+		private readonly envProvider: EnvProvider,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated
@@ -224,7 +225,7 @@ export class EventBusClient {
 			authHeaders.accessToken +
 			(this.lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this.lastAntiphishingMarkersId : "") +
 			(env.clientName ? "&clientName=" + env.clientName : "") +
-			(env.networkDebugging ? "&network-debugging=" + "enable-network-debugging" : "")
+			(this.envProvider.networkDebuggingEnabled() ? "&network-debugging=" + "enable-network-debugging" : "")
 
 		// the server sends web socket messages for **missed entity events**, after a new websocket connection
 		// has been opened for all given groups, when the groupsToLastEventBatchIds query parameter is set on
@@ -767,7 +768,7 @@ export class EventBusClient {
 
 	private eventGroups(): Id[] {
 		const user = this.loggedInUserProvider.getLoggedInUser()
-		if ((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.isTest()) {
+		if ((!this.envProvider.isBrowser() && !this.envProvider.isAdminClient()) || this.envProvider.isTest()) {
 			return user.memberships
 				.filter((membership) => membership.groupType !== GroupType.MailingList)
 				.concat(user.userGroup)

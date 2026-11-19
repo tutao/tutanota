@@ -1,13 +1,13 @@
-import { EnvProvider, IdentityKeySourceOfTrust, ProgrammingError, SessionType } from "../../platform-kit/app-env"
-import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes, SigningKeyPairType } from "../../platform-kit/crypto"
-import { lazy, Versioned } from "../../platform-kit/utils"
+import { IdentityKeySourceOfTrust, ProgrammingError, SessionType } from "@tutao/app-env"
+import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes, SigningKeyPairType, SigningPublicKey } from "@tutao/crypto"
+import { lazy, Versioned } from "@tutao/utils"
 import { sql } from "./Sql"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import type { OfflineStorageTable } from "./OfflineStorage"
-import { SigningPublicKey } from "../../platform-kit/crypto/encryption/Ed25519"
 import { TaggedSqlValue } from "./Types.js"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 import { SessionTypeProvider } from "../../platform-kit/base/facades/SessionTypeProvider"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 /**
  * Defines tables created for this interface
@@ -36,7 +36,7 @@ export class LocalIdentityKeyTrustDatabase implements IdentityKeyTrustDatabase {
 	async isIdentityKeyTrustDatabaseSupported(): Promise<boolean> {
 		const loginFacade = this.lazyLoginFacade()
 		const sessionType = await loginFacade.getSessionType()
-		return !EnvProvider.get().isBrowser() && sessionType === SessionType.Persistent
+		return !Singletons.envProvider.isBrowser() && sessionType === SessionType.Persistent
 	}
 
 	/**

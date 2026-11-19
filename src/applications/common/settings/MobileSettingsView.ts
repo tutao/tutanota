@@ -24,6 +24,7 @@ import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
 import { CustomerTypeRef } from "@tutao/entities/sys"
 import { windowFacade } from "../misc/WindowFacade"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export class MobileSettingsView extends BaseTopLevelView implements TopLevelView<MobileSettingsViewAttrs> {
 	viewSlider: ViewSlider
@@ -113,7 +114,8 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
-						classes: (this.isTabletView() ? "pr-16 pl-8 " : "") + (EnvProvider.get().isAndroidApp() ? "bottom-safe-inset overflow-y-hidden" : ""),
+						classes:
+							(this.isTabletView() ? "pr-16 pl-8 " : "") + (Singletons.envProvider.isAndroidApp() ? "bottom-safe-inset overflow-y-hidden" : ""),
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-8.border-radius-top-right-8",
 							{

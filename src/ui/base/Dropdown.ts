@@ -17,12 +17,12 @@ import { AllIcons } from "./Icon.js"
 import { RowButton, RowButtonAttrs } from "./buttons/RowButton.js"
 import { AriaRole } from "../AriaUtils.js"
 import { BaseButton } from "./buttons/BaseButton"
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
 import { PosRect } from "../utils/PosRect"
 import { Icons } from "./icons/Icons"
 import { Keys } from "../utils/KeyboardKeys"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -229,7 +229,7 @@ export class Dropdown implements ModalComponent {
 									this._renderDirection = renderDirection
 									const buttons = (vnode.dom as HTMLElement).getElementsByTagName("button")
 									const firstButton = buttons.item(0)
-									if (this.domInput && !ClientDetector.get().isMobileDevice()) {
+									if (this.domInput && !Singletons.clientDetector.isMobileDevice()) {
 										this.domInput.focus()
 									} else if (firstButton !== null) {
 										firstButton.focus()

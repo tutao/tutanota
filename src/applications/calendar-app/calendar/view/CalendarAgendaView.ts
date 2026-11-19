@@ -30,10 +30,10 @@ import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardVi
 import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { formatEventTimesAtDate } from "../gui/DateTimeTextFormatterUtils"
 import { calculateRowHeight } from "../../../../ui/base/List"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -196,7 +196,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				icon: Icons.CalendarFilled,
 				message: "noEntries_msg",
 				color: theme.on_surface_variant,
-				bottomContent: !ClientDetector.get().isCalendarApp()
+				bottomContent: !Singletons.clientDetector.isCalendarApp()
 					? m(MainCreateButton, {
 							label: "newEvent_action",
 							click: (e: MouseEvent) => {

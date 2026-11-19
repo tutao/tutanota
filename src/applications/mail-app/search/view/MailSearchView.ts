@@ -83,8 +83,8 @@ import { AppPromo } from "../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { Styles } from "../../../../ui/styles"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface MailSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -900,7 +900,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 						},
 						icon: Icons.CalendarFilled,
 					},
-					!ClientDetector.get().isMailApp() && this.searchViewModel.isDriveEnabled()
+					!Singletons.clientDetector.isMailApp() && this.searchViewModel.isDriveEnabled()
 						? {
 								label: "driveView_action",
 								click: () => {

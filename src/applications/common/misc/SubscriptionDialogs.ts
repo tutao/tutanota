@@ -5,10 +5,11 @@ import type { ClickHandler } from "../../../ui/base/GuiUtils"
 import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { GENERATED_MAX_ID } from "@tutao/meta"
-import { Const, EnvProvider, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup, ProgrammingError, TutanotaConstants, UpgradePromptType } from "@tutao/app-env"
 import { BookingTypeRef } from "@tutao/entities/sys"
 import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 import { windowFacade } from "./WindowFacade"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 let upgradeDialogShowing = false
 
@@ -85,7 +86,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 			const { getAvailableMatchingPlans } = await import("../subscription/utils/SubscriptionUtils.js")
 			const plansWithMoreStorage = await getAvailableMatchingPlans(
 				locator.serviceExecutor,
-				(config) => Number(config.storageGb) * Const.MEMORY_GB_FACTOR > usedStorage,
+				(config) => Number(config.storageGb) * TutanotaConstants.Const.MEMORY_GB_FACTOR > usedStorage,
 			)
 			if (isEmpty(plansWithMoreStorage)) {
 				await Dialog.message(userController.isGlobalAdmin() ? "insufficientStorageAdmin_msg" : "insufficientStorageUser_msg")
@@ -166,9 +167,12 @@ export async function showManageSubscriptionThroughExternalStoreDialog(paymentMe
 }
 
 export function openExternalSubscriptionPage(paymentMethod?: PaymentMethodType | null) {
-	if (paymentMethod === PaymentMethodType.AppStore || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore)) {
+	if (paymentMethod === PaymentMethodType.AppStore || (paymentMethod == null && Singletons.envProvider.getPaymentSetup() === PaymentSetup.Appstore)) {
 		windowFacade.openLink("https://apps.apple.com/account/subscriptions")
-	} else if (paymentMethod === PaymentMethodType.GooglePlay || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore)) {
+	} else if (
+		paymentMethod === PaymentMethodType.GooglePlay ||
+		(paymentMethod == null && Singletons.envProvider.getPaymentSetup() === PaymentSetup.Playstore)
+	) {
 		windowFacade.openLink("https://play.google.com/store/account/subscriptions")
 	}
 }

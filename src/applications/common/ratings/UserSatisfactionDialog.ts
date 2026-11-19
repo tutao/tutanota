@@ -20,15 +20,15 @@ import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import Stream from "mithril/stream"
 import { SupportDialogState } from "../support/SupportDialog.js"
 import { showSnackBar } from "../../../ui/base/SnackBar.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { windowFacade } from "../misc/WindowFacade.js"
-import { EnvProvider, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import { isEmpty, noOp } from "@tutao/utils"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { createUserSettingsGroupRoot, SupportCategory, SupportTopic } from "@tutao/entities/tutanota"
 import { getCurrentDate } from "../../mail-app/mail/MailUtils"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "rateUs" | "supportTuta" | "suggestion" | "contactSupport"
 
@@ -169,7 +169,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 export async function handleRatingByEvent(triggerType: TriggerType) {
 	createEvent(deviceConfig)
 
-	const disallowReasons = await evaluateRatingEligibility(getCurrentDate(), deviceConfig, EnvProvider.get().isApp())
+	const disallowReasons = await evaluateRatingEligibility(getCurrentDate(), deviceConfig, Singletons.envProvider.isApp())
 
 	if (!isEmpty(disallowReasons)) {
 		return
@@ -185,10 +185,13 @@ function onSupportRequestSend(dialog: Dialog) {
 
 	void showSnackBar({
 		message: "ratingSupportContactedSnackbar_msg",
-		button: ClientDetector.get().isCalendarApp()
+		button: Singletons.clientDetector.isCalendarApp()
 			? {
 					label: lang.makeTranslation("", "Get Tuta Mail"),
-					click: () => windowFacade.openLink(EnvProvider.get().isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL),
+					click: () =>
+						windowFacade.openLink(
+							Singletons.envProvider.isIOSApp() ? TutanotaConstants.TUTA_MAIL_APP_STORE_URL : TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL,
+						),
 				}
 			: {
 					label: "ok_action",

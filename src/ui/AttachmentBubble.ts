@@ -20,6 +20,7 @@ import { Attachment, isTutanotaFile } from "../entities/tutanota/Utils"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../platform-kit/utils/FileConstants"
 import { Keys } from "./utils/KeyboardKeys"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../platform-kit/singletons/singleton"
 
 export enum AttachmentType {
 	GENERIC,
@@ -267,7 +268,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 									click: () => this.thenClose(attachmentExtensionButton.attachmentButtonClicked),
 								})
 							}),
-							saveToDrive != null && !EnvProvider.get().isApp()
+							saveToDrive != null && !Singletons.envProvider.isApp()
 								? m(Button, {
 										type: ButtonType.Secondary,
 										label: lang.getTranslation("saveToDriveDialog_label"),

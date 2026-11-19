@@ -9,7 +9,6 @@ import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { CancelledError, EnvProvider } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator"
 import { windowFacade } from "../../misc/WindowFacade.js"
@@ -19,6 +18,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { PasswordField } from "../../misc/passwords/PasswordField.js"
 import { RecoverCodeInput } from "../../settings/login/RecoverCodeDialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -115,7 +115,7 @@ export function showRecoveryDialog(mailAddress?: string | null, resetAction?: Re
 							cleanMailAddress,
 							cleanRecoverCodeValue,
 							passwordModel.getNewPassword(),
-							ClientDetector.get().getIdentifier(),
+							Singletons.clientDetector.getIdentifier(),
 						),
 					)
 						.then(async () => {

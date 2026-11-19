@@ -1,15 +1,15 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { LegacyTextFieldAttrs, LegacyTextField, LegacyTextFieldType as TextFieldType, LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
-import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
+import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
+import { TabIndex, TimeFormat } from "@tutao/app-env"
 import { Time } from "../../../../common/calendar/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
-import { InputAttrs, SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
-import { rem, font_size } from "../../../../../ui/size.js"
+import { SingleLineTextField } from "../../../../../ui/base/SingleLineTextField.js"
+import { font_size, rem } from "../../../../../ui/size.js"
 import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export type TimePickerAttrs = {
 	time: Time
@@ -90,7 +90,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			onblur: () => this.onConfirmInput(attrs),
 			oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
 			onclick: (event: Event) => {
-				if (ClientDetector.get().isMobileDevice() && this.inputTimeEl) {
+				if (Singletons.clientDetector.isMobileDevice() && this.inputTimeEl) {
 					// Don't open the dropdown list. This is tricky since non-mobile Firefox doesn't implement a picker
 					event.preventDefault()
 					event.stopPropagation()
@@ -105,7 +105,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						}
 					}
 					// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
-					if (ClientDetector.get().isIos()) {
+					if (Singletons.clientDetector.isIos()) {
 						this.inputTimeEl.tabIndex = Number(TabIndex.Default)
 						this.inputTimeEl.focus()
 					}
@@ -135,7 +135,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						style: {
 							textAlign: "center",
 							fontSize: rem(font_size.smaller_em),
-							borderWidth: EnvProvider.get().isApp() ? "2px" : "",
+							borderWidth: Singletons.envProvider.isApp() ? "2px" : "",
 						},
 						// TODO(gg): Sensitive typing here, `vnode` is `NoLifecycle` but `satisfies XYZAttrs` breaks
 						oncreate: (vnode) => {

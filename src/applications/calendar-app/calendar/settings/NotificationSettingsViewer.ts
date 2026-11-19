@@ -13,6 +13,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
 import { elementIdToId } from "@tutao/meta"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -31,7 +32,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		identifier.disabled = !identifier.disabled
 		locator.entityClient.update(identifier).then(() => m.redraw)
 
-		if (!EnvProvider.get().isBrowser() && identifier.identifier === this.currentIdentifier) {
+		if (!Singletons.envProvider.isBrowser() && identifier.identifier === this.currentIdentifier) {
 			if (identifier.disabled) {
 				locator.pushService.invalidateAlarmsForUser(elementIdToId(this.user._id))
 			} else {
@@ -43,7 +44,8 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		const rows = this.identifiers
 			.map((identifier) => {
-				const isCurrentDevice = (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && identifier.identifier === this.currentIdentifier
+				const isCurrentDevice =
+					(Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) && identifier.identifier === this.currentIdentifier
 
 				return m(IdentifierRow, {
 					name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
@@ -92,7 +94,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 	private getCurrentIdentifier(): string | null {
 		const identifier = calendarLocator.pushService.getLoadedPushIdentifier()?.identifier
-		return (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && identifier ? identifier : null
+		return (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) && identifier ? identifier : null
 	}
 
 	async onEntityUpdatesReceived(updates: readonly EntityUpdateData[]): Promise<void> {

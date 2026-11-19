@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { Const, EnvProvider, FeatureType, UNDO_SEND_TIMEOUT_SECONDS } from "../../../platform-kit/app-env"
+import { EnvProvider, FeatureType, TutanotaConstants, UpgradePromptType } from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { OperationType } from "../../../platform-kit/meta"
 import { LazyLoaded, ofClass } from "../../../platform-kit/utils"
@@ -44,6 +44,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/inst
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { MailSearchModel } from "../search/model/MailSearchModel"
 import { MailIndexingAbortReason } from "../workerUtils/index/MailIndexer"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -123,7 +124,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		// Done to avoid displaying negative storage capacity to the user, storage counter will be modified in the future to fix the negative values bug
 		let sizeInBytesCorrected = sizeInBytes > MINIMUM_DISPLAYED_STORAGE_IN_BYTES ? sizeInBytes : MINIMUM_DISPLAYED_STORAGE_IN_BYTES
 		const usedStorage = formatStorageSize(sizeInBytesCorrected)
-		const totalStorage = formatStorageSize(Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR)
+		const totalStorage = formatStorageSize(Number(customerInfo.perUserStorageCapacity) * TutanotaConstants.Const.MEMORY_GB_FACTOR)
 		this._storageFieldValue(
 			lang.get("amountUsedOf_label", {
 				"{amount}": usedStorage,
@@ -245,7 +246,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				if (mailIndexEnabled) {
 					showProgressDialog("pleaseWait_msg", mailLocator.indexerFacade.enableMailIndexing()).catch(
 						ofClass(IndexingNotSupportedError, () => {
-							Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+							Dialog.message(Singletons.envProvider.isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}),
 					)
 				} else {
@@ -344,7 +345,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-32#general", lang.get("general_label")),
 					m("#conversationthread", m(DropDownSelector, conversationViewDropdownAttrs)),
 					m("#maillistgrouping", m(DropDownSelector, mailListDisplayMode)),
-					EnvProvider.get().isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
+					Singletons.envProvider.isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
 					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
 					m(".h4.mt-32#emailsending", lang.get("emailSending_label")),
 					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
@@ -371,7 +372,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderLocalDataSection(): Children {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			return [m(".h4.mt-32#localdata", lang.get("localDataSection_label")), this.renderRebuildSearchIndex(), this.renderClearCacheButton()]
 		} else {
 			return null
@@ -513,7 +514,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			dropdownWidth: 350,
 			helpLabel: () =>
 				lang.getTranslation("undoSendMail_msg", {
-					"{time}": UNDO_SEND_TIMEOUT_SECONDS,
+					"{time}": TutanotaConstants.UNDO_SEND_TIMEOUT_SECONDS,
 				}).text,
 		}
 	}

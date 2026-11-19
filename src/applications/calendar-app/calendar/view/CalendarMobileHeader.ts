@@ -18,8 +18,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../../ui/base/NavButton.js"
 import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
-import { EnvProvider } from "../../../../platform-kit/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -67,7 +66,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					click: attrs.onToday,
 				}),
 				this.renderViewSelector(attrs),
-				ClientDetector.get().isCalendarApp()
+				Singletons.clientDetector.isCalendarApp()
 					? this.renderSearchNavigationButton()
 					: m(IconButton, {
 							icon: Icons.Plus,
@@ -119,7 +118,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 	}
 
 	private renderDateNavigation(attrs: CalendarMobileHeaderAttrs) {
-		if (EnvProvider.get().isApp() || !(Styles.get().isSingleColumnLayout() || Styles.get().isTwoColumnLayout())) {
+		if (Singletons.envProvider.isApp() || !(Styles.get().isSingleColumnLayout() || Styles.get().isTwoColumnLayout())) {
 			return null
 		}
 

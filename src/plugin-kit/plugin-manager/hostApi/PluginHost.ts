@@ -8,6 +8,7 @@ import { ConfigHost } from "./ConfigHost"
 import { MailEditorHost } from "./MailEditorHost"
 import { UiHost } from "./UiHost"
 import { WindowHost } from "./WindowHost"
+import { EnvProvider } from "@tutao/app-env"
 
 export type ButtonExtension = {
 	config: ButtonConfiguration
@@ -46,13 +47,17 @@ export class PluginHost implements PluginHostApiCollection {
 
 	public pluginManifest: PluginManifest = null!
 
-	constructor(pluginManager: PluginManager, pluginId: PluginId) {
+	constructor(
+		pluginManager: PluginManager,
+		pluginId: PluginId,
+		private readonly envProvider: EnvProvider,
+	) {
 		this.config = new ConfigHost(pluginId, pluginManager.configurationAdapter)
 		this.mailEditor = isNotNull(pluginManager.mailIntegrationAdapter) ? new MailEditorHost(pluginManager.mailIntegrationAdapter) : null
 		this.ui = new UiHost(pluginId, pluginManager)
 	}
 	public initialize(pluginManifest: PluginManifest) {
 		this.pluginManifest = pluginManifest
-		;(this.window as WindowHost) = new WindowHost(this.pluginManifest)
+		;(this.window as WindowHost) = new WindowHost(this.pluginManifest, this.envProvider)
 	}
 }

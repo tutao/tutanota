@@ -1,0 +1,18 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./singletons/", "../types/*.d.ts"],
+	"compilerOptions": {
+		"rootDir": "./singletons/",
+		"outDir": "../../build/singletons",
+		"tsBuildInfoFile": "../../build/singletons/tsbuildinfo",
+		"composite": true,
+
+		"lib": ["es2023"],
+		"types": []
+	},
+	"references": [
+		{
+			"path": "./tsconfig.app-env.json"
+		}
+	]
+}

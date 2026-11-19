@@ -1,5 +1,4 @@
 import m, { Children, Vnode } from "mithril"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { EnvProvider } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { defer, DeferredObject } from "@tutao/utils"
@@ -24,6 +23,7 @@ import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { px } from "../../../ui/size"
 import { Dialog } from "../../../ui/base/Dialog"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -91,7 +91,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
 				style: {
-					marginBottom: EnvProvider.get().isAndroidApp() ? `calc(var(--safe-area-inset-bottom) + ${this.keyboardHeight}px)` : px(this.keyboardHeight),
+					marginBottom: Singletons.envProvider.isAndroidApp()
+						? `calc(var(--safe-area-inset-bottom) + ${this.keyboardHeight}px)`
+						: px(this.keyboardHeight),
 				},
 			},
 			[
@@ -103,7 +105,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						{
 							...landmarkAttrs(
 								AriaLandmarks.Main,
-								EnvProvider.get().isApp() || EnvProvider.get().isDesktop() ? lang.get("addAccount_action") : lang.get("login_label"),
+								Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop() ? lang.get("addAccount_action") : lang.get("login_label"),
 							),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
@@ -119,7 +121,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 								this.renderMoreOptions(),
 							),
 							m(".flex-grow"),
-							!(EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && this.viewModel.shouldShowAppButtons()
+							!(Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) && this.viewModel.shouldShowAppButtons()
 								? this._renderAppButtons()
 								: null,
 							renderInfoLinks(),
@@ -212,11 +214,11 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						click: () => locator.themeController.setThemePreference("true_dark"),
 					},
 					{
-						label: ClientDetector.get().isCalendarApp() ? "light_red_label" : "light_blue_label",
+						label: Singletons.clientDetector.isCalendarApp() ? "light_red_label" : "light_blue_label",
 						click: () => locator.themeController.setThemePreference("light_secondary"),
 					},
 					{
-						label: ClientDetector.get().isCalendarApp() ? "dark_red_label" : "dark_blue_label",
+						label: Singletons.clientDetector.isCalendarApp() ? "dark_red_label" : "dark_blue_label",
 						click: () => locator.themeController.setThemePreference("dark_secondary"),
 					},
 				]
@@ -334,7 +336,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 	_renderAppButtons(): Children {
 		return m(".flex-center.pt-32.ml-between-4", [
-			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.ANDROID
+			Singletons.clientDetector.isDesktopDevice() || Singletons.clientDetector.device === DeviceType.ANDROID
 				? m(IconButton, {
 						label: "appInfoAndroidImageAlt_alt",
 						click: (e) => {
@@ -345,7 +347,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						icon: Icons.LogoAndroid,
 					})
 				: null,
-			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.IPAD || ClientDetector.get().device === DeviceType.IPHONE
+			Singletons.clientDetector.isDesktopDevice() ||
+			Singletons.clientDetector.device === DeviceType.IPAD ||
+			Singletons.clientDetector.device === DeviceType.IPHONE
 				? m(IconButton, {
 						label: "appInfoIosImageAlt_alt",
 						click: (e) => {
@@ -356,7 +360,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						icon: Icons.LogoApple,
 					})
 				: null,
-			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.ANDROID
+			Singletons.clientDetector.isDesktopDevice() || Singletons.clientDetector.device === DeviceType.ANDROID
 				? m(IconButton, {
 						label: "appInfoFDroidImageAlt_alt",
 						click: (e) => {

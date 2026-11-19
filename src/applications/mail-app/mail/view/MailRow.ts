@@ -15,7 +15,6 @@ import {
 import { component_size, px, size } from "../../../../ui/size.js"
 import { noOp } from "../../../../platform-kit/utils"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../../ui/base/ListUtils.js"
-import { companyTeamLabel } from "../../../../platform-kit/app-env/boot/ClientConstants.js"
 import { getConfidentialFontIcon } from "./MailGuiUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
@@ -25,12 +24,13 @@ import { theme } from "../../../../ui/theme"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { getMailSetName } from "../model/MailUtils"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft } from "../model/MailChecks"
-import { Mail, MailSet } from "@tutao/entities/tutanota"
+import { Mail } from "@tutao/entities/tutanota"
 import { MailSetKind, ReplyType } from "../../../../entities/tutanota/Utils"
 import { getMailFolderType } from "../MailUtils"
+import { TutanotaConstants } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.FolderFilled,
@@ -134,13 +134,13 @@ export class MailRow implements VirtualRow<Mail> {
 			for (const label of labels) {
 				labelsText += label.name + " "
 			}
-			const description = `${isTeamMail ? companyTeamLabel : ""} ${senderString} ${mail.subject} ${labelsText} ${formattedDate} ${mail.unread ? lang.get("unread_label") : ""} ${iconInformation.description} `
+			const description = `${isTeamMail ? TutanotaConstants.companyTeamLabel : ""} ${senderString} ${mail.subject} ${labelsText} ${formattedDate} ${mail.unread ? lang.get("unread_label") : ""} ${iconInformation.description} `
 			this.domElement.ariaLabel = description
 			// VoiceOver on iOS will read both aria-label and aria-description
 			// and it NEEDS to have aria-label or it won't read it at all.
 			// Some other readers e.g. TalkBack need aria-description instead
 			// (at least if it's a child of <li>).
-			if (!ClientDetector.get().isIos()) {
+			if (!Singletons.clientDetector.isIos()) {
 				// @ts-ignore
 				this.domElement.ariaDescription = description
 			}
@@ -313,7 +313,7 @@ export class MailRow implements VirtualRow<Mail> {
 									classes: ".small.mr-8",
 									oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
 								},
-								companyTeamLabel,
+								TutanotaConstants.companyTeamLabel,
 							),
 							m(".text-ellipsis", {
 								oncreate: (vnode) => (this.senderDom = vnode.dom as HTMLElement),

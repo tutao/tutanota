@@ -1,5 +1,7 @@
 import { getPathBases } from "../../mail-app/ApplicationPaths.js"
 import type { ServiceWorkerError, ServiceWorkerMessage } from "./ServiceWorkerTypes"
+import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 // set by the build script
 // eslint-disable-next-line no-var
@@ -271,7 +273,7 @@ const init = (sw: ServiceWorker) => {
 // We should probably split the class and the actual content into separate files and just bundle them together during the build.
 // module.exports = {ServiceWorker}-
 // do not add listeners for Node tests. env is not set for production
-if (typeof env === "undefined" || env.mode !== "Test") {
+if (typeof env === "undefined" || !Singletons.envProvider.isTest()) {
 	const cacheName = "CODE_CACHE-v" + versionString
 	const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
 	const exclusions = customDomainCacheExclusions()

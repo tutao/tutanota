@@ -7,12 +7,12 @@ import { AttachmentButtonExtension } from "../../../../src/plugin-kit/sdk/Attach
 import { EventLocationButtonExtension } from "../../../../src/plugin-kit/sdk/EventLocationButtonExtensionPoint"
 import { ExtensionPoint } from "../../../../src/plugin-kit/sdk/hostApi/PluginHostApi"
 import { CustomerConfigPluginError } from "../../../../src/plugin-kit/sdk/PluginError"
-import { withOverriddenEnv } from "../../TestUtils"
 import { Mode } from "../../../../src/platform-kit/app-env"
 import { OperationType } from "../../../../src/platform-kit/meta"
 import { stringToBase64UrlCustomId } from "../../../../src/platform-kit/utils/Encoding"
 import { CachingStatus, EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 o.spec("PluginManagerTest", () => {
 	let configurationAdapter: ConfigurationAdapter
@@ -22,7 +22,7 @@ o.spec("PluginManagerTest", () => {
 	o.beforeEach(() => {
 		configurationAdapter = object<ConfigurationAdapter>()
 		dialogAdapter = object<DialogAdapter>()
-		pluginManager = new PluginManager(configurationAdapter, dialogAdapter)
+		pluginManager = new PluginManager(Singletons.envProvider, configurationAdapter, dialogAdapter)
 	})
 
 	function seedLoadedPlugin(overrides: { api?: any; pluginAsWorker?: any; draftConfig?: Record<string, string> } = {}) {
@@ -39,7 +39,7 @@ o.spec("PluginManagerTest", () => {
 
 	o.spec("loadPlugins", () => {
 		o.test("early-returns without touching the configuration adapter when running as the admin client", async () => {
-			await withOverriddenEnv({ mode: Mode.Admin }, () => pluginManager.loadPlugins("nextcloud"))
+			await Singletons.withOverriddenEnvForTest({ mode: Mode.Admin }, () => pluginManager.loadPlugins("nextcloud"))
 
 			verify(configurationAdapter.getCustomerConfig(matchers.anything()), { times: 0 })
 			o.check(pluginManager.pluginIsLoaded("nextcloud")).equals(false)

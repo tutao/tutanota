@@ -13,6 +13,7 @@ import { RecoverCodeFacade } from "../../../../../platform-kit/base/facades/lazy
 import { EnvProvider, TimeConstants } from "@tutao/app-env"
 import m, { Children } from "mithril"
 import { AccessBlockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 /**
  * News item that informs admin users about their recovery code.
@@ -92,7 +93,7 @@ export class RecoveryCodeNews implements NewsListItem {
 	}
 
 	private renderPrintButton(): Children {
-		if (EnvProvider.get().isApp() || typeof window.print !== "function") {
+		if (Singletons.envProvider.isApp() || typeof window.print !== "function") {
 			return null
 		}
 

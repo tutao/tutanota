@@ -3,8 +3,8 @@ import { NativeCryptoFacadeSendDispatcher } from "../common/generatedipc/dispatc
 import { Randomizer, rsaDecrypt, rsaEncrypt, RsaImplementation, RsaPrivateKey, RsaPublicKey } from "../../../platform-kit/crypto"
 import { EnvProvider } from "../../../platform-kit/app-env"
 
-export async function createRsaImplementation(native: NativeInterface, random: Randomizer): Promise<RsaImplementation> {
-	if (EnvProvider.get().isApp()) {
+export async function createRsaImplementation(native: NativeInterface, random: Randomizer, envProvider: EnvProvider): Promise<RsaImplementation> {
+	if (envProvider.isApp()) {
 		const { RsaApp } = await import("./RsaApp.js")
 		return new RsaApp(new NativeCryptoFacadeSendDispatcher(native), random)
 	} else {

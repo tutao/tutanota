@@ -4,6 +4,7 @@ import { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export class SystemPermissionHandler {
 	constructor(private readonly systemFacade: MobileSystemFacade) {}
@@ -19,7 +20,7 @@ export class SystemPermissionHandler {
 	}
 
 	async hasPermission(permission: PermissionType): Promise<boolean> {
-		if (permission === PermissionType.IgnoreBatteryOptimization && EnvProvider.get().isIOSApp()) {
+		if (permission === PermissionType.IgnoreBatteryOptimization && Singletons.envProvider.isIOSApp()) {
 			return true
 		}
 

@@ -7,7 +7,7 @@ import { assertNotNull, debounceStart, last, lazyAsync, memoizedWithHiddenArgume
 import { DriveTransfers, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
-import { Const, EnvProvider, TimeConstants } from "@tutao/app-env"
+import { EnvProvider, TimeConstants, TutanotaConstants } from "@tutao/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult, ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
@@ -49,6 +49,7 @@ import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 import { DuplicateFilesDialogDecision, showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -538,7 +539,7 @@ export class DriveViewModel {
 		const customerInfo = await this.loginController.getUserController().loadCustomerInfo()
 		this.storage = {
 			usedBytes: await this.userManagementFacade.readUsedUserStorage(this.loginController.getUserController().user),
-			totalBytes: Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR,
+			totalBytes: Number(customerInfo.perUserStorageCapacity) * TutanotaConstants.Const.MEMORY_GB_FACTOR,
 		}
 		this.updateUi()
 	})
@@ -548,7 +549,7 @@ export class DriveViewModel {
 	}
 
 	async filesDropped(files: File[], folderTransferItems: FileSystemDirectoryEntry[]) {
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			const webFileResolver = assertNotNull(this.webFileResolver)
 			const fileRefs = await promiseMap(files, (file) => webFileResolver.resolveWebFile(file))
 

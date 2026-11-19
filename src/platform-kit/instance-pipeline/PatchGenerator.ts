@@ -1,11 +1,14 @@
 import {
 	AssociationReprType,
+	AttributeId,
+	AttributeModel,
 	CardinalityEnum,
 	getAssociationRepresentationType,
 	IDENTITY_FIELDS,
 	isSameIdTuple,
 	isSameSingleId,
 	isSameTypeRef,
+	TypeModel,
 	ValueTypeEnum,
 } from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
@@ -15,7 +18,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { InstancePipeline } from "./InstancePipeline"
 import { OutgoingServerJson } from "./TypeMapper"
 import { DecryptedParsedInstance, DecryptedParsedValue, EncryptedParsedInstance } from "./CryptoMapper"
-import { TypeChecks } from "../app-env/TsTypeChecks"
+import { TypeChecks } from "@tutao/lang-api"
 
 export const enum PatchOperationType {
 	ADD_ITEM = "0",
@@ -102,7 +105,7 @@ export class PatchGenerator {
 				const value = encryptedParsedValue.getNullWhenNull()?.asString() ?? null
 				patches.push(
 					createPatch({
-						attributePath: OutgoingServerJson.networkDebuggedKey(attributeId, clientTypeModel),
+						attributePath: this.networkDebuggedKey(attributeId, clientTypeModel),
 						patchOperation: PatchOperationType.REPLACE,
 						value,
 					}),
@@ -115,7 +118,7 @@ export class PatchGenerator {
 				continue
 			}
 			const attributeId = modelAssociation.id
-			const networkDebuggedAttributeId = OutgoingServerJson.networkDebuggedKey(attributeId, clientTypeModel)
+			const networkDebuggedAttributeId = this.networkDebuggedKey(attributeId, clientTypeModel)
 			const associationReprType = getAssociationRepresentationType(modelAssociation.type)
 
 			if (associationReprType === AssociationReprType.Aggregation) {
@@ -292,6 +295,12 @@ export class PatchGenerator {
 	private isDistinctAggregateIds(array: Array<Id>): boolean {
 		const checkSet = new Set(array)
 		return checkSet.size === array.length
+	}
+	private networkDebuggedKey(attrId: AttributeId, typeModel: TypeModel): string {
+		if (this.instancePipeline.typeMapper.networkDebuggingEnabled()) {
+			return attrId.toString() + ":" + AttributeModel.getAttributeName(typeModel, attrId)
+		}
+		return attrId.toString()
 	}
 }
 

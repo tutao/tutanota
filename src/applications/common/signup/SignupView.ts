@@ -25,6 +25,7 @@ import { Styles } from "../../../ui/styles"
 import { layout_size } from "../../../ui/size"
 import { locator } from "../api/main/CommonLocator"
 import { upgrade } from "../subscription/SubscriptionConfirmationUtils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -87,7 +88,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		else if (this.wizardViewModel.referralData && !this.wizardViewModel.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
 		SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
 
-		if (!EnvProvider.get().isDesktop()) {
+		if (!Singletons.envProvider.isDesktop()) {
 			this.unregisterListener = windowFacade.addWindowCloseListener(async () => {})
 		}
 
@@ -168,7 +169,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							this.wizardViewModel.targetPlanType,
 							this.wizardViewModel.options.paymentInterval(),
 						)
-						if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+						if (Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 							SignupFlowUsageTestController.completeStage(
 								SignupFlowStage.SELECT_PAYMENT_METHOD,
 								this.wizardViewModel.targetPlanType,
@@ -189,7 +190,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							this.wizardViewModel.paymentData.paymentMethod,
 						)
 					},
-					isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free && EnvProvider.get().getPaymentSetup() === PaymentSetup.Default,
+					isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free && Singletons.envProvider.getPaymentSetup() === PaymentSetup.Default,
 				},
 				{
 					title: "Order Confirmation",

@@ -165,8 +165,7 @@ o.spec("ServiceExecutor", function () {
 		const testService_PUT = new PutService(service.app, service.name, NullEntityTypeRef, SaltDataTypeRef)
 		const testService_DELETE = new DeleteService(service.app, service.name, NullEntityTypeRef, SaltDataTypeRef)
 
-		env.networkDebugging = true
-
+		instancePipeline.enableNetworkDebugging()
 		const dataWithDebug = await instancePipeline.mapAndEncrypt(saltData._type, saltData, sessionKey)
 		respondWith(dataWithDebug.getJsonRepresentation())
 

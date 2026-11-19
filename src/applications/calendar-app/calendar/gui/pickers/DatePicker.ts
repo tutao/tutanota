@@ -1,9 +1,8 @@
 import m, { Children, ClassComponent, CommonAttributes, Component, Vnode } from "mithril"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import type { MaybeTranslation, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
-import { rem, font_size, px } from "../../../../../ui/size.js"
+import { font_size, px, rem } from "../../../../../ui/size.js"
 import { theme } from "../../../../../ui/theme.js"
 
 import { LegacyTextField } from "../../../../../ui/base/LegacyTextField"
@@ -17,6 +16,7 @@ import { getCalendarMonth, getElementWidth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../../ui/utils/KeyManager.js"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 import { TabIndex } from "@tutao/app-env"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 // TODO(gg): Remove this option. Auto-detect available space and flip above/below position automatically. Write it as a
 // general Popover/Modal component. IntersectionObserver/ResizeObserver are overkill, viewport and getClientBoundingRect
@@ -130,7 +130,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					this.inputTextEl.value = formatDate(attrs.date ?? new Date())
 				}
 				if (attrs.disabled) return
-				if (ClientDetector.get().isMobileDevice()) {
+				if (Singletons.clientDetector.isMobileDevice()) {
 					this.showNativeDatePicker()
 				} else {
 					// Show the non-native VisualDatePicker instead
@@ -328,7 +328,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 		// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
 		// Only way to open a native picker on iOS is <input type="date"> focus(). Not even click().
-		if (ClientDetector.get().isMobileDevice()) {
+		if (Singletons.clientDetector.isMobileDevice()) {
 			this.inputDateEl.tabIndex = Number(TabIndex.Default)
 			this.inputDateEl.focus() // Important for our `inputContent` `document.activeElement` check condition
 		}

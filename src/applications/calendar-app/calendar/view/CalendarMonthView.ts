@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
-import { rem, font_size, layout_size, px, size } from "../../../../ui/size"
-import { EnvProvider, EventTextTimeOption, WeekStart } from "../../../../platform-kit/app-env"
+import { font_size, layout_size, px, rem, size } from "../../../../ui/size"
+import { EventTextTimeOption, WeekStart } from "../../../../platform-kit/app-env"
 import {
 	CalendarDay,
 	CalendarMonth,
@@ -35,7 +35,6 @@ import {
 } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
 import { Time } from "../../../common/calendar/Time.js"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../../ui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -46,6 +45,7 @@ import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExport
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../../ui/theme"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -151,7 +151,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			weekdayDaysClasses = "content-bg border-radius-top-12"
 		} else {
 			containerStyle = {
-				paddingBottom: EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
+				paddingBottom: Singletons.envProvider.isIOSApp() && Singletons.clientDetector.isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
 			}
 			weekdayDaysClasses = "nav-bg"
 		}
@@ -175,7 +175,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					".flex.col.rel.flex-grow.overflow-hidden",
 					{
 						class:
-							(!Styles.get().isUsingBottomNavigation() || (EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp())
+							(!Styles.get().isUsingBottomNavigation() || (Singletons.envProvider.isIOSApp() && Singletons.clientDetector.isCalendarApp())
 								? "content-bg"
 								: "") + (!isDesktopLayout ? " border-radius-top-12" : ""),
 						style: containerStyle,
@@ -259,7 +259,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					mouseEvent.redraw = false
 
 					let key
-					if (mouseEvent.metaKey && EnvProvider.get().isAppleDevice()) {
+					if (mouseEvent.metaKey && Singletons.envProvider.isAppleDevice()) {
 						key = Keys.META
 					} else if (mouseEvent.ctrlKey) {
 						key = Keys.CTRL
@@ -312,7 +312,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				},
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
-					if (ClientDetector.get().isDesktopDevice()) {
+					if (Singletons.clientDetector.isDesktopDevice()) {
 						const newDate = setNextHalfHour(new Date(day.date))
 
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
@@ -361,7 +361,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				onclick: (e: MouseEvent) => {
 					onDateSelected(
 						new Date(date),
-						ClientDetector.get().isDesktopDevice() || Styles.get().isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA,
+						Singletons.clientDetector.isDesktopDevice() || Styles.get().isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA,
 					)
 					e.stopPropagation()
 				},
@@ -534,7 +534,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				},
 				fadeIn: !this.eventDragHandler.isDragging,
 				opacity: isTemporary ? TEMPORARY_EVENT_OPACITY : 1,
-				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && ClientDetector.get().isDesktopDevice() && !isDisabled,
+				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && Singletons.clientDetector.isDesktopDevice() && !isDisabled,
 			} satisfies LegacyContinuingCalendarEventBubbleAttrs),
 		)
 	}

@@ -17,6 +17,7 @@ import { mailLocator } from "../../mailLocator"
 import { FolderItemId } from "../../../drive-app/drive/view/DriveUtils"
 import { DriveFileTypeRef } from "@tutao/entities/drive"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export async function attachDriveFile(model: SendMailModel): Promise<void> {
 	const roots = await mailLocator.driveFacade.loadRootFolders("withNetwork")
@@ -39,7 +40,7 @@ export async function attachDriveFile(model: SendMailModel): Promise<void> {
 export async function chooseAndAttachFile(
 	model: SendMailModel,
 	boundingRect: ClientRect,
-	fileTypes?: Array<string>,
+	fileTypes?: ReadonlyArray<string>,
 ): Promise<ReadonlyArray<DataFile | FileReference> | void> {
 	boundingRect.height = Math.round(boundingRect.height)
 	boundingRect.width = Math.round(boundingRect.width)
@@ -48,23 +49,22 @@ export async function chooseAndAttachFile(
 	try {
 		const files = await showFileChooserForAttachments(boundingRect, fileTypes)
 		if (!files || files.length === 0) return
-		switch (env.mode) {
-			case Mode.App:
-				// we have file refs and want to keep them
-				model.attachFiles(files)
-				return files
-			case Mode.Desktop: {
-				// this is important for the desktop client so it can attach them as inline images. // we have file refs and want to read them.
-				const dataFiles: Array<DataFile> = (
-					await Promise.all((files as Array<FileReference>).map(async (f) => locator.fileApp.readDataFile(f.location)))
-				).filter(isNotNull)
-				model.attachFiles(dataFiles)
-				return dataFiles
-			}
-			default:
-				// we have data files and want to keep them
-				model.attachFiles(files)
-				return files
+
+		if (Singletons.envProvider.isApp()) {
+			// we have file refs and want to keep them
+			model.attachFiles(files)
+			return files
+		} else if (Singletons.envProvider.isDesktop()) {
+			// this is important for the desktop client so it can attach them as inline images. // we have file refs and want to read them.
+			const dataFiles: Array<DataFile> = (
+				await Promise.all((files as Array<FileReference>).map(async (f) => locator.fileApp.readDataFile(f.location)))
+			).filter(isNotNull)
+			model.attachFiles(dataFiles)
+			return dataFiles
+		} else {
+			// we have data files and want to keep them
+			model.attachFiles(files)
+			return files
 		}
 	} catch (e) {
 		if (e instanceof UserError) {
@@ -76,9 +76,12 @@ export async function chooseAndAttachFile(
 	}
 }
 
-export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<FileReference | DataFile> | void> {
+export function showFileChooserForAttachments(
+	boundingRect: ClientRect,
+	fileTypes?: ReadonlyArray<string>,
+): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	const fileSelector =
-		EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+		Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 			? locator.fileApp.openFileChooser(boundingRect, fileTypes)
 			: showFileChooser(FileChooserMultiMode.Multi, fileTypes)
 	return fileSelector

@@ -12,6 +12,7 @@ import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 import { CustomerConfigPluginError } from "../sdk/PluginError"
 import { PluginManifest } from "../sdk/PluginManifest"
 import { PLUGIN_REGISTRY } from "./PluginRegistry"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 type PluginWrapper = {
 	pluginId: PluginId
@@ -28,6 +29,7 @@ export class PluginManager {
 	private configChangeListener: () => void
 
 	constructor(
+		private readonly envProvider: EnvProvider,
 		public readonly configurationAdapter: ConfigurationAdapter,
 		private readonly dialogAdapter: DialogAdapter,
 		public readonly mailIntegrationAdapter: Nullable<MailIntegrationAdapter> = null,
@@ -45,7 +47,7 @@ export class PluginManager {
 	}
 
 	async loadPlugins(...pluginIdsToLoad: Array<PluginId>): Promise<void> {
-		if (EnvProvider.get().isAdminClient()) {
+		if (Singletons.envProvider.isAdminClient()) {
 			return
 		}
 		for (const pluginIdToEnable of pluginIdsToLoad) {
@@ -57,11 +59,11 @@ export class PluginManager {
 			const pluginManifest: PluginManifest = PLUGIN_REGISTRY[pluginIdToEnable]
 
 			const customerConfigJson = await this.configurationAdapter.getCustomerConfig(pluginIdToEnable)
-			const pluginHost = new PluginHost(this, pluginIdToEnable)
-			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
+			const pluginHost = new PluginHost(this, pluginIdToEnable, this.envProvider)
+			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter, this.envProvider)
 			pluginHost.initialize(pluginManifest)
 
-			await pluginApi.setupEnv(JSON.stringify(EnvProvider.get().env))
+			await pluginApi.setupEnv(this.envProvider.getStringifiedEnv())
 			await pluginApi.load(pluginManifest)
 
 			let draftConfig: Record<string, any>

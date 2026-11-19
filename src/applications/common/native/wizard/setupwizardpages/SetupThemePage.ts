@@ -5,8 +5,8 @@ import { RadioSelector, RadioSelectorAttrs } from "../../../../../ui/base/RadioS
 import { themeOptions, ThemePreference } from "../../../../../ui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/CommonLocator.js"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { type RadioSelectorOption } from "../../../../../ui/base/RadioSelectorItem"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 	// The whitelabel themes formatted as `RadioSelectorOption`s.
@@ -37,7 +37,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 					? null
 					: m(RadioSelector, {
 							groupName: "theme_label",
-							options: [...themeOptions(ClientDetector.get().isCalendarApp()), ...this.customThemes],
+							options: [...themeOptions(Singletons.clientDetector.isCalendarApp()), ...this.customThemes],
 							selectedOption: locator.themeController.themePreference,
 							onOptionSelected: (option) => {
 								locator.themeController.setThemePreference(option, true)

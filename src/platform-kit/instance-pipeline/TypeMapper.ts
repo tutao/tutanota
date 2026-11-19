@@ -16,13 +16,23 @@ import {
 	TypeRef,
 } from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
-import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
+import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, promiseMap, uint8ArrayToBase64 } from "@tutao/utils"
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
-import { assertNotNaN } from "../utils/Utils"
+import { assertNotNaN, isNull } from "@tutao/lang-api"
 import { EnvProvider } from "@tutao/app-env"
 
 export class TypeMapper {
+	private networkDebugging: boolean = false
+
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
+
+	public enableNetworkDebugging(): void {
+		this.networkDebugging = true
+	}
+
+	public networkDebuggingEnabled(): boolean {
+		return this.networkDebugging
+	}
 
 	async parseServerJson(jsonInstance: IncomingServerJson): Promise<EncryptedParsedInstance> {
 		const typeModel = jsonInstance.typeModel
@@ -40,9 +50,10 @@ export class TypeMapper {
 				case AssociationReprType.Aggregation: {
 					const aggregationTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refTypeId)
 					const aggregatedTypeModel = await this.typeModelResolver.resolveServerTypeReference(aggregationTypeRef)
-					const associationValue = jsonInstance.getAggregationList(associationId, aggregatedTypeModel)
-					const mappedAggregates = associationValue.map(async (assoc) => await this.parseServerJson(assoc))
-					clientParsedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(await Promise.all(mappedAggregates)))
+					const mappedAggregates = await promiseMap(jsonInstance.getAggregationList(associationId, aggregatedTypeModel), (assoc) =>
+						this.parseServerJson(assoc),
+					)
+					clientParsedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(mappedAggregates))
 					break
 				}
 				case AssociationReprType.IdTuple: {
@@ -63,7 +74,7 @@ export class TypeMapper {
 
 	async makeServerJson(encryptedInstance: EncryptedParsedInstance): Promise<OutgoingServerJson> {
 		const typeModel = encryptedInstance.ensureOutgoing()
-		const serverJson = OutgoingServerJson.newEmpty(encryptedInstance.ensureOutgoing())
+		const serverJson = OutgoingServerJson.newEmpty(encryptedInstance.ensureOutgoing(), this.networkDebugging)
 
 		for (const modelValue of Object.values(typeModel.values)) {
 			const attrId = modelValue.id
@@ -76,8 +87,8 @@ export class TypeMapper {
 
 			switch (getAssociationRepresentationType(modelAssociation.type)) {
 				case AssociationReprType.Aggregation: {
-					const mappedAggregations = associationValue.asNestedObjList().map((agg) => this.makeServerJson(agg))
-					serverJson.addAggregationList(attrId, await Promise.all(mappedAggregations))
+					const mappedAggregations = promiseMap(associationValue.asNestedObjList(), async (agg) => await this.makeServerJson(agg))
+					serverJson.addAggregationList(attrId, await mappedAggregations)
 					break
 				}
 				case AssociationReprType.IdTuple:
@@ -152,7 +163,7 @@ export class IncomingServerJson implements DeepEquals {
 					return ParsedValue.fromIdTuple(rawValue)
 			}
 		}
-		if (rawValue == null) {
+		if (isNull(rawValue)) {
 			return ParsedValue.fromNull()
 		} else {
 			return ParsedValue.fromString(rawValue)
@@ -201,10 +212,11 @@ export class OutgoingServerJson implements DeepEquals {
 	private constructor(
 		private readonly typeModel: ClientTypeModel,
 		private readonly json: Record<AttributeName, unknown>,
+		private readonly networkDebuggingEnabled: boolean,
 	) {}
 
-	public static newEmpty(typeModel: ClientTypeModel): OutgoingServerJson {
-		return new OutgoingServerJson(typeModel, {})
+	public static newEmpty(typeModel: ClientTypeModel, networkDebuggingEnabled: boolean): OutgoingServerJson {
+		return new OutgoingServerJson(typeModel, {}, networkDebuggingEnabled)
 	}
 
 	public getJsonRepresentation(): string {
@@ -231,15 +243,15 @@ export class OutgoingServerJson implements DeepEquals {
 		return num.toString()
 	}
 
-	public static networkDebuggedKey(attrId: AttributeId, typeModel: TypeModel): string {
-		if (EnvProvider.get().networkDebuggingEnabled()) {
+	public networkDebuggedKey(attrId: AttributeId, typeModel: TypeModel): string {
+		if (this.networkDebuggingEnabled) {
 			return attrId.toString() + ":" + AttributeModel.getAttributeName(typeModel, attrId)
 		}
 		return attrId.toString()
 	}
 
 	addValue<EncryptedOrDecrypted extends DeepEquals>(attrId: AttributeId, attrName: string, value: ParsedValue<EncryptedOrDecrypted>): void {
-		const key = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
+		const key = this.networkDebuggedKey(attrId, this.typeModel)
 		if (attrName === "_id" && !value.isNull()) {
 			switch (getIdType(this.typeModel.type)) {
 				case IdType.SingleId:
@@ -254,23 +266,27 @@ export class OutgoingServerJson implements DeepEquals {
 	}
 
 	addAggregationList(attrId: AttributeId, value: Array<OutgoingServerJson>): void {
-		const attributeKey = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
+		const attributeKey = this.networkDebuggedKey(attrId, this.typeModel)
 		this.json[attributeKey] = value.map((v) => v.json)
 	}
 
 	addIdTupleList(attrId: AttributeId, value: Array<IdTuple>): void {
-		const attributeKey = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
+		const attributeKey = this.networkDebuggedKey(attrId, this.typeModel)
 		this.json[attributeKey] = value
 	}
 
 	addIdList(attrId: AttributeId, value: Array<Id>): void {
-		const attributeKey = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
+		const attributeKey = this.networkDebuggedKey(attrId, this.typeModel)
 		this.json[attributeKey] = value
 	}
 
-	public static newFromRecord(json: Record<AttributeName, unknown>, clientModel: Nullable<ClientTypeModel> = null): OutgoingServerJson {
+	public static newFromRecord(
+		json: Record<AttributeName, unknown>,
+		clientModel: Nullable<ClientTypeModel> = null,
+		networkDebugging: boolean = false,
+	): OutgoingServerJson {
 		assert(EnvProvider.isTest(), "Do not construct with raw record in non-test environment")
-		return new OutgoingServerJson(clientModel as any, json)
+		return new OutgoingServerJson(clientModel as any, json, networkDebugging)
 	}
 
 	getTypeRef(): TypeRef<Entity> {

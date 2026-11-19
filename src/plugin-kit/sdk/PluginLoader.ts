@@ -11,6 +11,7 @@ export type PluginFactoryParams = {
 }
 export type PluginFactory = (pluginHost: PluginFactoryParams) => PluginApi
 ;(globalThis as any).tutaPluginWorkerImpl = null
+
 export function initTutaPluginWorker(pluginId: PluginId, pluginFactory: PluginFactory) {
 	if ((globalThis as any).tutaPluginWorkerImpl != null) {
 		const errMessage = "Tried to initialize plugin twice?"
@@ -55,7 +56,7 @@ class PluginWorkerImpl {
 		const pluginApi = pluginFactory(factoryParams)
 
 		return new Proxy(downcast<PluginApi>({}), {
-			get: (_: PluginApi, property: string) => {
+			get: (_: PluginApi, property: keyof PluginApi) => {
 				return (messageArgs: Request<keyof PluginApi>): Promise<any> => {
 					assert(property === messageArgs.requestType, `For request type: ${messageArgs.requestType}. Calling ${property} might be a mistake`)
 					if (property === "setupEnv") {

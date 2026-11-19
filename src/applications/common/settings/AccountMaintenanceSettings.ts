@@ -18,7 +18,6 @@ import { Icons } from "../../../ui/base/icons/Icons.js"
 import { NotAuthorizedError } from "@tutao/rest-client/error"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import {
 	AuditLogEntry,
 	AuditLogEntryTypeRef,
@@ -33,6 +32,7 @@ import {
 } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GENERATED_MAX_ID, idToElementId } from "@tutao/meta"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 
@@ -163,7 +163,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 											reason: reason.reason,
 											version: SURVEY_VERSION_NUMBER,
 											clientVersion: env.versionNumber,
-											clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
+											clientPlatform: Singletons.clientDetector.getClientPlatform().valueOf().toString(),
 										})
 										showDeleteAccountDialog(surveyData)
 									} else {

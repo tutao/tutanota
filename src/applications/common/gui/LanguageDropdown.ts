@@ -6,6 +6,7 @@ import { Styles } from "../../../ui/styles"
 import { DropDownSelectorLink } from "../../../ui/base/DropDownSelectorLink"
 import { EnvProvider } from "@tutao/app-env"
 import { DeviceConfig } from "../misc/DeviceConfig"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 interface LanguageDropdownAttrs {
 	variant: "Link" | "TextField"
@@ -45,7 +46,7 @@ export class LanguageDropdown implements Component<LanguageDropdownAttrs> {
 					: getLanguage()
 				await lang.setLanguage(newLanguage)
 
-				if (EnvProvider.get().isDesktop()) {
+				if (Singletons.envProvider.isDesktop()) {
 					await locator.desktopSettingsFacade.changeLanguage(newLanguage.code, newLanguage.languageTag)
 				}
 

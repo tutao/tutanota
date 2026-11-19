@@ -124,7 +124,6 @@ o.spec("EntityRestClient", function () {
 	let sk: AesKey
 	let ownerGroupKey: VersionedKey
 	let encryptedSessionKey
-	let currentDebuggingStatus
 	let typeModelResolver: TypeModelResolver
 	let cryptoWrapper: CryptoWrapper
 	let loggedInUserProvider: TestLoggedInUserProvider
@@ -136,7 +135,6 @@ o.spec("EntityRestClient", function () {
 	}
 
 	o.beforeEach(function () {
-		currentDebuggingStatus = env.networkDebugging
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
 		const symmetricCipherFacade = new SymmetricCipherFacade(
@@ -214,18 +212,13 @@ o.spec("EntityRestClient", function () {
 		)
 	})
 
-	o.afterEach(() => {
-		env.networkDebugging = currentDebuggingStatus
-	})
-
 	function assertThatNoRequestsWereMade() {
 		verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
 	o.spec("Load", function () {
 		o("load removes network debugging info", async function () {
-			env.networkDebugging = true
-
+			instancePipeline.enableNetworkDebugging()
 			const id1 = "id1"
 			const expectedInstance = createTestEntity(AccountingInfoTypeRef, {
 				_id: idToElementId(id1),
@@ -323,7 +316,7 @@ o.spec("EntityRestClient", function () {
 			)
 
 			// repeat once again with network debugging enables
-			env.networkDebugging = true
+			instancePipeline.enableNetworkDebugging()
 			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(calendaroWithDebug.getJsonRepresentation())
 			const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
@@ -372,8 +365,7 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Load Range", function () {
 		o("load range removes network debugging info", async function () {
-			env.networkDebugging = true
-
+			instancePipeline.enableNetworkDebugging()
 			const startId = "42"
 			const count = 5
 			const listId = "listId"
@@ -461,8 +453,7 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Load multiple", function () {
 		o("load multiple removes network debugging info", async function () {
-			env.networkDebugging = true
-
+			instancePipeline.enableNetworkDebugging()
 			const ids = countFrom(0, 5)
 			const supportData1 = createTestEntity(SupportDataTypeRef, {
 				_id: idToElementId("1"),

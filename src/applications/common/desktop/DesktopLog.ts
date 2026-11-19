@@ -1,5 +1,5 @@
 import { noOp } from "@tutao/utils"
-import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 type LogFn = (...args: any) => void
 export const log: {
@@ -8,7 +8,7 @@ export const log: {
 	error: LogFn
 	info: LogFn
 } =
-	typeof env !== "undefined" && EnvProvider.isTest()
+	typeof env !== "undefined" && Singletons.envProvider.isTest()
 		? {
 				debug: noOp,
 				warn: noOp,

@@ -16,7 +16,7 @@ import { buildArgon2, buildLibOqs } from "../buildSrc/buildWasm.js"
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
 
-export async function runTestBuild({ networkDebugging = false, clean, ci }) {
+export async function runTestBuild({ clean, ci }) {
 	const buildDir = path.resolve("build")
 	const version = await getTutanotaAppVersion()
 	const localEnv = env.create({
@@ -25,7 +25,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 		mode: "Test",
 		dist: false,
 		domainConfigs,
-		networkDebugging,
+		networkDebugging: false,
 	})
 
 	if (clean) {

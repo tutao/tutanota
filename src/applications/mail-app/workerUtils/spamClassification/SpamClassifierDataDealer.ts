@@ -31,6 +31,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../entities/tutanota/Utils"
 import { getMailSetKind, isFolder } from "../../mail/MailUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 // visible for testing
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000
@@ -65,14 +66,14 @@ export class SpamClassifierDataDealer {
 		const MAX_MAILS_CAP_APPLE = 500
 		const MAX_MAILS_CAP = 1000
 
-		if (EnvProvider.get().isAppleDevice()) {
-			if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isAppleDevice()) {
+			if (Singletons.envProvider.isDesktop()) {
 				return MAX_MAILS_CAP_DESKTOP_APPLE
 			} else {
 				return MAX_MAILS_CAP_APPLE
 			}
 		} else {
-			if (EnvProvider.get().isDesktop()) {
+			if (Singletons.envProvider.isDesktop()) {
 				return MAX_MAILS_CAP_DESKTOP
 			} else {
 				return MAX_MAILS_CAP

@@ -34,7 +34,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, WeekStart } from "@tutao/app-env"
+import { EndType, EventTextTimeOption, RepeatPeriod, TutanotaConstants, WeekStart } from "@tutao/app-env"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	CalendarEventDateTimeFields,
@@ -89,7 +89,7 @@ export function generateUid(groupId: Id, timestamp: number): string {
 }
 
 export function isBirthdayEvent(uid?: string | null) {
-	return uid?.includes(BIRTHDAY_CALENDAR_BASE_ID) ?? false
+	return uid?.includes(TutanotaConstants.BIRTHDAY_CALENDAR_BASE_ID) ?? false
 }
 
 /** get the timestamps of the start date and end date of the month the given date is in. */
@@ -1734,7 +1734,7 @@ function isExternalRenderType(calendarTypeInfo: CalendarTypeInfo) {
 }
 
 export function isBirthdayCalendar(calendarId: Id) {
-	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
+	return calendarId.includes(TutanotaConstants.BIRTHDAY_CALENDAR_BASE_ID)
 }
 
 export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {

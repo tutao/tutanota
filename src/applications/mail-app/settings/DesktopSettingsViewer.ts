@@ -12,7 +12,7 @@ import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { Dialog } from "../../../ui/base/Dialog"
 import type { UpdateHelpLabelAttrs } from "./DesktopUpdateHelpLabel"
 import { DesktopUpdateHelpLabel } from "./DesktopUpdateHelpLabel"
-import { DesktopConfigKey, EnvProvider } from "../../../platform-kit/app-env"
+import { DesktopConfigKey, EnvProvider, Mode } from "../../../platform-kit/app-env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
@@ -21,6 +21,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { MailExportMode } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { ifAllowedTutaLinks } from "../../common/gui/base/TutaLinkUtils"
 import { SpellcheckLanguageDialog } from "../../../ui/dialogs/SpellcheckLanguageDialog"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -244,16 +245,16 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			m("#user-settings.fill-absolute.scroll.plr-24.pb-48", [
 				m(".h4.mt-32", lang.get("desktopSettings_label")),
 				// spell check is done via OS on mac
-				env.platformId === "darwin" ? null : m("#spelling", m(LegacyTextField, spellcheckLanguageAttrs)),
+				Singletons.envProvider.getMode() === Mode.Darwin ? null : m("#spelling", m(LegacyTextField, spellcheckLanguageAttrs)),
 				// setting protocol handler via Electron does not work on Linux
-				env.platformId === "linux" ? null : m("#defaultmailto", m(DropDownSelector, setDefaultMailtoHandlerAttrs)),
+				Singletons.envProvider.getMode() === Mode.Linux ? null : m("#defaultmailto", m(DropDownSelector, setDefaultMailtoHandlerAttrs)),
 				// mac doesn't really have run in background, you can just close a window
-				env.platformId === "darwin" ? null : m("#background", m(DropDownSelector, setRunInBackgroundAttrs)),
+				Singletons.envProvider.getMode() === Mode.Darwin ? null : m("#background", m(DropDownSelector, setRunInBackgroundAttrs)),
 				m("#runonstartup", m(DropDownSelector, setRunOnStartupAttrs)),
 				m("#defaultdownloadpath", m(LegacyTextField, defaultDownloadPathAttrs)),
 				m("#mailexportmode", m(DropDownSelector, setMailExportModeAttrs)),
 				// AppImage is kind of a portable install so we optionally add desktop icons etc
-				env.platformId === "linux" ? m("#desktopintegration", m(DropDownSelector, setDesktopIntegrationAttrs)) : null,
+				Singletons.envProvider.getMode() === Mode.Linux ? m("#desktopintegration", m(DropDownSelector, setDesktopIntegrationAttrs)) : null,
 				this.showAutoUpdateOption ? m("#autoupdate", m(DropDownSelector, setAutoUpdateAttrs)) : null,
 			]),
 		]

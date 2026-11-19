@@ -180,19 +180,12 @@ o.spec("AlarmFacadeTest", function () {
 	})
 
 	o.spec("NetworkDebugging", () => {
-		let previousNetworkDebugging: boolean
-
-		o.beforeEach(async function () {
-			previousNetworkDebugging = env.networkDebugging
-		})
-
-		o.afterEach(() => {
-			env.networkDebugging = previousNetworkDebugging
-		})
-
 		o("scheduleAlarms should receive instance without network debugging info", async () => {
-			env.networkDebugging = true
-			const calendarRef = createTestEntity(CalendarEventRefTypeRef, { elementId: "elementId", listId: "listId" })
+			instancePipeline.enableNetworkDebugging()
+			const calendarRef = createTestEntity(CalendarEventRefTypeRef, {
+				elementId: "elementId",
+				listId: "listId",
+			})
 			const allAlarmEvents: Array<EventWithUserAlarmInfos> = [
 				{
 					event: createTestEntity(CalendarEventTypeRef),

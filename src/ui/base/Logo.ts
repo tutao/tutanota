@@ -1,9 +1,10 @@
 import { AppType, EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
 export function getAppLogo(fillColor?: string) {
-	if (!EnvProvider.get().isApp()) {
+	if (!Singletons.envProvider.isApp()) {
 		return getTutaLogoSvg(fillColor)
 	} else {
 		switch (APP_TYPE) {

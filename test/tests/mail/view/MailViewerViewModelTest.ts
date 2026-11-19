@@ -44,6 +44,7 @@ import { GroupInfoTypeRef } from "@tutao/entities/sys"
 import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota/Utils"
 import { AttachmentDownloader } from "../../../../src/applications/mail-app/mail/view/MailGuiUtils"
 import { InboxRuleModel } from "../../../../src/applications/mail-app/mail/model/InboxRuleModel"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -256,7 +257,7 @@ o.spec("MailViewerViewModel", function () {
 			const unsubscribeAction = unsubscribeActions.shift()!
 			const postResult = await viewModel.unsubscribePost(unsubscribeAction)
 
-			if (!EnvProvider.get().isBrowser()) {
+			if (!Singletons.envProvider.isBrowser()) {
 				verify(commonSystemFacade.executePostRequest(unsubscribeAction.requestUrl, LIST_UNSUBSCRIBE_POST_PAYLOAD), {
 					times: expectedPostResult ? 1 : 0,
 				})

@@ -117,6 +117,7 @@ import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExten
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
 import { InboxRuleModel } from "../model/InboxRuleModel"
 import { ExpandedInboxRuleHandler } from "../model/ExpandedInboxRuleHandler"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -808,7 +809,7 @@ export class MailViewerViewModel {
 	}
 
 	canPersistBlockingStatus(): boolean {
-		return EnvProvider.get().isOfflineStorageAvailable() || this.mailModel.indexingSupported
+		return Singletons.envProvider.isOfflineStorageAvailable() || this.mailModel.indexingSupported
 	}
 
 	async exportMail(): Promise<void> {
@@ -952,7 +953,7 @@ export class MailViewerViewModel {
 		}
 
 		const unsubscribePostUrl = assertNotNull(unsubscribeAction.requestUrl)
-		if (EnvProvider.get().isBrowser()) {
+		if (Singletons.envProvider.isBrowser()) {
 			// In case we are on the webApp we can not execute the POST request directly
 			// from the client. However, the user is informed that the list unsubscribe url will
 			// be sent to our server in this case.

@@ -1,6 +1,7 @@
 import sjcl from "../internal/sjcl.js"
 import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { SHA256_HASH_LENGTH_BYTES } from "./Sha256.js"
+import { isNull } from "@tutao/lang-api"
 
 /**
  * Derives a key of a defined length from salt, inputKeyMaterial and info.
@@ -13,7 +14,7 @@ export function hkdf(
 	info: Uint8Array<ArrayBuffer>,
 	lengthInBytes: number,
 ): Uint8Array<ArrayBuffer> {
-	if (salt == null) {
+	if (isNull(salt)) {
 		salt = new Uint8Array(SHA256_HASH_LENGTH_BYTES).fill(0)
 	}
 	const saltHmac = new sjcl.misc.hmac(uint8ArrayToBitArray(salt), sjcl.hash.sha256)

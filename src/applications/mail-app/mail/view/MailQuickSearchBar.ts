@@ -4,7 +4,6 @@ import { Mail } from "@tutao/entities/tutanota"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import Badge from "../../../../ui/base/Badge"
-import { companyTeamLabel } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { getSenderOrRecipientHeading } from "./MailViewerUtils"
 import { formatTimeOrDateOrYesterday } from "../../../../ui/utils/Formatter"
 import { Icon } from "../../../../ui/base/Icon"
@@ -13,7 +12,8 @@ import { mailLocator } from "../../mailLocator"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: QuickSearchQuery) => Promise<LiveSearchResult<Mail>>
@@ -38,7 +38,7 @@ export class MailQuickSearchBar implements ClassComponent<MailSearchBarAttrs> {
 			shouldOfferUpgrade: attrs.shouldOfferUpgrade,
 			confirmSearch: async () => {
 				if (!attrs.indexingSupported) {
-					Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+					Dialog.message(Singletons.envProvider.isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 					return false
 				}
 				if (await attrs.needsToEnableSearch()) {
@@ -65,7 +65,7 @@ export class MailQuickSearchBar implements ClassComponent<MailSearchBarAttrs> {
 							{
 								classes: ".small.mr-8",
 							},
-							companyTeamLabel,
+							TutanotaConstants.companyTeamLabel,
 						)
 					: null,
 				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),

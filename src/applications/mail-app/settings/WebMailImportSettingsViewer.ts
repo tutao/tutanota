@@ -5,6 +5,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { EnvProvider } from "../../../platform-kit/app-env"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * Settings viewer for mail import rendered only in the WebApp, Android and iOS.
@@ -19,7 +20,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderNoImportOnWebText() {
-		const pathPrefix = EnvProvider.get().getPathPrefix()
+		const pathPrefix = Singletons.envProvider.getPathPrefix()
 		return [
 			m(
 				".flex-column.mt-16",
@@ -34,7 +35,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 						label: "mailImportDownloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (EnvProvider.get().isBrowser()) {
+							if (Singletons.envProvider.isBrowser()) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)

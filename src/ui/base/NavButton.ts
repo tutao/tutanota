@@ -15,6 +15,7 @@ import { DragEnterHandler, DragLeaveHandler, DragStartHandler, DropData, DropHan
 import { fileListToArray } from "../utils/FileUtils.js"
 import { Keys } from "../utils/KeyboardKeys"
 import { throttleRoute } from "../utils/RouteChange"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export type NavButtonAttrs = {
@@ -191,7 +192,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						data: ev.dataTransfer.getData(DropType.DriveItems),
 					}
 					neverNull(a.dropHandler)(dropData)
-				} else if (EnvProvider.get().isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
+				} else if (Singletons.envProvider.isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
 					neverNull(a.dropHandler)({
 						dropType: DropType.ExternalFile,
 						files: fileListToArray(ev.dataTransfer.files),

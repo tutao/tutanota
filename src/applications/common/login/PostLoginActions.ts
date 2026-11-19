@@ -4,7 +4,16 @@ import { assertNotNull, DateProvider, isEmpty, LazyLoaded, neverNull, newPromise
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
-import { Const, CredentialEncryptionMode, EnvProvider, FeatureType, LOGIN_TITLE, SecondFactorType, SessionType, UpgradePromptType } from "@tutao/app-env"
+import {
+	CredentialEncryptionMode,
+	EnvProvider,
+	FeatureType,
+	LOGIN_TITLE,
+	SecondFactorType,
+	SessionType,
+	TutanotaConstants,
+	UpgradePromptType,
+} from "@tutao/app-env"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../../../ui/Notifications"
 import { LockedError, NotAuthorizedError } from "@tutao/rest-client/error"
@@ -32,6 +41,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { ButtonType } from "../../../ui/base/Button"
 import { GENERATED_MIN_ID } from "@tutao/meta"
 import { PluginManager } from "../../../plugin-kit/plugin-manager/PluginManager"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -99,7 +109,7 @@ export class PostLoginActions implements PostLoginAction {
 		})
 
 		// We already have user data to load themes
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 			await this.storeNewCustomThemes()
 		}
 	}
@@ -127,12 +137,12 @@ export class PostLoginActions implements PostLoginAction {
 
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
-		if (!EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isAdminClient()) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
 		}
 
-		if (this.logins.isGlobalAdminUserLoggedIn() && !EnvProvider.get().isAdminClient()) {
+		if (this.logins.isGlobalAdminUserLoggedIn() && !Singletons.envProvider.isAdminClient()) {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
@@ -251,12 +261,12 @@ export class PostLoginActions implements PostLoginAction {
 			await showChangeOwnPasswordDialog(false)
 		}
 
-		if (location.hostname === Const.DEFAULT_APP_DOMAIN) {
+		if (location.hostname === TutanotaConstants.Const.DEFAULT_APP_DOMAIN) {
 			const user = this.logins.getUserController().user
 			const secondFactors = await this.entityClient.loadAll(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
 			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || f.type === SecondFactorType.u2f)
 			// If there are webauthn factors but none of them are for the default domain, show a message
-			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId === Const.WEBAUTHN_RP_ID)) {
+			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId === TutanotaConstants.Const.WEBAUTHN_RP_ID)) {
 				const dialog = Dialog.confirmMultiple("noKeysForThisDomain_msg", [
 					{
 						label: "skip_action",
@@ -354,7 +364,7 @@ export class PostLoginActions implements PostLoginAction {
 	// Show the onboarding wizard if this is the first time the app has been opened since install
 	private async showSetupWizardIfNeeded(): Promise<void> {
 		const isSetupComplete = deviceConfig.getIsSetupComplete()
-		if (EnvProvider.get().isApp() && !isSetupComplete) {
+		if (Singletons.envProvider.isApp() && !isSetupComplete) {
 			await this.showSetupWizard()
 		}
 	}

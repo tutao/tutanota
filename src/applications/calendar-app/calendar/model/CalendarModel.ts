@@ -16,15 +16,7 @@ import {
 	splitInChunks,
 	symmetricDifference,
 } from "@tutao/utils"
-import {
-	BIRTHDAY_CALENDAR_BASE_ID,
-	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
-	DEFAULT_CALENDAR_COLOR,
-	EnvProvider,
-	EXTERNAL_CALENDAR_SYNC_INTERVAL,
-	FeatureType,
-	TutanotaError,
-} from "@tutao/app-env"
+import { EnvProvider, FeatureType, TutanotaConstants, TutanotaError } from "@tutao/app-env"
 import { EventController } from "../../../common/api/main/EventController"
 import Stream from "mithril/stream"
 import {
@@ -137,6 +129,7 @@ import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseU
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { removeTechnicalFields } from "../gui/eventeditor-model/CalendarEventModel"
 import { errorsToString, errToErrorInfo } from "../../../../platform-kit/utils/ErrorInfo"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -251,9 +244,9 @@ export class CalendarModel {
 
 	private createBirthdayCalendarInfo(): CalendarInfoBase {
 		return {
-			id: `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`,
+			id: `${this.logins.getUserController().userId}#${TutanotaConstants.BIRTHDAY_CALENDAR_BASE_ID}`,
 			name: this.lang.get("birthdayCalendar_label"),
-			color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
+			color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? TutanotaConstants.DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 			type: CalendarType.Birthday,
 		}
 	}
@@ -473,7 +466,7 @@ export class CalendarModel {
 		const groupSettings = userSettingsGroupRoot.groupSettings.find((groupSettings) => isSameSingleId(groupSettings.group, groupId))
 		const isExternal = hasSourceUrl(groupSettings)
 		const calendarId = elementIdToId(groupRoot._id)
-		const color = groupSettings?.color ?? DEFAULT_CALENDAR_COLOR
+		const color = groupSettings?.color ?? TutanotaConstants.DEFAULT_CALENDAR_COLOR
 		const sharedGroupName = getSharedGroupName(groupInfo, userSettingsGroupRoot, shared)
 		const calendarType = getCalendarType({
 			calendarId: calendarId,
@@ -507,7 +500,7 @@ export class CalendarModel {
 		}
 		this.externalCalendarSyncIntervalId = setInterval(() => {
 			this.syncExternalCalendars().catch((e) => console.error(e.message))
-		}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
+		}, TutanotaConstants.EXTERNAL_CALENDAR_SYNC_INTERVAL)
 	}
 
 	private async collectExternalCalendarsToSync(groupSettings: GroupSettings[] | null = null) {
@@ -532,7 +525,7 @@ export class CalendarModel {
 
 	public async syncExternalCalendars(
 		groupSettings: GroupSettings[] | null = null,
-		syncInterval: number = EXTERNAL_CALENDAR_SYNC_INTERVAL,
+		syncInterval: number = TutanotaConstants.EXTERNAL_CALENDAR_SYNC_INTERVAL,
 		longErrorMessage: boolean = false,
 		forceSync: boolean = false,
 	) {
@@ -1486,7 +1479,7 @@ export class CalendarModel {
 		for (const entityEventData of updates) {
 			// apps handle alarms natively. this code is a candidate to move into
 			// a generic web/native alarm handler
-			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !EnvProvider.get().isApp()) {
+			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !Singletons.envProvider.isApp()) {
 				const alarmInfoId: IdTuple = [assertNotNull(entityEventData.instanceListId), entityEventData.instanceId]
 				if (entityEventData.operation === OperationType.CREATE) {
 					// Updates for UserAlarmInfo and CalendarEvent come in a
@@ -1508,7 +1501,7 @@ export class CalendarModel {
 							throw e
 						}
 					}
-				} else if (entityEventData.operation === OperationType.DELETE && !EnvProvider.get().isApp()) {
+				} else if (entityEventData.operation === OperationType.DELETE && !Singletons.envProvider.isApp()) {
 					await this.cancelUserAlarmInfo(entityEventData.instanceId)
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
@@ -1543,7 +1536,7 @@ export class CalendarModel {
 			}
 		}
 
-		if (!EnvProvider.get().isApp()) {
+		if (!Singletons.envProvider.isApp()) {
 			const pushIdentifier = this.pushService?.getLoadedPushIdentifier()
 			if (pushIdentifier && pushIdentifier.disabled) {
 				return console.log("Push identifier disabled. Skipping alarm schedule")
@@ -1583,8 +1576,8 @@ export class CalendarModel {
 
 	private localAlarmsEnabled(): boolean {
 		return (
-			!EnvProvider.get().isApp() &&
-			!EnvProvider.get().isDesktop() &&
+			!Singletons.envProvider.isApp() &&
+			!Singletons.envProvider.isDesktop() &&
 			this.logins.isInternalUserLoggedIn() &&
 			!this.logins.isEnabled(FeatureType.DisableCalendar)
 		)
@@ -1659,7 +1652,7 @@ async function didLongStateChange(newEvent: CalendarEvent, existingEvent: Calend
  */
 export class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
 	constructor(message: string) {
-		super("NoOwnerEncSessionKeyForCalendarEventError", message, null)
+		super("NoOwnerEncSessionKeyForCalendarEventError", message)
 	}
 }
 

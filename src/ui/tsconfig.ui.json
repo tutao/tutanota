@@ -22,6 +22,9 @@
 		},
 		{
 			"path": "../entities/tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.singletons.json"
 		}
 	]
 }

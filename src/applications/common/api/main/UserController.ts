@@ -43,6 +43,8 @@ import {
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { OperationType } from "../../../../platform-kit/meta/EntityConstants"
+import { HttpUtils } from "@tutao/http-client"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -303,7 +305,9 @@ export class UserController {
 				}
 			} else {
 				// Fall back to sync XHR if Beacon API is not available (which it should be everywhere by now but maybe it is suppressed somehow)
-				const apiUrl = new URL(EnvProvider.get().rewriteSchemeForIos(locator.domainConfigProvider().getCurrentDomainConfig().apiUrl))
+				const apiUrl = new URL(
+					HttpUtils.rewriteSchemeForIos(locator.domainConfigProvider().getCurrentDomainConfig().apiUrl, Singletons.envProvider.isIOSApp()),
+				)
 				apiUrl.pathname += `/rest/sys/session/${listIdPart(this.sessionId)}/${elementIdPart(this.sessionId)}`
 				const xhr = new XMLHttpRequest()
 				xhr.open("DELETE", apiUrl, false) // sync requests increase reliability when invoked in onunload
@@ -338,7 +342,7 @@ export class UserController {
 
 	async isWhitelabelAccount(): Promise<boolean> {
 		// isTutanotaDomain always returns true on desktop
-		if (!EnvProvider.get().isDesktop()) {
+		if (!Singletons.envProvider.isDesktop()) {
 			return !!getWhitelabelCustomizations(window)
 		}
 
