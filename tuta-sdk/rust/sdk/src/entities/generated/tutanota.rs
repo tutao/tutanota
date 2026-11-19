@@ -1606,21 +1606,21 @@ pub struct CustomerAccountCreateData {
 	pub userEncAccountGroupKey: Vec<u8>,
 	#[serde(rename = "659")]
 	#[serde(with = "serde_bytes")]
-	pub adminEncAccountingInfoSessionKey: Vec<u8>,
+	pub adminEncAccountingInfoSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "660")]
 	#[serde(with = "serde_bytes")]
-	pub systemAdminPubEncAccountingInfoSessionKey: Vec<u8>,
+	pub systemAdminPubEncAccountingInfoSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "661")]
 	#[serde(with = "serde_bytes")]
 	pub adminEncCustomerServerPropertiesSessionKey: Vec<u8>,
 	#[serde(rename = "873")]
 	pub code: String,
 	#[serde(rename = "1355")]
-	pub systemAdminPublicProtocolVersion: i64,
+	pub systemAdminPublicProtocolVersion: Option<i64>,
 	#[serde(rename = "1421")]
 	pub accountGroupKeyVersion: i64,
 	#[serde(rename = "1422")]
-	pub systemAdminPubKeyVersion: i64,
+	pub systemAdminPubKeyVersion: Option<i64>,
 	#[serde(rename = "1511")]
 	pub app: i64,
 	#[serde(rename = "653")]

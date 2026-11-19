@@ -672,16 +672,10 @@ pub struct AccountingInfo {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2690")]
 	pub lastUsedOffer: Option<String>,
-	#[serde(rename = "2712")]
-	#[serde(with = "serde_bytes")]
-	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "771")]
 	pub invoiceInfo: Option<GeneratedId>,
 	#[serde(rename = "2424")]
 	pub appStoreSubscription: Option<IdTupleGenerated>,
-
-	#[serde(default)]
-	pub _errors: Errors,
 }
 
 impl Entity for AccountingInfo {
@@ -2135,25 +2129,27 @@ pub struct PaymentDataServicePutData {
 	#[serde(rename = "794")]
 	pub _format: i64,
 	#[serde(rename = "796")]
-	pub invoiceName: String,
+	pub invoiceName: Option<String>,
 	#[serde(rename = "797")]
-	pub invoiceAddress: String,
+	pub invoiceAddress: Option<String>,
 	#[serde(rename = "798")]
 	pub invoiceCountry: Option<String>,
 	#[serde(rename = "799")]
-	pub invoiceVatIdNo: String,
+	pub invoiceVatIdNo: Option<String>,
 	#[serde(rename = "800")]
-	pub paymentMethod: i64,
+	pub paymentMethod: Option<i64>,
 	#[serde(rename = "801")]
 	pub paymentMethodInfo: Option<String>,
 	#[serde(rename = "802")]
-	pub paymentInterval: i64,
+	pub paymentInterval: Option<i64>,
 	#[serde(rename = "803")]
 	pub paymentToken: Option<String>,
 	#[serde(rename = "804")]
 	pub confirmedCountry: Option<String>,
 	#[serde(rename = "1320")]
 	pub creditCard: Option<CreditCard>,
+	#[serde(rename = "3005")]
+	pub unencrypted: Option<Unencrypted>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -7434,6 +7430,68 @@ impl Entity for UserMigrationServicePostOut {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2982),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CreditCardUnencrypted {
+	#[serde(rename = "2987")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2988")]
+	pub cardHolderName: String,
+	#[serde(rename = "2989")]
+	pub number: String,
+	#[serde(rename = "2990")]
+	pub cvv: String,
+	#[serde(rename = "2991")]
+	pub expirationMonth: String,
+	#[serde(rename = "2992")]
+	pub expirationYear: String,
+}
+
+impl Entity for CreditCardUnencrypted {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2986),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Unencrypted {
+	#[serde(rename = "2994")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2995")]
+	pub invoiceName: String,
+	#[serde(rename = "2996")]
+	pub invoiceAddress: String,
+	#[serde(rename = "2997")]
+	pub invoiceCountry: Option<String>,
+	#[serde(rename = "2998")]
+	pub invoiceVatIdNo: String,
+	#[serde(rename = "2999")]
+	pub paymentMethod: i64,
+	#[serde(rename = "3000")]
+	pub paymentMethodInfo: Option<String>,
+	#[serde(rename = "3001")]
+	pub paymentInterval: i64,
+	#[serde(rename = "3002")]
+	pub paymentToken: Option<String>,
+	#[serde(rename = "3003")]
+	pub confirmedCountry: Option<String>,
+	#[serde(rename = "3004")]
+	pub creditCard: Option<CreditCardUnencrypted>,
+}
+
+impl Entity for Unencrypted {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2993),
 		}
 	}
 }

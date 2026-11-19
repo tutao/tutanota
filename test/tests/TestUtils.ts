@@ -4,16 +4,7 @@ import { DbFacade, DbTransaction } from "../../src/applications/common/api/worke
 import { assertNotNull, base64ToUint8Array, deepEqual, defer, isNotNull, remove, Thunk, typedEntries, uint8ArrayToString } from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
-import {
-	Aes,
-	Aes256Key,
-	AesCbcFacade,
-	FIXED_INITIALIZATION_VECTOR,
-	KeyEncryption,
-	random,
-	Randomizer,
-	SymmetricCipherUtils,
-} from "../../src/platform-kit/crypto"
+import { Aes, Aes256Key, AesCbcFacade, FIXED_INITIALIZATION_VECTOR, random, Randomizer, SymmetricCipherUtils } from "../../src/platform-kit/crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/applications/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import {
@@ -446,7 +437,6 @@ export function instancePipelineFromTypeModelResolver(
 	keyLoaderFacade: KeyLoaderFacade = object(),
 	instanceKeyProviderMaker: InstanceKeyProviderMaker = object(),
 ): InstancePipeline {
-	const keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
 	return new InstancePipeline(
 		typeModelResolver,
 		() => keyLoaderFacade,
@@ -454,7 +444,6 @@ export function instancePipelineFromTypeModelResolver(
 		null,
 		() => instanceKeyProviderMaker,
 		random,
-		keyEncryption,
 	)
 }
 

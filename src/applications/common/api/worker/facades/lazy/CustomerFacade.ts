@@ -1,4 +1,4 @@
-import { Const, CryptoProtocolVersion, EnvProvider, FeatureType, ProgrammingError } from "@tutao/app-env"
+import { Const, EnvProvider, FeatureType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
@@ -21,7 +21,7 @@ import { AsymmetricCryptoFacade } from "../../../../../../platform-kit/base/base
 import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { PaymentData, SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import { cryptoUtils, CryptoWrapper, hexToRsaPublicKey, keyToUint8Array, PQKeyPairs, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { CryptoWrapper, PQKeyPairs, VersionedKey } from "@tutao/crypto"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import { createCustomerAccountCreateData, CustomerAccountService_POST } from "@tutao/entities/tutanota"
 import { DataFile, SpamRuleFieldType, SpamRuleType } from "../../../../../../entities/tutanota/Utils"
@@ -39,6 +39,7 @@ import {
 	createEmailSenderListElement,
 	createInvoiceDataGetIn,
 	createPaymentDataServicePutData,
+	createUnencrypted,
 	CustomDomainReturn,
 	CustomDomainService_DELETE,
 	CustomDomainService_POST,
@@ -56,11 +57,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
 import type { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
-import {
-	CacheMode,
-	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	DEFAULT_EXTRA_SERVICE_PARAMS,
-} from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { Country, CountryType, getByAbbreviation } from "../../../../gui/CountryList"
 import { idToElementId, NULL_ENTITY } from "@tutao/meta"
 import { InvoiceData } from "../../../../subscription/utils/PaymentUtils"
@@ -279,26 +276,7 @@ export class CustomerFacade {
 		const userGroupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const adminGroupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const customerGroupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
-		const accountingInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const customerServerPropertiesSessionKey = this.cryptoWrapper.aes256RandomKey()
-
-		const keyData = await this.serviceExecutor.execute(SystemKeysService_GET, NULL_ENTITY, null)
-		const pubRsaKey = keyData.systemAdminPubRsaKey
-		let systemAdminPubEncAccountingInfoSessionKey: VersionedEncryptedKey
-		let systemAdminPublicProtocolVersion: CryptoProtocolVersion
-
-		if (pubRsaKey) {
-			const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(pubRsaKey))
-			const systemAdminPubEncAccountingInfoSessionKeyBytes = await this.rsa.encrypt(rsaPublicKey, keyToUint8Array(accountingInfoSessionKey))
-			systemAdminPubEncAccountingInfoSessionKey = {
-				key: systemAdminPubEncAccountingInfoSessionKeyBytes,
-				encryptingKeyVersion: cryptoUtils.parseKeyVersion(keyData.systemAdminPubKeyVersion),
-			}
-			systemAdminPublicProtocolVersion = CryptoProtocolVersion.RSA
-		} else {
-			// we need to release tuta-crypt by default first before we can encrypt keys for the system admin with PQ public keys.
-			throw new ProgrammingError("system admin having pq key pair is not supported")
-		}
 
 		const userGroupData = this.groupManagement.generateInternalGroupData(
 			keyPairs[0],
@@ -330,7 +308,6 @@ export class CustomerFacade {
 		const recoverData = this.recoverCodeFacade.generateRecoveryCode(userGroupKey)
 
 		const userEncAdminGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
-		const adminEncAccountingInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
 		const adminEncCustomerServerPropertiesSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
 
 		const data = createCustomerAccountCreateData({
@@ -351,10 +328,10 @@ export class CustomerFacade {
 			userGroupData,
 			adminGroupData,
 			customerGroupData,
-			adminEncAccountingInfoSessionKey: adminEncAccountingInfoSessionKey.key,
-			systemAdminPubEncAccountingInfoSessionKey: systemAdminPubEncAccountingInfoSessionKey.key,
-			systemAdminPubKeyVersion: String(systemAdminPubEncAccountingInfoSessionKey.encryptingKeyVersion),
-			systemAdminPublicProtocolVersion,
+			adminEncAccountingInfoSessionKey: null,
+			systemAdminPubEncAccountingInfoSessionKey: null,
+			systemAdminPubKeyVersion: null,
+			systemAdminPublicProtocolVersion: null,
 			adminEncCustomerServerPropertiesSessionKey: adminEncCustomerServerPropertiesSessionKey.key,
 			userEncAccountGroupKey: new Uint8Array(0), // if we some day start passing the right key here, we'll also need to pass the right version
 			accountGroupKeyVersion: "0",
@@ -374,20 +351,31 @@ export class CustomerFacade {
 		let customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getLoggedInUser().customer)))
 		let customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
-		let accountingInfoSessionKey = await this.cryptoFacade.resolveSessionKey(accountingInfo)
 		const service = createPaymentDataServicePutData({
-			paymentInterval: paymentInterval.toString(),
-			invoiceName: "",
-			invoiceAddress: invoiceData.invoiceAddress,
-			invoiceCountry: invoiceData.country != null ? invoiceData.country.a : null,
-			invoiceVatIdNo: invoiceData.vatNumber ? invoiceData.vatNumber : "",
-			paymentMethod: paymentData ? paymentData.paymentMethod : accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "",
+			paymentInterval: null,
+			invoiceName: null,
+			invoiceAddress: null,
+			invoiceCountry: null,
+			invoiceVatIdNo: null,
+			paymentMethod: null,
 			paymentMethodInfo: null,
 			paymentToken: null,
-			creditCard: paymentData && paymentData.creditCardData ? paymentData.creditCardData : null,
-			confirmedCountry: confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null,
+			creditCard: null,
+			confirmedCountry: null,
+			unencrypted: createUnencrypted({
+				paymentInterval: paymentInterval.toString(),
+				invoiceName: "",
+				invoiceAddress: invoiceData.invoiceAddress,
+				invoiceCountry: invoiceData.country != null ? invoiceData.country.a : null,
+				invoiceVatIdNo: invoiceData.vatNumber ? invoiceData.vatNumber : "",
+				paymentMethod: paymentData ? paymentData.paymentMethod : accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "",
+				paymentMethodInfo: null,
+				paymentToken: null,
+				creditCard: paymentData && paymentData.creditCardData ? paymentData.creditCardData : null,
+				confirmedCountry: confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null,
+			}),
 		})
-		return this.serviceExecutor.execute(PaymentDataService_PUT, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: accountingInfoSessionKey })
+		return this.serviceExecutor.execute(PaymentDataService_PUT, service, null)
 	}
 
 	/**

@@ -1,5 +1,5 @@
 import o, { throwsErrorWithMessage } from "@tutao/otest"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../src/platform-kit/utils"
+import { arrayEquals, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../src/platform-kit/utils"
 import {
 	Aes,
 	Aes128Key,
@@ -23,6 +23,7 @@ import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 o.spec("aes", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 	let aes: Aes
+	let plaintext = "hello"
 
 	const initializationVector = validateInitializationVectorLength(
 		new Uint8Array([233, 159, 225, 105, 170, 223, 70, 218, 139, 107, 71, 91, 179, 231, 239, 102]),
@@ -80,8 +81,13 @@ o.spec("aes", function () {
 		),
 	)
 
-	async function arrayRoundtrip(encrypt, decrypt, key, initializationVector?: InitializationVector) {
-		function runArrayRoundtrip(key: AesKey, plainText) {
+	async function arrayRoundtrip(
+		encrypt: (key: AesKey, bytes: Uint8Array<ArrayBuffer>, initializationVector?: InitializationVector) => Uint8Array<ArrayBuffer>,
+		decrypt: (key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer>,
+		key: AesKey,
+		initializationVector?: InitializationVector,
+	) {
+		function runArrayRoundtrip(key: AesKey, plainText: Uint8Array<ArrayBuffer>) {
 			let encrypted = encrypt(key, plainText, initializationVector)
 			return Promise.resolve(encrypted)
 				.then((encrypted) => {
@@ -103,7 +109,7 @@ o.spec("aes", function () {
 	o("generateRandomKeyAndBase64Conversion 128", () => randomKeyBase64Conversion(() => _aes128RandomKey(), 24))
 	o("generateRandomKeyAndBase64Conversion 256", () => randomKeyBase64Conversion(() => symmetricCipherUtils.aes256RandomKey(), 44))
 
-	function randomKeyBase64Conversion(randomKey, length) {
+	function randomKeyBase64Conversion(randomKey: () => AesKey, length: number) {
 		let key1Base64 = keyToBase64(randomKey())
 		let key2Base64 = keyToBase64(randomKey())
 		let key3Base64 = keyToBase64(randomKey())
@@ -135,9 +141,8 @@ o.spec("aes", function () {
 		),
 	)
 
-	function decryptInvalidData(key, decrypt, errorMessage) {
-		// useMac is only used for aes256Decrypt
-		o.check(() => decrypt(key, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]), true, false)).satisfies(throwsErrorWithMessage(CryptoError, errorMessage))
+	function decryptInvalidData(key: AesKey, decrypt: (key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer>, errorMessage: string) {
+		o.check(() => decrypt(key, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]))).satisfies(throwsErrorWithMessage(CryptoError, errorMessage))
 	}
 
 	o("decryptManipulatedData 128 without mac", function () {
@@ -149,7 +154,7 @@ o.spec("aes", function () {
 	})
 	o("decryptManipulatedData 128 with mac", function () {
 		let key = new Aes128Key([151050668, 1341212767, 316219065, 2150939763])
-		let encrypted = aes.aesEncrypt(key, stringToUtf8Uint8Array("hello"))
+		let encrypted = aes.aesEncrypt(key, stringToUtf8Uint8Array(plaintext))
 		encrypted[1] = encrypted[1] + 1
 
 		o.check(() => aes.aesDecrypt(key, encrypted)).satisfies(throwsErrorWithMessage(CryptoError, "invalid mac"))
@@ -163,7 +168,7 @@ o.spec("aes", function () {
 	})
 	o("decryptManipulatedMac 128 with mac", function () {
 		let key = new Aes128Key([151050668, 1341212767, 316219065, 2150939763])
-		let encrypted = aes.aesEncrypt(key, stringToUtf8Uint8Array("hello"))
+		let encrypted = aes.aesEncrypt(key, stringToUtf8Uint8Array(plaintext))
 		encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] + 1
 
 		o.check(() => aes.aesDecrypt(key, encrypted)).satisfies(throwsErrorWithMessage(CryptoError, "invalid mac"))
@@ -172,7 +177,7 @@ o.spec("aes", function () {
 	o("decryptManipulatedData 256", function () {
 		let key = symmetricCipherUtils.aes256RandomKey()
 		try {
-			let encrypted = aes.aesEncrypt(key, stringToUtf8Uint8Array("hello"))
+			let encrypted = aes.aesEncrypt(key, stringToUtf8Uint8Array(plaintext))
 			encrypted[1] = encrypted[1] + 4
 			aes.aesDecrypt(key, encrypted)
 		} catch (e) {
@@ -187,7 +192,23 @@ o.spec("aes", function () {
 			_aes128RandomKey(),
 			(key: Aes256Key, bytes: Uint8Array<ArrayBuffer>) => aes.aes256EncryptSearchIndexEntry(key, bytes),
 			(key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>) => aes.aesDecrypt(key, encryptedBytes),
-			"aes decryption failed> pkcs#5 padding corrupt",
+			(fn: () => Uint8Array<ArrayBuffer>) => {
+				let result: Uint8Array<ArrayBuffer>
+				try {
+					result = fn()
+				} catch (e) {
+					const pass =
+						e instanceof CryptoError && typeof e.message === "string" && e.message.includes("aes decryption failed> pkcs#5 padding corrupt")
+					return { pass, message: `Error of type ${CryptoError} w/ message aes decryption failed> pkcs#5 padding corrupt, instead got ${e}` }
+				}
+				// Most of the time, decryption will fail due to invalid padding.
+				// Sometimes, correct padding is generated. In that case, the decryption succeeds but the output should still be wrong.
+				if (arrayEquals(result, stringToUtf8Uint8Array(plaintext))) {
+					return { pass: false, message: "Should not decrypt to the same plaintext!" }
+				} else {
+					return { pass: true }
+				}
+			},
 		),
 	)
 	o("decryptWithWrongKey 128 with mac", () =>
@@ -196,7 +217,7 @@ o.spec("aes", function () {
 			_aes128RandomKey(),
 			(key: AesKey, bytes: Uint8Array<ArrayBuffer>) => aes.aesEncrypt(key, bytes),
 			(key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>) => aes.aesDecrypt(key, encryptedBytes),
-			"invalid mac",
+			throwsErrorWithMessage(CryptoError, "invalid mac"),
 		),
 	)
 	o("decryptWithWrongKey 256 with mac", () =>
@@ -205,13 +226,19 @@ o.spec("aes", function () {
 			symmetricCipherUtils.aes256RandomKey(),
 			(key: AesKey, bytes: Uint8Array<ArrayBuffer>) => aes.aesEncrypt(key, bytes),
 			(key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>) => aes.aesDecrypt(key, encryptedBytes),
-			"invalid mac",
+			throwsErrorWithMessage(CryptoError, "invalid mac"),
 		),
 	)
 
-	function decryptWithWrongKey(key, key2, encrypt, decrypt, errorMessage) {
-		const encrypted = encrypt(key, stringToUtf8Uint8Array("hello"))
-		o.check(() => decrypt(key2, encrypted)).satisfies(throwsErrorWithMessage(CryptoError, errorMessage))
+	function decryptWithWrongKey(
+		key: AesKey,
+		key2: AesKey,
+		encrypt: (key: AesKey, bytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer>,
+		decrypt: (key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer>,
+		check: (value: () => Uint8Array<ArrayBuffer>) => { pass: false; message: string } | { pass: true },
+	) {
+		const encrypted = encrypt(key, stringToUtf8Uint8Array(plaintext))
+		o.check(() => decrypt(key2, encrypted)).satisfies(check)
 	}
 
 	o("ciphertextLengths 128 with mac", () =>
@@ -221,7 +248,12 @@ o.spec("aes", function () {
 		ciphertextLengths(symmetricCipherUtils.aes256RandomKey(), (key: AesKey, bytes: Uint8Array<ArrayBuffer>) => aes.aesEncrypt(key, bytes), 65, 81)
 	})
 
-	function ciphertextLengths(key, encrypt, length15BytePlainText, length16BytePlainText) {
+	function ciphertextLengths(
+		key: AesKey,
+		encrypt: (key: AesKey, bytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer>,
+		length15BytePlainText: number,
+		length16BytePlainText: number,
+	) {
 		// check that 15 bytes fit into one block
 		o(encrypt(key, stringToUtf8Uint8Array("1234567890abcde")).length).equals(length15BytePlainText)
 		// check that 16 bytes need two blocks (because of one byte padding length info)

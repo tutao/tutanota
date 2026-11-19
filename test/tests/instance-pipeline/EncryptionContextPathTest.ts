@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { AssociationPath, RootPath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
+import { AggregatePath, AssociationPath, RootPath, ValuePath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
 import { AppName, AssociationTypeEnum, CardinalityEnum, ModelAssociation, ModelValue, ValueTypeEnum } from "../../../src/platform-kit/meta"
 
 o.spec("EncryptionContextPath", () => {
@@ -52,47 +52,57 @@ o.spec("EncryptionContextPath", () => {
 		app = "testApplication"
 	})
 	o.test("Simple values print path", () => {
-		const valuePath = new RootPath(app).addValueId(modelValue)
+		const rootPath = new RootPath(app)
+		const valuePath = ValuePath.fromInstancePath(rootPath, modelValue)
 
 		o.check(valuePath.getPath()).equals("1")
 		o.check(valuePath.hasBeenCutOff).equals(false)
 	})
 
 	o.test("Mapped values print mapped path", () => {
-		const valuePath = new RootPath(app).addValueId(mappedModelValue)
+		const rootPath = new RootPath(app)
+		const valuePath = ValuePath.fromInstancePath(rootPath, mappedModelValue)
 
 		o.check(valuePath.getPath()).equals("42")
 		o.check(valuePath.hasBeenCutOff).equals(true)
 	})
 
 	o.test("Simple values within aggregates print path", () => {
-		const valuePath = new RootPath(app).addAssociationId(modelAssociation).addAggregateId("aggregateId").addValueId(modelValue)
+		const rootPath = new RootPath(app)
+		const associationPath = AssociationPath.fromInstancePath(rootPath, modelAssociation)
+		const aggregatePath = AggregatePath.fromAssociationPath(associationPath, "aggregateId")
+		const valuePath = ValuePath.fromInstancePath(aggregatePath, modelValue)
 
 		o.check(valuePath.getPath()).equals("3/aggregateId/1")
 		o.check(valuePath.hasBeenCutOff).equals(false)
 	})
 
 	o.test("Mapped values within aggregates print path", () => {
-		const valuePath = new RootPath(app).addAssociationId(modelAssociation).addAggregateId("aggregateId").addValueId(mappedModelValue)
+		const rootPath = new RootPath(app)
+		const associationPath = AssociationPath.fromInstancePath(rootPath, modelAssociation)
+		const aggregatePath = AggregatePath.fromAssociationPath(associationPath, "aggregateId")
+		const valuePath = ValuePath.fromInstancePath(aggregatePath, mappedModelValue)
 
 		o.check(valuePath.getPath()).equals("42")
 		o.check(valuePath.hasBeenCutOff).equals(true)
 	})
 
 	o.test("Mapped values within mapped aggregates print path", () => {
-		const valuePath = new RootPath(app)
-			.addAssociationId(modelAssociation)
-			.addAggregateId("aggregateId")
-			.addAssociationId(mappedModelAssociation)
-			.addAggregateId("anotherAggregateId")
-			.addValueId(mappedModelValue)
+		const rootPath = new RootPath(app)
+		const associationPath0 = AssociationPath.fromInstancePath(rootPath, modelAssociation)
+		const aggregatePath0 = AggregatePath.fromAssociationPath(associationPath0, "aggregateId")
+		const associationPath1 = AssociationPath.fromInstancePath(aggregatePath0, mappedModelAssociation)
+		const aggregatePath1 = AggregatePath.fromAssociationPath(associationPath1, "anotherAggregateId")
+		const valuePath = ValuePath.fromInstancePath(aggregatePath1, mappedModelValue)
 
 		o.check(valuePath.getPath()).equals("44/anotherAggregateId/42")
 		o.check(valuePath.hasBeenCutOff).equals(true)
 	})
 
 	o.test("Simple values print path for patch", () => {
-		const valuePath = AssociationPath.fromPatchPath(app, "5/something/7/").addAggregateId("someOtherThing").addValueId(modelValue)
+		const associationPath = AssociationPath.fromPatchPath(app, "5/something/7")
+		const aggregatePath = AggregatePath.fromAssociationPath(associationPath, "someOtherThing")
+		const valuePath = ValuePath.fromInstancePath(aggregatePath, modelValue)
 		o.check(valuePath.getPath()).equals("5/something/7/someOtherThing/1")
 		o.check(valuePath.hasBeenCutOff).equals(false)
 	})

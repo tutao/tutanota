@@ -9,15 +9,7 @@ import {
 	TestTypeRef,
 } from "./InstancePipelineTestUtils"
 import { InstancePipeline, PatchGenerator, PatchOperationType, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import {
-	Aes,
-	AesCbcFacade,
-	KeyEncryption,
-	random,
-	SubKeyInfoWithSessionKeyCbcThenHmac,
-	SymmetricCipherFacade,
-	SymmetricCipherUtils,
-} from "../../../src/platform-kit/crypto"
+import { AesCbcFacade, random, SubKeyInfoWithSessionKeyCbcThenHmac, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { GENERATED_MAX_ID, GENERATED_MIN_ID, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { createTestEntityWithDummyResolver } from "../TestUtils"
@@ -48,15 +40,7 @@ o.spec("computePatches", function () {
 			new SymmetricKeyDeriver(),
 			symmetricCipherUtils,
 		)
-		dummyInstancePipeline = new InstancePipeline(
-			typeModelResolver,
-			object(),
-			symmetricCipherFacade,
-			null,
-			() => object(),
-			random,
-			new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade)),
-		)
+		dummyInstancePipeline = new InstancePipeline(typeModelResolver, object(), symmetricCipherFacade, null, () => object(), random)
 		patchGenerator = new PatchGenerator(dummyInstancePipeline)
 	})
 

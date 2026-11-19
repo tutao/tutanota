@@ -2,15 +2,16 @@ import { DataTransferEntity, Entity, isSameTypeRef, NULL_ENTITY, ServiceDefiniti
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody, validateHttpMethod } from "@tutao/rest-client/types"
 import { IServiceExecutor } from "./ServiceRequest.js"
-import { assert, assertNotNull, downcast, isNotNull, lazy, Nullable } from "@tutao/utils"
+import { assert, assertNotNull, downcast, isNotNull, lazy, lazyMemoized, Nullable } from "@tutao/utils"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionAndInstanceKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 import { isNull } from "../utils/Utils"
-import { AeadCipherVersion, SubKeyInfoWithSessionKeyCbcThenHmac } from "@tutao/crypto"
+import { AeadCipherVersion, SessionKeyProvider } from "@tutao/crypto"
 import { PaymentDataService_PUT } from "@tutao/entities/sys"
+import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -91,23 +92,13 @@ export class ServiceExecutor implements IServiceExecutor {
 
 			const ownerKey = params?.ownerKey ?? null
 
-			// TODO: remove this when AccountingInfo has been dealt with
-			if (service === PaymentDataService_PUT) {
-				const sessionKey = params?.sessionKey ?? null
-				if (sessionKey == null) {
-					throw new ProgrammingError(`Must provide a session key for encrypting values for AccountingInfo in: ${service.fullServiceName}`)
-				}
-				return await this.instancePipeline.mapAndEncryptWithSubKeyInfo(
-					requestEntity._type,
-					requestEntity,
-					new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey),
-					ownerKey,
-				)
-			}
-
 			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(requestTypeRef)
 			if (requestTypeModel.encrypted && params?.sessionKeyDecryptor == null) {
-				throw new ProgrammingError(`Must provide a session key decryptor for an encrypted data transfer type: ${service.fullServiceName}`)
+				// make an exception for this type which does not encrypt any data anymore but still has some unused encrpypted values
+				// TODO remove the exception once PaymentDataService is marked as unencrypted
+				if (service !== PaymentDataService_PUT) {
+					throw new ProgrammingError(`Must provide a session key decryptor for an encrypted data transfer type: ${service.fullServiceName}`)
+				}
 			}
 
 			let aeadCipherVersion: AeadCipherVersion
@@ -142,8 +133,14 @@ export class ServiceExecutor implements IServiceExecutor {
 			this.instancePipeline.modelMapper,
 			this.instancePipeline.cryptoMapper,
 		)
-		const sessionKey = (await this.sessionKeyResolver().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
+		const sessionKeyProvider: SessionKeyProvider = lazyMemoized(async () => {
+			const sessionKey = (await this.sessionKeyResolver().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
+			if (isNull(sessionKey)) {
+				throw new SessionKeyNotFoundError("session key not found")
+			}
+			return sessionKey
+		})
 
-		return await this.instancePipeline.decryptAndMap(incomingJson, sessionKey)
+		return await this.instancePipeline.decryptAndMap(incomingJson, sessionKeyProvider)
 	}
 }

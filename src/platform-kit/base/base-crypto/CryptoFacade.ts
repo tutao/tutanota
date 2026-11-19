@@ -44,6 +44,7 @@ import {
 	PublicKey,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
+	SessionKeyProvider,
 	sha256Hash,
 	SymmetricCipherUtils,
 	validateKdfNonceLength,
@@ -62,7 +63,6 @@ import { KeyVerificationMismatchError } from "../../network/error/KeyVerificatio
 import { isOfflineError, LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import {
-	AccountingInfoTypeRef,
 	BucketPermission,
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
@@ -75,7 +75,6 @@ import {
 	GroupTypeRef,
 	InstanceKdfNonce,
 	InstanceSessionKey,
-	OrderProcessingAgreementTypeRef,
 	PatchListTypeRef,
 	Permission,
 	PermissionTypeRef,
@@ -178,12 +177,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 	async resolveSessionKey(instance: PersistentEntity): Promise<Nullable<AesKey>> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(instance._type)
-		if (
-			!serverTypeModel.encrypted &&
-			//the following exceptions are required as we are making the types unencrypted and can be removed once the client model types are also unencrypted
-			(isNull(instance._ownerEncSessionKey) ||
-				(!isSameTypeRef(AccountingInfoTypeRef, instance._type) && !isSameTypeRef(OrderProcessingAgreementTypeRef, instance._type)))
-		) {
+		if (!serverTypeModel.encrypted) {
 			return null
 		}
 
@@ -423,7 +417,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 					pqMessageSenderKey,
 					pqSenderKeyVersion,
 					instance,
-					resolvedSessionKeyForInstance,
+					async (): Promise<AesKey> => decryptedSessionKey,
 					instanceSessionKeyWithOwnerEncSessionKey,
 					decryptedSessionKey,
 					bucketKey.keyGroup,
@@ -446,7 +440,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		pqMessageSenderKey: Uint8Array<ArrayBuffer> | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
 		instance: PersistentEntity,
-		resolvedSessionKeyForInstance: AesKey,
+		resolvedSessionKeyForInstance: SessionKeyProvider,
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: AesKey,
 		keyGroup: Id | null,
@@ -495,7 +489,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		}
 	}
 
-	private async getDecryptedMailFromAdapter(instance: PersistentEntity, resolvedSessionKeyForInstance: AesKey): Promise<Mail> {
+	private async getDecryptedMailFromAdapter(instance: PersistentEntity, resolvedSessionKeyForInstance: SessionKeyProvider): Promise<Mail> {
 		if (isNotNull(instance.isAdapter) && instance.isAdapter) {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(

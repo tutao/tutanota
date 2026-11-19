@@ -34,7 +34,8 @@ import {
 	sysTypeModels,
 } from "@tutao/entities/sys"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
-import { RootPath } from "../../../../platform-kit/instance-pipeline/EncryptionContextPath"
+import { AggregatePath, AssociationPath, RootPath } from "../../../../platform-kit/instance-pipeline/EncryptionContextPath"
+import { sessionKeyProviderFromAvailableSessionKey } from "../../../../platform-kit/crypto/encryption/symmetric/AesKey"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -185,12 +186,12 @@ export class TutaSseFacade implements SseEventHandler {
 				}
 				// AlarmNotifications are encrypted as part of a Notification, so we need to provide the correct context for decryption
 				const notificationTypeModel = await this.nativeInstancePipeline.typeModelResolver.resolveClientTypeReference(NotificationTypeRef)
-				const instancePath = new RootPath(notificationTypeModel.app)
-					.addAssociationId(notificationTypeModel.associations[1714 /*alarms*/])
-					.addAggregateId(encryptedAlarmNotification.getId())
+				const rootPath = new RootPath(notificationTypeModel.app)
+				const associationPath = AssociationPath.fromInstancePath(rootPath, notificationTypeModel.associations[1714 /*alarms*/])
+				const instancePath = AggregatePath.fromAssociationPath(associationPath, encryptedAlarmNotification.getId())
 				const alarmNotification = await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
 					alarmNotificationUntyped,
-					sessionKeys.sessionKey,
+					sessionKeyProviderFromAvailableSessionKey(sessionKeys.sessionKey),
 					notificationTypeModel,
 					instancePath,
 				)

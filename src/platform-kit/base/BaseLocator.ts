@@ -243,7 +243,6 @@ export async function createBaseLocator({
 		user,
 		() => instanceKeyProviderMaker,
 		random,
-		keyEncryption,
 	)
 	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform), new HttpClientJavascript()).addMiddleware(
 		new UpdateAppTypesHashMiddleware(serverModelInfo),

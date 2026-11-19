@@ -868,7 +868,6 @@ export type AccountingInfo = {
 	_modified: Date
 	_ownerKeyVersion: null | NumberString
 	lastUsedOffer: null | string
-	_kdfNonce: null | Uint8Array<ArrayBuffer>
 
 	// == associations
 
@@ -879,12 +878,12 @@ export type AccountingInfo = {
 
 	bucketKey: null
 
+	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
 	_type: TypeRef<AccountingInfo>
-	_errors: Object
 	_original: Nullable<AccountingInfo>
 	isAdapter: false
 }
@@ -3219,30 +3218,31 @@ export function createPaymentDataServicePutData(values: PaymentDataServicePutDat
 }
 
 export type PaymentDataServicePutDataParams = {
-	invoiceName: string
-	invoiceAddress: string
+	invoiceName: null | string
+	invoiceAddress: null | string
 	invoiceCountry: null | string
-	invoiceVatIdNo: string
-	paymentMethod: NumberString
+	invoiceVatIdNo: null | string
+	paymentMethod: null | NumberString
 	paymentMethodInfo: null | string
-	paymentInterval: NumberString
+	paymentInterval: null | NumberString
 	paymentToken: null | string
 	confirmedCountry: null | string
 
 	creditCard: null | CreditCard
+	unencrypted: null | Unencrypted
 }
 
 export type PaymentDataServicePutData = {
 	// == values
 
 	_format: NumberString
-	invoiceName: string
-	invoiceAddress: string
+	invoiceName: null | string
+	invoiceAddress: null | string
 	invoiceCountry: null | string
-	invoiceVatIdNo: string
-	paymentMethod: NumberString
+	invoiceVatIdNo: null | string
+	paymentMethod: null | NumberString
 	paymentMethodInfo: null | string
-	paymentInterval: NumberString
+	paymentInterval: null | NumberString
 	paymentToken: null | string
 	confirmedCountry: null | string
 
@@ -3252,6 +3252,7 @@ export type PaymentDataServicePutData = {
 	// == associations
 
 	creditCard: null | CreditCard
+	unencrypted: null | Unencrypted
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -11763,5 +11764,99 @@ export type UserMigrationServicePostOut = {
 	// === these are not present in metamodel
 	_type: TypeRef<UserMigrationServicePostOut>
 	_original: Nullable<UserMigrationServicePostOut>
+	isAdapter: false
+}
+export const CreditCardUnencryptedTypeRef: TypeRef<CreditCardUnencrypted> = new TypeRef("sys", 2986)
+
+export function createCreditCardUnencrypted(values: CreditCardUnencryptedParams): CreditCardUnencrypted {
+	return Object.assign(create(typeModels[CreditCardUnencryptedTypeRef.typeId], CreditCardUnencryptedTypeRef), values)
+}
+
+export type CreditCardUnencryptedParams = {
+	cardHolderName: string
+	number: string
+	cvv: string
+	expirationMonth: string
+	expirationYear: string
+}
+
+export type CreditCardUnencrypted = {
+	// == values
+
+	_id: Id
+	cardHolderName: string
+	number: string
+	cvv: string
+	expirationMonth: string
+	expirationYear: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CreditCardUnencrypted>
+	_original: Nullable<CreditCardUnencrypted>
+	isAdapter: false
+}
+export const UnencryptedTypeRef: TypeRef<Unencrypted> = new TypeRef("sys", 2993)
+
+export function createUnencrypted(values: UnencryptedParams): Unencrypted {
+	return Object.assign(create(typeModels[UnencryptedTypeRef.typeId], UnencryptedTypeRef), values)
+}
+
+export type UnencryptedParams = {
+	invoiceName: string
+	invoiceAddress: string
+	invoiceCountry: null | string
+	invoiceVatIdNo: string
+	paymentMethod: NumberString
+	paymentMethodInfo: null | string
+	paymentInterval: NumberString
+	paymentToken: null | string
+	confirmedCountry: null | string
+
+	creditCard: null | CreditCardUnencrypted
+}
+
+export type Unencrypted = {
+	// == values
+
+	_id: Id
+	invoiceName: string
+	invoiceAddress: string
+	invoiceCountry: null | string
+	invoiceVatIdNo: string
+	paymentMethod: NumberString
+	paymentMethodInfo: null | string
+	paymentInterval: NumberString
+	paymentToken: null | string
+	confirmedCountry: null | string
+
+	// == associations
+
+	creditCard: null | CreditCardUnencrypted
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<Unencrypted>
+	_original: Nullable<Unencrypted>
 	isAdapter: false
 }
