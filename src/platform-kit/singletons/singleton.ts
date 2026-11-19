@@ -6,7 +6,7 @@ export class Singletons {
 	private static _envProvider: Nullable<EnvProvider> = null
 	private static _clientDetector: Nullable<ClientDetector> = null
 
-	public static async init(userAgent: TsString, platform: TsString, appType: AppType): Promise<void> {
+	public static async init(userAgent: TsString, platform: TsString, appType?: AppType): Promise<void> {
 		Singletons._envProvider = new EnvProvider(assertNotNull(globalThis.env, "global env is not yet defined"))
 		Singletons._clientDetector = await ClientDetector.init(Singletons.envProvider, userAgent, platform, appType)
 	}

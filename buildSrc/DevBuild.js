@@ -385,7 +385,7 @@ import('./app.js')`
 	await writeFile(`./${buildDir}/${htmlFileName}`, html)
 }
 
-function getStaticUrl(stage, mode, host) {
+export function getStaticUrl(stage, mode, host) {
 	if (stage === "local" && mode === "Browser") {
 		// We would like to use web app build for both JS server and actual server. For that we should avoid hardcoding URL as server
 		// might be running as one of testing HTTPS domains. So instead we override URL when the app is served from JS server
