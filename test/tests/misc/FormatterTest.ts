@@ -3,8 +3,6 @@ import { lang, languageCodeToTag, languages } from "../../../src/ui/utils/Langua
 import { formatDate } from "../../../src/ui/utils/Formatter.js"
 
 import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/applications/common/misc/DateParser.js"
-import { createTestEntity } from "../TestUtils.js"
-import { BirthdayTypeRef } from "@tutao/entities/tutanota"
 
 const parseDateWithFormatter = (text: string) => parseDate(text, (refdate) => formatDate(refdate))
 const parseBirthdayWithFormatter = (text: string) => parseBirthday(text, (refdate) => formatDate(refdate))
@@ -214,18 +212,10 @@ o.spec("Formatter", function () {
 	})
 
 	function _checkparseBirthdayWithFormatter(text: string, expectedDay: number, expectedMonth: number, expectedYear: number | null | undefined) {
-		let expected = createTestEntity(BirthdayTypeRef)
-		expected._id = ""
-		expected.day = String(expectedDay)
-		expected.month = String(expectedMonth)
-		expected.year = expectedYear ? String(expectedYear) : null
-		let result = parseBirthdayWithFormatter(text)
-
-		if (result) {
-			result._id = ""
-			result._type = expected._type
-		}
-
-		o(result!).deepEquals(expected)
+		o.check(parseBirthdayWithFormatter(text)).deepEquals({
+			year: expectedYear ?? null,
+			month: expectedMonth,
+			day: expectedDay,
+		})
 	}
 })

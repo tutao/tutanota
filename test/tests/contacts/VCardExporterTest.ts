@@ -15,7 +15,6 @@ import { createTestEntity } from "../TestUtils.js"
 
 import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/entities/tutanota/Utils"
 import {
-	BirthdayTypeRef,
 	Contact,
 	ContactAddressTypeRef,
 	ContactMailAddressTypeRef,
@@ -453,7 +452,6 @@ END:VCARD
 	o("testSpecialCharsInVCard", function () {
 		let a = `BEGIN:VCARD\nVERSION:3.0\nFN:Mr. John\\;Quinlan Public\nN:Public;John\\;Quinlan;;Mr.;\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch\nEND:VCARD\n\n`
 		let b = createTestEntity(ContactTypeRef)
-		let bday = createTestEntity(BirthdayTypeRef)
 		let contacts = [b]
 		b._ownerGroup = ""
 		b.addresses[0] = createTestEntity(ContactAddressTypeRef, {

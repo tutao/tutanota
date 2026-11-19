@@ -14,7 +14,6 @@ import {
 } from "@tutao/native-bridge/generatedIpc/types"
 import { parseUrl } from "@tutao/utils"
 import {
-	Birthday,
 	Contact,
 	ContactAddress,
 	ContactCustomDate,
@@ -57,12 +56,12 @@ export function getContactListName(contact: Contact): string {
 	return name
 }
 
-export function formatBirthdayNumeric(birthday: Birthday): string {
+export function formatBirthdayNumeric(birthday: { year: number | null; month: number; day: number }): string {
 	if (birthday.year) {
-		return formatDate(new Date(Number(birthday.year), Number(birthday.month) - 1, Number(birthday.day)))
+		return formatDate(new Date(birthday.year, birthday.month - 1, birthday.day))
 	} else {
 		//if no year is specified a leap year is used to allow 2/29 as birthday
-		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2016), Number(birthday.month) - 1, Number(birthday.day)))
+		return lang.formats.simpleDateWithoutYear.format(new Date(2016, birthday.month - 1, birthday.day))
 	}
 }
 
@@ -204,18 +203,6 @@ export function extractStructuredMessengerHandle(handles: ContactMessengerHandle
 	}))
 }
 
-export function validateBirthdayOfContact(contact: StructuredContact) {
-	if (contact.birthday != null) {
-		try {
-			isoDateToBirthday(contact.birthday)
-			return contact.birthday
-		} catch (_) {
-			return null
-		}
-	} else {
-		return null
-	}
-}
 export function getContactTitle(contact: Contact) {
 	const title = contact.title ? `${contact.title} ` : ""
 	const middleName = contact.middleName != null ? ` ${contact.middleName} ` : " "

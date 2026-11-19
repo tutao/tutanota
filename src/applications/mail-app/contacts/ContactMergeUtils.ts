@@ -1,7 +1,7 @@
 import { neverNull } from "../../../platform-kit/utils"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils"
 import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../platform-kit/app-env"
-import { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "@tutao/entities/tutanota"
+import { Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "@tutao/entities/tutanota"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -349,7 +349,7 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 	}
 }
 
-function _convertIsoBirthday(isoBirthday: string | null): Birthday | null {
+function _convertIsoBirthday(isoBirthday: string | null): { year: number | null; month: number; day: number } | null {
 	if (isoBirthday) {
 		try {
 			return isoDateToBirthday(isoBirthday)

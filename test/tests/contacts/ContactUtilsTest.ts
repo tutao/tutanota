@@ -9,7 +9,7 @@ import {
 } from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
 
 import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota/Utils"
-import { BirthdayTypeRef, ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
+import { ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 import { compareContacts } from "../../../src/applications/mail-app/contacts/ContactUtils"
 
 o.spec("ContactUtilsTest", function () {
@@ -130,40 +130,17 @@ o.spec("ContactUtilsTest", function () {
 			languageTag: "en",
 		})
 		lang.updateFormats({})
-		let bday = createTestEntity(BirthdayTypeRef)
-		bday.day = "12"
-		bday.month = "10"
-		bday.year = "2009"
-		o(formatBirthdayNumeric(bday)).equals("10/12/2009")
-		bday.day = "9"
-		bday.month = "07"
-		bday.year = null
-		o(formatBirthdayNumeric(bday)).equals("7/9")
-		bday.day = "09"
-		bday.month = "7"
-		bday.year = null
-		o(formatBirthdayNumeric(bday)).equals("7/9")
-		bday = createTestEntity(BirthdayTypeRef)
-		bday.day = "12"
-		bday.month = "10"
-		bday.year = "2009"
+		o(formatBirthdayNumeric({ year: 2009, month: 10, day: 12 })).equals("10/12/2009")
+		o(formatBirthdayNumeric({ year: null, month: 7, day: 9 })).equals("7/9")
 	})
 
 	o("formatBirthdayNumeric", function () {
-		const leapYearBirthday = createTestEntity(BirthdayTypeRef)
-		leapYearBirthday.year = "2016"
-		leapYearBirthday.month = "2"
-		leapYearBirthday.day = "29"
+		const leapYearBirthday = { year: 2016, month: 2, day: 29 }
 
-		const leapYearBirthdayNoYear = createTestEntity(BirthdayTypeRef)
-		leapYearBirthdayNoYear.month = "2"
-		leapYearBirthdayNoYear.day = "29"
+		const leapYearBirthdayNoYear = { year: null, month: 2, day: 29 }
 
 		// Chrome date bug issue: https://github.com/tutao/tutanota/issues/414
-		const chromeBugBirthday = createTestEntity(BirthdayTypeRef)
-		chromeBugBirthday.year = "1911"
-		chromeBugBirthday.month = "8"
-		chromeBugBirthday.day = "15"
+		const chromeBugBirthday = { year: 1911, month: 8, day: 15 }
 
 		lang._setLanguageTag("en")
 		o(formatBirthdayNumeric(leapYearBirthday)).equals("2/29/2016")

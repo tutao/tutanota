@@ -52,7 +52,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
 	addDaysForRecurringEvent,
-	birthdayCalendarEventContactId,
+	decodeContactIdFromBirthdayEvent,
 	CalendarTimeRange,
 	CalendarType,
 	DefaultDateProvider,
@@ -61,7 +61,8 @@ import {
 	getStartOfDayWithZone,
 	getWeekStart,
 	hasAlarmsForTheUser,
-	isBirthdayCalendar,
+	isBirthdayCalendarId,
+	isBirthdayEvent,
 	isEventBetweenDays,
 	isSameEventInstance,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -831,8 +832,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		} else {
 			const calendarInfos = await this.calendarModel.getCalendarInfosCreateIfNeeded()
 			let previewModel: CalendarPreviewModels
-			if (isBirthdayCalendar(listIdPart(event._id))) {
-				const contactId = birthdayCalendarEventContactId(event._id)
+			if (isBirthdayEvent(event)) {
+				const contactId = decodeContactIdFromBirthdayEvent(event)
 				if (contactId == null) {
 					console.warn("Invalid birthday event id: ", event._id.join("/"))
 					this.previewedEvent(null)
@@ -965,7 +966,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	toggleHiddenCalendar = (calendarId: string) => {
-		if (isBirthdayCalendar(calendarId) && !this.isNewPaidPlan) {
+		if (isBirthdayCalendarId(calendarId) && !this.isNewPaidPlan) {
 			showPlanUpgradeRequiredDialog(UpgradePromptType.BIRTHDAY_CALENDAR, NewPaidPlans)
 			return
 		}

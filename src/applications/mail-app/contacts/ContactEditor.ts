@@ -47,7 +47,6 @@ import {
 	ContactRelationship,
 	ContactSocialId,
 	ContactWebsite,
-	createBirthday,
 	createContact,
 	createContactAddress,
 	createContactCustomDate,
@@ -397,11 +396,11 @@ export class ContactEditor {
 
 	private renderCustomDatesEditor(id: Id, allowCancel: boolean, date: CompleteCustomDate): Children {
 		let dateHelpText = (): Translation => {
-			let bday = createBirthday({
-				day: "22",
-				month: "9",
-				year: "2000",
-			})
+			let bday = {
+				day: 22,
+				month: 9,
+				year: 2000,
+			}
 			return !date.isValid
 				? lang.getTranslation("invalidDateFormat_msg", {
 						"{1}": formatBirthdayNumeric(bday),
@@ -675,11 +674,11 @@ export class ContactEditor {
 
 	private renderBirthdayField(): Children {
 		let birthdayHelpText = () => {
-			let bday = createBirthday({
-				day: "22",
-				month: "9",
-				year: "2000",
-			})
+			let bday = {
+				day: 22,
+				month: 9,
+				year: 2000,
+			}
 			return this.hasInvalidBirthday
 				? lang.get("invalidDateFormat_msg", {
 						"{1}": formatBirthdayNumeric(bday),

@@ -30,13 +30,13 @@ import {
 } from "../../../../platform-kit/app-env"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
-	birthdayCalendarEventContactId,
+	decodeContactIdFromBirthdayEvent,
 	CalendarType,
 	DefaultDateProvider,
 	findFirstPrivateCalendar,
 	getTimeZone,
 	hasSourceUrl,
-	isBirthdayCalendar,
+	isBirthdayCalendarId,
 	isBirthdayEvent,
 	parseAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -560,10 +560,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		const children: Array<Children> = []
 		if (this.viewModel.eventPreviewModel instanceof CalendarContactPreviewViewModel) {
-			const id = this.viewModel.eventPreviewModel.calendarEvent._id
-			const idParts = id[1].split("#")
-
-			const contactId = birthdayCalendarEventContactId(id)
+			const contactId = decodeContactIdFromBirthdayEvent(this.viewModel.eventPreviewModel.calendarEvent)
 			if (contactId == null) {
 				return null
 			}
@@ -1299,15 +1296,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		let getPreviewModel: Promise<CalendarPreviewModels>
 		let popupComponent: CalendarEventPopup | ContactEventPopup
 
-		if (isBirthdayEvent(selectedEvent.uid)) {
-			const base64ContactId = last(elementIdPart(selectedEvent._id).split("#"))
-			if (!base64ContactId) {
-				throw new Error(`Trying to open a birthday ${selectedEvent._id} without a contact id`)
+		if (isBirthdayEvent(selectedEvent)) {
+			const contactId = decodeContactIdFromBirthdayEvent(selectedEvent)
+			if (contactId === null) {
+				throw new Error(`Could not decode contact id from birthday id ${JSON.stringify(selectedEvent._id)}`)
 			}
-			const contactId = decodeBase64("utf8", base64ContactId).split("/")
-			const contact = await locator.entityClient.load(ContactTypeRef, [contactId[0], contactId[1]])
+			const contact = await locator.entityClient.load(ContactTypeRef, contactId)
 			if (!contact) {
-				throw new NotFoundError(`Could not find contact for this birthday event ${selectedEvent._id}`)
+				throw new NotFoundError(`Could not find contact for this birthday event ${JSON.stringify(selectedEvent._id)}`)
 			}
 			const popupModel = await locator.calendarContactPreviewModel(selectedEvent, contact!, true)
 			popupComponent = new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)
@@ -1443,7 +1439,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			group.type === GroupType.Calendar &&
 			hasCapabilityOnGroup(user, group, ShareCapability.Write) &&
 			!hasSourceUrl(groupSettings) &&
-			!isBirthdayCalendar(elementIdToId(group._id))
+			!isBirthdayCalendarId(elementIdToId(group._id))
 		)
 	}
 

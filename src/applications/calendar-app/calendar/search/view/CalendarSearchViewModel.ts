@@ -30,7 +30,7 @@ import {
 } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient } from "../../../../../platform-kit/network/EntityClient"
 import { createCalendarRestriction, encodeCalendarSearchKey, getCalendarRestriction } from "../model/CalendarSearchUtils"
-import { birthdayCalendarEventContactId, isBirthdayCalendar, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils"
+import { decodeContactIdFromBirthdayEvent, isBirthdayCalendarId, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils"
 import { onlySingleSelection } from "../../../../../ui/base/ListUtils"
 import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
@@ -366,7 +366,7 @@ export class CalendarSearchViewModel {
 			const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
 			if (listIdsOrBirthdayCalendarId == null || listIdsOrBirthdayCalendarId.longListShortList != null) {
 				this.#selectedCalendar = listIdsOrBirthdayCalendarId
-			} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
+			} else if (isBirthdayCalendarId(listIdsOrBirthdayCalendarId.toString())) {
 				const availableCalendars = this.getAvailableCalendars(true)
 				if (availableCalendars.some(isBirthdayCalendarInfo)) {
 					this.#selectedCalendar = listIdsOrBirthdayCalendarId
@@ -401,8 +401,8 @@ export class CalendarSearchViewModel {
 	private onListStateUpdate(state: ListState<CalendarEvent>) {
 		// handled birthday contact preview data
 		const selectedEvent = onlySingleSelection(state)
-		if (selectedEvent != null && isBirthdayEvent(selectedEvent.uid)) {
-			const contactId = birthdayCalendarEventContactId(selectedEvent._id)
+		if (selectedEvent != null && isBirthdayEvent(selectedEvent)) {
+			const contactId = decodeContactIdFromBirthdayEvent(selectedEvent)
 			if (contactId && this.isPreviewingContact(contactId)) {
 				// nothing to do
 			} else if (contactId == null) {

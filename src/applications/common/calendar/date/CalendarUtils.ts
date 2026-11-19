@@ -32,6 +32,8 @@ import {
 	isValidDate,
 	memoized,
 	neverNull,
+	stringToBase64,
+	stringToBase64UrlCustomId,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/utils"
 import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, WeekStart } from "@tutao/app-env"
@@ -49,7 +51,6 @@ import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel
 import { ResolvedUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
-import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -86,10 +87,6 @@ export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: Calen
 
 export function generateUid(groupId: Id, timestamp: number): string {
 	return `${groupId}${timestamp}@tuta.com`
-}
-
-export function isBirthdayEvent(uid?: string | null) {
-	return uid?.includes(BIRTHDAY_CALENDAR_BASE_ID) ?? false
 }
 
 /**
@@ -1690,7 +1687,7 @@ type CalendarTypeInfo = {
 }
 
 export function getCalendarType(calendarTypeInfo: CalendarTypeInfo): CalendarType {
-	if (isBirthdayCalendar(calendarTypeInfo.calendarId)) return CalendarType.Birthday
+	if (isBirthdayCalendarId(calendarTypeInfo.calendarId)) return CalendarType.Birthday
 	if (isPrivateRenderType(calendarTypeInfo)) return CalendarType.Private
 	if (isSharedRenderType(calendarTypeInfo)) return CalendarType.Shared
 	if (isExternalRenderType(calendarTypeInfo)) return CalendarType.External
@@ -1698,7 +1695,7 @@ export function getCalendarType(calendarTypeInfo: CalendarTypeInfo): CalendarTyp
 }
 
 function isPrivateRenderType(calendarTypeInfo: CalendarTypeInfo) {
-	return calendarTypeInfo.isUserOwner && !calendarTypeInfo.isExternalCalendar && !isBirthdayCalendar(calendarTypeInfo.calendarId)
+	return calendarTypeInfo.isUserOwner && !calendarTypeInfo.isExternalCalendar && !isBirthdayCalendarId(calendarTypeInfo.calendarId)
 }
 
 function isSharedRenderType(calendarTypeInfo: CalendarTypeInfo) {
@@ -1709,69 +1706,43 @@ function isExternalRenderType(calendarTypeInfo: CalendarTypeInfo) {
 	return calendarTypeInfo.isUserOwner && calendarTypeInfo.isExternalCalendar
 }
 
-export function isBirthdayCalendar(calendarId: Id) {
-	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
-}
-
 export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
 	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
 }
 
-/**
- * Get contact id that was used to derive {@param calendarEventId}.
- * For birthdays, we create "virtual" (client-only) calendar events. Their id is derived from the contact id. This
- * function does the opposite, giving the original contact id.
- */
-export function birthdayCalendarEventContactId(calendarEventId: IdTuple): IdTuple | null {
-	const idParts = elementIdPart(calendarEventId).split("#")
+export function isBirthdayEvent(event: CalendarEvent): boolean {
+	return isBirthdayCalendarId(event._id[0])
+}
+
+export function isBirthdayCalendarId(calendarId: Id) {
+	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
+}
+
+export function generateBirthdayEventId(contactId: IdTuple, userId: Id, birthdayEventStartTimestamp: number): IdTuple {
+	// Beware, there's code that appears to match this logic in Rust
+	const joinedContactId = contactId.join("/")
+	return [
+		`${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`,
+		`${stringToBase64UrlCustomId(`${birthdayEventStartTimestamp}${joinedContactId}`)}#${stringToBase64(joinedContactId)}`,
+	]
+}
+
+export function decodeContactIdFromBirthdayEvent(birthdayEvent: CalendarEvent): IdTuple | null {
+	// Beware, there's code that appears to match this logic in Rust
+	const idParts = elementIdPart(birthdayEvent._id).split("#")
 	if (idParts.length !== 2) {
 		return null
 	}
 	const [_, encodedContactId] = idParts
-	const contactId = decodeBase64("utf-8", encodedContactId)
-	if (contactId == null) {
+	const joinedContactId = decodeBase64("utf-8", encodedContactId)
+	if (joinedContactId == null) {
 		return null
 	}
-	const contactIdParts = contactId.split("/")
-	if (contactIdParts.length !== 2) {
+	const contactId = joinedContactId.split("/")
+	if (contactId.length !== 2) {
 		return null
 	}
-	return [contactIdParts[0], contactIdParts[1]]
-}
-
-/**
- * Converts a birthday ISO string into UTC start and end dates representing a full-day event in the given time zone.
- *
- * The year is set to 0 if the birthday ISO does not contain a year. E.g. --01-01 can be used to specify a birthday
- * on the first of January where the year that the person was born in is unknown.
- *
- * @param {string} birthdayIso - The desired date as an ISO date string (e.g., "1999-05-12").
- * @param {string} zone - The IANA time zone identifier (e.g., "Europe/Berlin", "America/New_York").
- * @returns {{ startDate: Date; endDate: Date }} An object containing:
- * - `startDate`: The UTC `Date` representing the start of the day (00:00 UTC converted to local time).
- * - `endDate`: The UTC `Date` representing the end of the day (00:00 UTC of the following day converted to local time).
- *
- * @example
- * // For a birthday on May 12 in Berlin time
- * const { startDate, endDate } = getAllDayDatesUTCFromIso("1999-05-12", "Europe/Berlin");
- * console.log(startDate); // 1999-05-11T22:00:00.000Z (depending on DST)
- * console.log(endDate);   // 1999-05-12T22:00:00.000Z (depending on DST)
- */
-export function getAllDayDatesFromBirthdayIso(birthdayIso: string, zone: string): { startDate: Date; endDate: Date } {
-	const birthday = isoDateToBirthday(birthdayIso)
-
-	// If the year is missing from the ISO string, e.g. "--01-01", we set it to 0, to indicate that it is missing
-	const year = birthday.year ? parseInt(birthday.year) : 0
-	const month = parseInt(birthday.month)
-	const day = parseInt(birthday.day)
-
-	const startDate = new Date(0)
-	startDate.setUTCFullYear(year, month - 1, day)
-
-	const endDate = new Date(0)
-	endDate.setUTCFullYear(year, month - 1, day + 1)
-
-	return { startDate, endDate }
+	return contactId as unknown as IdTuple
 }
 
 export enum ByRule {

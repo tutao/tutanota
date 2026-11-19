@@ -11,11 +11,12 @@ import {
 	CalendarMonth,
 	checkEventValidity,
 	createRepeatRuleWithValues,
+	decodeContactIdFromBirthdayEvent,
 	eventEndsBefore,
 	eventStartsAfter,
 	findNextAlarmOccurrence,
+	generateBirthdayEventId,
 	getAllDayDateForTimezone,
-	getAllDayDatesFromBirthdayIso,
 	getAllDayDateUTCFromZone,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
@@ -24,6 +25,7 @@ import {
 	getTimeZone,
 	getWeekNumber,
 	incrementByRepeatPeriod,
+	isBirthdayEvent,
 	isEventBetweenDays,
 	parseAlarmInterval,
 	StandardAlarmInterval,
@@ -271,49 +273,6 @@ o.spec("CalendarUtilsTest", function () {
 			const expected = 1675011600000
 			const result = getAllDayDateForTimezone(date, "Asia/Krasnoyarsk")
 			o(result.getTime()).equals(expected)(iso`${result.getTime()} vs ${expected}`)
-		})
-	})
-
-	o.spec("getAllDayDatesFromBirthdayIso", function () {
-		o("get all day in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("2025-09-29", "Europe/Berlin")
-			o(startDate.getTime()).equals(1759104000000)
-			o(endDate.getTime()).equals(1759190400000)
-		})
-
-		o("get all day at 1985-09-29 in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("1985-09-29", "Europe/Berlin")
-			o(startDate.getTime()).equals(496800000000)
-			o(endDate.getTime()).equals(496886400000)
-		})
-
-		o("get all day in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("2025-09-29", "America/Los_Angeles")
-			o(startDate.getTime()).equals(1759104000000)
-			o(endDate.getTime()).equals(1759190400000)
-		})
-
-		o("get all day at 1985-09-29 in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("1985-09-29", "America/Los_Angeles")
-			o(startDate.getTime()).equals(496800000000)
-			o(endDate.getTime()).equals(496886400000)
-		})
-
-		o("sets year to 0, if the year is not specified in the input, e.g. --01-01", function () {
-			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("--01-01", "Europe/Berlin")
-
-			const expectedStartDate = new Date(0)
-			expectedStartDate.setUTCFullYear(0)
-			expectedStartDate.setUTCMonth(0)
-			expectedStartDate.setUTCDate(1)
-
-			const expectedEndDate = new Date(0)
-			expectedEndDate.setUTCFullYear(0)
-			expectedEndDate.setUTCMonth(0)
-			expectedEndDate.setUTCDate(2)
-
-			o(startDate.getTime()).equals(expectedStartDate.getTime())
-			o(endDate.getTime()).equals(expectedEndDate.getTime())
 		})
 	})
 
@@ -2351,6 +2310,22 @@ o.spec("CalendarUtilsTest", function () {
 		o.test("discards decimal places of non-integer values", function () {
 			o.check(serializeAlarmInterval({ value: 1.1, unit: AlarmIntervalUnit.MINUTE })).equals("1M")
 		})
+	})
+
+	o.test("Birthday event ID generation and decoding", function () {
+		const contactId: IdTuple = ["contact", "alice"]
+		const userId = "userid"
+		const birthdayEventStartTimestamp = Date.UTC(2000, 1, 1, 0, 0, 0)
+
+		const birthdayEventId = generateBirthdayEventId(contactId, userId, birthdayEventStartTimestamp)
+
+		const birthdayEvent = { _id: birthdayEventId } as CalendarEvent
+
+		o.check(isBirthdayEvent(birthdayEvent)).equals(true)
+
+		const decodedContactId = decodeContactIdFromBirthdayEvent(birthdayEvent)
+
+		o.check(decodedContactId).deepEquals(decodedContactId)
 	})
 })
 

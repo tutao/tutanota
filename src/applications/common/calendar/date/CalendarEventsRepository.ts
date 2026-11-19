@@ -5,21 +5,21 @@ import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
+	generateBirthdayEventId,
 	generateUid,
-	getAllDayDatesFromBirthdayIso,
-	isBirthdayCalendar,
+	isBirthdayEvent,
 	isLongEvent,
 } from "./CalendarUtils.js"
-import { getElementId, getListId, idToElementId, isSameId, isSameSingleId, ListElementId, listIdPart, OperationType } from "@tutao/meta"
+import { getElementId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { deepEqual, findAllAndRemove, isNotEmpty, stringToBase64 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "@tutao/app-env"
+import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "@tutao/app-env"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController.js"
 
-import { generateLocalEventElementId, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils.js"
+import { isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
@@ -35,6 +35,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -150,7 +151,7 @@ export class CalendarEventsRepository {
 
 				if (eventWrapper.event.repeatRule != null) {
 					if (
-						!isBirthdayCalendar(listIdPart(eventWrapper.event._id)) &&
+						!isBirthdayEvent(eventWrapper.event) &&
 						-DateTime.fromJSDate(eventWrapper.event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS
 					) {
 						console.log("repeating event is too far into the past", eventWrapper)
@@ -471,14 +472,21 @@ export class CalendarEventsRepository {
 			return false
 		}
 
-		const { startDate, endDate } = getAllDayDatesFromBirthdayIso(contact.birthdayIso!, this.zone)
-		const encodedContactId = stringToBase64(contact._id.join("/"))
-		const calendarId = `${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
+		const birthday = isoDateToBirthday(contact.birthdayIso)
+
+		// If the year is missing from the ISO string, e.g. "--01-01", we set it to 0, to indicate that it is missing
+		const birthYear = birthday.year ?? 0
+		const birthdayMonth = birthday.month
+		const birthdayDay = birthday.day
+		const startDate = getAllDateUTCFromYearMonthDay(birthYear, birthdayMonth, birthdayDay)
+		const endDate = getAllDateUTCFromYearMonthDay(birthYear, birthdayMonth, birthdayDay + 1)
+
+		const listElementId = generateBirthdayEventId(contact._id, userId, startDate.getTime())
+		const calendarId = listIdPart(listElementId)
 		const uid = generateUid(calendarId, Date.now())
 		const summary = lang.get("birthdayEvent_title", {
 			"{name}": contact.firstName,
 		})
-		const listElementId: ListElementId = [calendarId, `${generateLocalEventElementId(startDate.getTime(), contact._id.join("/"))}#${encodedContactId}`]
 
 		const birthdayEventProgenitor = createCalendarEvent({
 			sequence: "0",
@@ -502,9 +510,6 @@ export class CalendarEventsRepository {
 		})
 		birthdayEventProgenitor._id = listElementId
 		birthdayEventProgenitor._ownerGroup = calendarId
-
-		const birthYear = startDate.getUTCFullYear()
-		const birthdayMonth = startDate.getUTCMonth() + 1
 
 		this.contactIdToBirthdayMonth.set(getElementId(contact), birthdayMonth)
 		this.monthToBirthdayEventProgenitors[birthdayMonth].push(birthdayEventProgenitor)
@@ -663,7 +668,7 @@ function getEventMapKey(year: number, month: number, day: number): number {
 function getMonthRange(year: number, month: number): CalendarTimeRange {
 	const startDate = new Date(0)
 	const endDate = new Date(0)
-	// We use setUTCFullYear instead of the Date constructor to avoid years 0-99 being converted to 1900-1999
+	// We use setFullYear instead of the Date constructor to avoid years 0-99 being converted to 1900-1999
 	startDate.setFullYear(year, month - 1, 1)
 	endDate.setFullYear(year, month, 1)
 	return {

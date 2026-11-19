@@ -14,6 +14,7 @@ import { getContactTitle } from "../../../../common/contactsFunctionality/Contac
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
 import { formatEventDuration } from "../DateTimeTextFormatterUtils"
+import { ParsingError } from "../../../../common/api/common/error/ParsingError"
 
 export type ContactPreviewViewAttrs = {
 	event: CalendarEvent
@@ -26,19 +27,25 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 		const eventTitle = getContactTitle(contact)
 
 		let ageRow: Children | null = null
-		const birthYearString = contact.birthdayIso && isoDateToBirthday(contact.birthdayIso).year
-		if (birthYearString) {
-			const birthYear = parseInt(birthYearString)
-			if (isNaN(birthYear)) {
-				console.warn(`Invalid contact birth year string "${birthYearString}"!`)
-				ageRow = null
-			} else {
-				const age = event.startTime.getUTCFullYear() - birthYear
-				if (age > 0) {
-					ageRow = this.renderRow(Icons.GiftFilled, lang.get("birthdayEventAge_title", { "{age}": age }))
+		if (contact.birthdayIso) {
+			try {
+				const birthYear = isoDateToBirthday(contact.birthdayIso).year
+				if (birthYear != null) {
+					const age = event.startTime.getUTCFullYear() - birthYear
+					if (age > 0) {
+						ageRow = this.renderRow(Icons.GiftFilled, lang.get("birthdayEventAge_title", { "{age}": age }))
+					}
+				}
+			} catch (e) {
+				if (e instanceof ParsingError) {
+					console.warn(`Invalid contact birthday ISO "${contact.birthdayIso}"!`)
+					ageRow = null
+				} else {
+					throw e
 				}
 			}
 		}
+
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
 			this.renderRow(Icons.CalendarFilled, [m("span.h3", eventTitle)]),
 			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, getTimeZone(), false)]),

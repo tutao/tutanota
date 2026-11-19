@@ -3,7 +3,6 @@ import { birthdayToIsoDate, isValidBirthday } from "../../common/api/common/util
 import { ParsingError } from "../../common/api/common/error/ParsingError"
 import { EnvProvider } from "../../../platform-kit/app-env"
 import {
-	Birthday,
 	Contact,
 	ContactAddress,
 	ContactMailAddress,
@@ -12,7 +11,6 @@ import {
 	ContactPronouns,
 	ContactRelationship,
 	ContactWebsite,
-	createBirthday,
 	createContact,
 	createContactAddress,
 	createContactMailAddress,
@@ -218,31 +216,36 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					break
 
 				case "BDAY": {
-					let indexOfT = tagValue.indexOf("T")
-					let bDayDetails: Birthday | null = null
+					let bDayDetails: { year: number | null; month: number; day: number } | null = null
 
-					if (tagValue.match(/--\d{4}/g)) {
-						bDayDetails = createBirthday({
-							month: tagValue.substring(2, 4),
-							day: tagValue.substring(4, 6),
+					let match = tagValue.match(/--(\d\d)(\d\d)/)
+					if (match) {
+						bDayDetails = {
 							year: null,
-						})
-					} else if (tagValue.match(/\d{4}-\d{2}-\d{2}/g)) {
-						let bDay = tagValue.substring(0, indexOfT !== -1 ? indexOfT : tagValue.length).split("-")
-						bDayDetails = createBirthday({
-							year: bDay[0].trim(),
-							month: bDay[1].trim(),
-							day: bDay[2].trim(),
-						})
-					} else if (tagValue.match(/\d{8}/g)) {
-						bDayDetails = createBirthday({
-							year: tagValue.substring(0, 4),
-							month: tagValue.substring(4, 6),
-							day: tagValue.substring(6, 8),
-						})
+							month: parseInt(match[1]),
+							day: parseInt(match[2]),
+						}
+					} else {
+						match = tagValue.match(/(\d\d\d\d)-(\d\d)-(\d\d)/)
+						if (match) {
+							bDayDetails = {
+								year: parseInt(match[1]),
+								month: parseInt(match[2]),
+								day: parseInt(match[3]),
+							}
+						} else {
+							match = tagValue.match(/(\d\d\d\d)(\d\d)(\d\d)/)
+							if (match) {
+								bDayDetails = {
+									year: parseInt(match[1]),
+									month: parseInt(match[2]),
+									day: parseInt(match[3]),
+								}
+							}
+						}
 					}
 
-					if (bDayDetails && bDayDetails.year === "1111") {
+					if (bDayDetails && bDayDetails.year === 1111) {
 						// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
 						bDayDetails.year = null
 					}

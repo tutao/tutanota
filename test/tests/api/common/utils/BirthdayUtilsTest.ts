@@ -3,55 +3,45 @@ import o from "@tutao/otest"
 import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/applications/common/api/common/utils/BirthdayUtils.js"
 import { ParsingError } from "../../../../../src/applications/common/api/common/error/ParsingError.js"
 import { TutanotaError } from "../../../../../src/platform-kit/app-env"
-import { createTestEntity } from "../../../TestUtils.js"
-import { BirthdayTypeRef, createBirthday } from "@tutao/entities/tutanota"
 
 o.spec("BirthdayUtils", function () {
 	o("birthdayToIsoDate", function () {
-		const bday = createTestEntity(BirthdayTypeRef, {
-			day: "12",
-			month: "10",
-			year: null,
-		})
+		const bday = {
+			day: 12,
+			month: 10,
+			year: null as number | null,
+		}
 		o(birthdayToIsoDate(bday)).equals("--10-12")
-		bday.year = "2009"
+		bday.year = 2009
 		o(birthdayToIsoDate(bday)).equals("2009-10-12")
-		bday.year = "100"
+		bday.year = 100
 		o(birthdayToIsoDate(bday)).equals("0100-10-12")
-		bday.year = "2019"
-		bday.month = "1"
-		bday.day = "5"
+		bday.year = 2019
+		bday.month = 1
+		bday.day = 5
 		o(birthdayToIsoDate(bday)).equals("2019-01-05")
 	})
 	o("isoDateToBirthday", function () {
-		o(isoDateToBirthday("--10-12")).deepEquals(
-			createBirthday({
-				day: "12",
-				month: "10",
-				year: null,
-			}),
-		)
-		o(isoDateToBirthday("2009-10-12")).deepEquals(
-			createBirthday({
-				day: "12",
-				month: "10",
-				year: "2009",
-			}),
-		)
-		o(isoDateToBirthday("2009-12-31")).deepEquals(
-			createBirthday({
-				day: "31",
-				month: "12",
-				year: "2009",
-			}),
-		)
-		o(isoDateToBirthday("2009-01-01")).deepEquals(
-			createBirthday({
-				day: "01",
-				month: "01",
-				year: "2009",
-			}),
-		)
+		o(isoDateToBirthday("--10-12")).deepEquals({
+			day: 12,
+			month: 10,
+			year: null,
+		})
+		o(isoDateToBirthday("2009-10-12")).deepEquals({
+			day: 12,
+			month: 10,
+			year: 2009,
+		})
+		o(isoDateToBirthday("2009-12-31")).deepEquals({
+			day: 31,
+			month: 12,
+			year: 2009,
+		})
+		o(isoDateToBirthday("2009-01-01")).deepEquals({
+			day: 1,
+			month: 1,
+			year: 2009,
+		})
 	})
 	o("parsing error", function () {
 		assertFail(() => isoDateToBirthday(""), new ParsingError("invalid birthday: "))

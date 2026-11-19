@@ -26,7 +26,6 @@ import { createTestEntity } from "../TestUtils.js"
 import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../src/platform-kit/app-env"
 import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/entities/tutanota/Utils"
 import {
-	BirthdayTypeRef,
 	Contact,
 	ContactAddressTypeRef,
 	ContactMailAddressTypeRef,
@@ -1159,43 +1158,35 @@ o.spec("ContactMergeUtilsTest", function () {
 	o("_compareBirthdaysForComparisonResultTest", function () {
 		let c1 = createTestEntity(ContactTypeRef)
 		let c2 = createTestEntity(ContactTypeRef)
-		c1.birthdayIso = fillBirthday("14", "11", "1999")
-		c2.birthdayIso = fillBirthday("14", "11", "1999")
+		c1.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: 1999 })
+		c2.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: 1999 })
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
-		c1.birthdayIso = fillBirthday("14", "11", null)
-		c2.birthdayIso = fillBirthday("14", "11", null)
+		c1.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: null })
+		c2.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: null })
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
 		c1.birthdayIso = null
 		c2.birthdayIso = null
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.BothEmpty)
-		c1.birthdayIso = fillBirthday("14", "11", "1999")
+		c1.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: 1999 })
 		c2.birthdayIso = null
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
 		c1 = createTestEntity(ContactTypeRef)
-		c2.birthdayIso = fillBirthday("14", "11", "1999")
+		c2.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: 1999 })
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
 		c1 = createTestEntity(ContactTypeRef)
 		c2 = createTestEntity(ContactTypeRef)
-		c2.birthdayIso = fillBirthday("14", "11", null)
+		c2.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: null })
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
-		c1.birthdayIso = fillBirthday("14", "11", "2000")
-		c2.birthdayIso = fillBirthday("14", "11", null)
+		c1.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: 2000 })
+		c2.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: null })
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
 		c1 = createTestEntity(ContactTypeRef)
 		c2 = createTestEntity(ContactTypeRef)
-		c1.birthdayIso = fillBirthday("12", "8", null)
-		c2.birthdayIso = fillBirthday("12", "8", "1999")
+		c1.birthdayIso = birthdayToIsoDate({ day: 12, month: 8, year: null })
+		c2.birthdayIso = birthdayToIsoDate({ day: 12, month: 8, year: 1999 })
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
-		c1.birthdayIso = fillBirthday("14", "11", "1999")
-		c2.birthdayIso = fillBirthday("14", "11", "2000")
+		c1.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: 1999 })
+		c2.birthdayIso = birthdayToIsoDate({ day: 14, month: 11, year: 2000 })
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Unique)
 	})
 })
-
-function fillBirthday(day: NumberString, month: NumberString, year: NumberString | null | undefined): string | null {
-	let bday = createTestEntity(BirthdayTypeRef)
-	bday.day = day
-	bday.month = month
-	bday.year = year ?? null
-	return birthdayToIsoDate(bday)
-}

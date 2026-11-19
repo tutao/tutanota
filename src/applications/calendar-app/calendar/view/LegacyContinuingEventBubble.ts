@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
-import { listIdPart } from "@tutao/meta"
+import { getTimeZone, hasAlarmsForTheUser, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
 import type { EventTextTimeOption } from "@tutao/app-env"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
 import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
@@ -65,7 +64,7 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 					fadeIn: attrs.fadeIn,
 					opacity: attrs.opacity,
 					enablePointerEvents: attrs.enablePointerEvents,
-					isBirthday: isBirthdayCalendar(listIdPart(attrs.eventWrapper.event._id)),
+					isBirthday: isBirthdayEvent(attrs.eventWrapper.event),
 				}),
 			),
 			attrs.endsAfter

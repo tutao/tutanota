@@ -77,7 +77,7 @@ import {
 	getCalendarType,
 	getTimeZone,
 	hasSourceUrl,
-	isBirthdayCalendar,
+	isBirthdayCalendarId,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import { getSharedGroupName, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -288,7 +288,7 @@ export class CalendarModel {
 	}
 
 	async getCalendarInfo(calendarId: ElementId): Promise<CalendarInfoBase | undefined> {
-		if (isBirthdayCalendar(elementIdToId(calendarId))) {
+		if (isBirthdayCalendarId(elementIdToId(calendarId))) {
 			return this.birthdayCalendarInfo
 		}
 		const calendars = await this.getCalendarInfos()

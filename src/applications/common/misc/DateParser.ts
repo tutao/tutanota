@@ -1,5 +1,4 @@
 import { DateTime } from "luxon"
-import { Birthday, createBirthday } from "@tutao/entities/tutanota"
 import { ProgrammingError } from "@tutao/app-env"
 
 /**
@@ -123,7 +122,7 @@ export function _getNumDaysInMonth(month: number, year: number): number {
  * Parses a birthday string containing either day and month or day and month and year. The year may be 4 or 2 digits. If it is 2 digits and after the current year, 1900 + x is used, 2000 + x otherwise.
  * @return A birthday object containing the data form the given text or null if the text could not be parsed.
  */
-export function parseBirthday(text: string, referenceDateRenderer: (refdate: Date) => string): Birthday | null {
+export function parseBirthday(text: string, referenceDateRenderer: (refdate: Date) => string): { year: number | null; month: number; day: number } | null {
 	try {
 		const referenceParts = _cleanupAndSplit(referenceDateRenderer(referenceDate))
 
@@ -144,13 +143,13 @@ export function parseBirthday(text: string, referenceDateRenderer: (refdate: Dat
 
 		if (String(birthdayValues[dayPos]).length < 3 && String(birthdayValues[monthPos]).length < 3) {
 			if (birthdayValues[dayPos] < 32) {
-				day = String(birthdayValues[dayPos])
+				day = birthdayValues[dayPos]
 			} else {
 				return null
 			}
 
 			if (birthdayValues[monthPos] < 13) {
-				month = String(birthdayValues[monthPos])
+				month = birthdayValues[monthPos]
 			} else {
 				return null
 			}
@@ -160,12 +159,12 @@ export function parseBirthday(text: string, referenceDateRenderer: (refdate: Dat
 
 		if (birthdayValues[yearPos]) {
 			if (String(birthdayValues[yearPos]).length === 4) {
-				year = String(birthdayValues[yearPos])
+				year = birthdayValues[yearPos]
 			} else if (String(birthdayValues[yearPos]).length === 2) {
 				if (birthdayValues[yearPos] > Number(String(new Date().getFullYear()).substring(2))) {
-					year = "19" + String(birthdayValues[yearPos])
+					year = 1900 + birthdayValues[yearPos]
 				} else {
-					year = "20" + String(birthdayValues[yearPos])
+					year = 2000 + birthdayValues[yearPos]
 				}
 			} else {
 				return null
@@ -173,7 +172,7 @@ export function parseBirthday(text: string, referenceDateRenderer: (refdate: Dat
 		} else {
 			year = null
 		}
-		return createBirthday({ day, month, year })
+		return { year, month, day }
 	} catch (e) {
 		return null
 	}
