@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { mailLocator } from "../mailLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { elementIdPart, isSameId, OperationType } from "@tutao/meta"
+import { elementIdPart, elementIdToId, isSameId, OperationType } from "@tutao/meta"
 import m, { Children } from "mithril"
 import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality/MailboxModel"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
@@ -22,6 +22,8 @@ import { TitleSection } from "../../../ui/TitleSection"
 import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
 import { getMailSetName } from "../mail/model/MailUtils"
+import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
+import { getMailboxName, isUserMailbox } from "../../common/mailFunctionality/SharedMailUtils"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { InboxRulesSettingsViewerModel } from "./InboxRulesSettingsViewerModel"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
@@ -46,10 +48,19 @@ import { LegacyInboxRuleHandler } from "../mail/model/LegacyInboxRuleHandler"
 
 EnvProvider.assertMainOrNode()
 
+class MailboxViewState {
+	draggingOverRuleIndex: number | null = null
+	draggingOverRule2ndHalf: boolean | null = null
+
+	constructor(
+		readonly mailboxDetail: MailboxDetail,
+		public expanded: boolean,
+	) {}
+}
+
 export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 	private model: InboxRulesSettingsViewerModel
-	private draggingOverRuleIndex: number | null = null
-	private draggingOverRule2ndHalf: boolean | null = null
+	private mailboxes: MailboxViewState[] = []
 
 	private legacyInboxRuleTableLines: Stream<Array<TableLineAttrs>> = stream<Array<TableLineAttrs>>([])
 	private isUsingLegacyInboxRules: boolean | null = null
@@ -60,17 +71,26 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		readonly inboxRuleModel: lazyAsync<InboxRuleModel>,
 		readonly inboxRuleHandler: lazyAsync<ExpandedInboxRuleHandler | LegacyInboxRuleHandler>,
 	) {
-		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
-		this.model.init().then(async () => {
-			this.isUsingLegacyInboxRules = (await this.inboxRuleModel()).isUsingLegacyInboxRules()
-			m.redraw()
-			if (this.isUsingLegacyInboxRules) {
-				this.renderLegacyInboxRules()
-			}
-		})
+		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel, mailboxModel)
+		this.init()
 	}
 
-	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	private async init() {
+		this.isUsingLegacyInboxRules = (await this.inboxRuleModel()).isUsingLegacyInboxRules()
+		if (this.isUsingLegacyInboxRules) {
+			m.redraw()
+			this.renderLegacyInboxRules()
+		} else {
+			await this.model.init()
+			// the user mailbox is the only one expanded by default
+			this.mailboxes = this.model.mailboxDetails
+				.map((mailboxDetail) => new MailboxViewState(mailboxDetail, isUserMailbox(mailboxDetail)))
+				.sort((a, b) => Number(b.expanded) - Number(a.expanded))
+			m.redraw()
+		}
+	}
+
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		if ((await this.inboxRuleModel()).isUsingLegacyInboxRules()) {
 			for (const update of updates) {
 				if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
@@ -78,23 +98,27 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 				}
 			}
 		} else {
-			await this.model.onEntityEventsReceived(updates)
+			await this.model.onEntityEventsReceived(updates, eventOwnerGroupId)
 		}
 		m.redraw()
 	}
 
 	view(): Children {
-		if (this.isUsingLegacyInboxRules == null) {
+		if (this.isUsingLegacyInboxRules === null) {
 			return null
 		}
 
-		const tableLines = this.isUsingLegacyInboxRules ? this.legacyInboxRuleTableLines() : this.renderInboxRuleTableLines()
+		const tableLines = this.legacyInboxRuleTableLines()
+		const hasRules = this.isUsingLegacyInboxRules
+			? tableLines.length > 0
+			: this.mailboxes.some((mailbox) => this.model.getOrderedInboxRules(mailbox.mailboxDetail).length > 0)
 		const isMobile = ClientDetector.get().isMobileDevice()
 
 		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
 		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".overflow-y-scroll-settings-page.scrollbar-gutter-stable-or-fallback" : ""}`
 		// no gap to make drag&drop between the lines work, the components have padding that makes up for it
-		const inboxRuleListClasses = `.mt-12.flex-v-start${isMobile ? "" : ".overflow-y-scroll-settings-page.scrollbar-gutter-stable-or-fallback"}`
+		const inboxRuleScrollClasses = `.flex-v-start${isMobile ? "" : ".overflow-y-scroll-settings-page.scrollbar-gutter-stable-or-fallback"}`
+		const inboxRuleListClasses = `.mt-12${inboxRuleScrollClasses}`
 
 		return m("", [
 			m(
@@ -112,30 +136,35 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							title: lang.getTranslationText("inboxRuleManagement_label"),
 							subTitle: m.trust(lang.getTranslationText("inboxRuleManagement_text")),
 						}),
-						m(".mt-24", m(MenuTitle, { content: lang.get("inboxRulesSettings_action") })),
-						tableLines.length > 0
-							? m(
-									inboxRuleListClasses,
-									this.isUsingLegacyInboxRules
+						this.isUsingLegacyInboxRules
+							? [
+									m(".mt-24", m(MenuTitle, { content: lang.get("inboxRulesSettings_action") })),
+									tableLines.length > 0
 										? m(
-												".skeleton-bg-2.border-radius",
-												m(Table, {
-													columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
-													columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
-													showActionButtonColumn: true,
-													lines: this.legacyInboxRuleTableLines(),
-												}),
+												inboxRuleListClasses,
+												m(
+													".skeleton-bg-2.border-radius",
+													m(Table, {
+														columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
+														columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
+														showActionButtonColumn: true,
+														lines: tableLines,
+													}),
+												),
 											)
-										: tableLines,
-								)
-							: m(MessageBanner, {
-									translation: lang.getTranslation("noEntries_msg"),
-									type: "base",
-								}),
+										: m(MessageBanner, {
+												translation: lang.getTranslation("noEntries_msg"),
+												type: "base",
+											}),
+								]
+							: m(
+									inboxRuleScrollClasses,
+									this.mailboxes.map((mailbox) => this.renderMailbox(mailbox, this.mailboxes.length > 1)),
+								),
 					),
 					m(
 						".mt-16.flex-wrap.flex-end.gap-8",
-						tableLines.length > 0
+						hasRules
 							? m(SecondaryButton, {
 									label: "reapplyInboxRules_action",
 									width: "flex",
@@ -164,23 +193,50 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	renderInboxRuleTableLines(): Children[] {
-		return this.model.orderedInboxRules.map((rule, index, { length }) => {
+	private renderMailbox(mailbox: MailboxViewState, hasExpander: boolean): Children {
+		const tableLines = this.renderInboxRuleTableLines(mailbox)
+		const content =
+			tableLines.length > 0 ? m(".flex-v-start", tableLines) : m(MessageBanner, { translation: lang.getTranslation("noEntries_msg"), type: "base" })
+		return m(
+			".mt-24",
+			{ key: elementIdToId(mailbox.mailboxDetail.mailGroup._id) },
+			hasExpander
+				? [
+						m(".flex-space-between.items-center", [
+							m(MenuTitle, {
+								content: `${lang.get("inboxRulesSettings_action")} · ${getMailboxName(mailLocator.logins, mailbox.mailboxDetail)}`,
+							}),
+							m(ExpanderButton, {
+								label: "show_action",
+								expanded: mailbox.expanded,
+								onExpandedChange: () => {
+									mailbox.expanded = !mailbox.expanded
+								},
+							}),
+						]),
+						m(ExpanderPanel, { expanded: mailbox.expanded }, m(".mt-12", content)),
+					]
+				: [m(MenuTitle, { content: lang.get("inboxRulesSettings_action") }), m(".mt-12", content)],
+		)
+	}
+
+	renderInboxRuleTableLines(mailbox: MailboxViewState): Children[] {
+		return this.model.getOrderedInboxRules(mailbox.mailboxDetail).map((rule, index, { length }) => {
 			const dragBorder = ".border-accent.border-left-none.border-right-none"
 			const dragBorderTop = `.pt-4.pb-4.border-bottom-none${dragBorder}${index === 0 ? ".border-md" : ".border-sm"}`
 			const dragBorderBottom = `.border-top-none${dragBorder}${index === length - 1 ? ".border-md" : ".border-sm"}`
 
 			const disabled = !this.isInboxRuleValid(rule)
 
-			const maybeDragBorder = this.draggingOverRule2ndHalf
-				? this.draggingOverRuleIndex === index
+			const maybeDragBorder = mailbox.draggingOverRule2ndHalf
+				? mailbox.draggingOverRuleIndex === index
 					? dragBorderBottom
-					: this.draggingOverRuleIndex !== null && this.draggingOverRuleIndex + 1 === index
+					: mailbox.draggingOverRuleIndex !== null && mailbox.draggingOverRuleIndex + 1 === index
 						? dragBorderTop
 						: ""
-				: this.draggingOverRuleIndex === index
+				: mailbox.draggingOverRuleIndex === index
 					? dragBorderTop
-					: this.draggingOverRuleIndex !== null && this.draggingOverRuleIndex - 1 === index
+					: mailbox.draggingOverRuleIndex !== null && mailbox.draggingOverRuleIndex - 1 === index
 						? dragBorderBottom
 						: ""
 
@@ -191,27 +247,32 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					// insert at position & clear state when we're finished dragging
 					ondragend: async (ev: DragEvent) => {
 						// insert
-						await this.model.moveRuleToIndex(rule, index, assertNotNull(this.draggingOverRuleIndex) + (this.draggingOverRule2ndHalf ? 1 : 0))
+						await this.model.moveRuleToIndex(
+							mailbox.mailboxDetail,
+							rule,
+							index,
+							assertNotNull(mailbox.draggingOverRuleIndex) + (mailbox.draggingOverRule2ndHalf ? 1 : 0),
+						)
 
 						// clear state
 						assertNotNull(ev.target as HTMLElement).setAttribute("draggable", "false")
-						this.draggingOverRuleIndex = null
-						this.draggingOverRule2ndHalf = null
+						mailbox.draggingOverRuleIndex = null
+						mailbox.draggingOverRule2ndHalf = null
 					},
 					ondragstart: (ev: DragEvent) => {
 						// The datatransfer is needed or the drag will not work on iOS
 						assertNotNull(ev.dataTransfer).setData("text/plain", `${index}`)
 						assertNotNull(ev.dataTransfer).effectAllowed = "move"
 
-						this.draggingOverRuleIndex = index
+						mailbox.draggingOverRuleIndex = index
 					},
 					// insert when finished dragging
 					// update our state while moving the rule around
 					ondragover: (ev: DragEvent) => {
 						const halfHeight = assertNotNull(ev.currentTarget as HTMLElement).offsetHeight / 2
 						const mousePosition = ev.offsetY
-						this.draggingOverRuleIndex = index
-						this.draggingOverRule2ndHalf = mousePosition > halfHeight
+						mailbox.draggingOverRuleIndex = index
+						mailbox.draggingOverRule2ndHalf = mousePosition > halfHeight
 						assertNotNull(ev.dataTransfer).dropEffect = "move"
 						ev.stopPropagation()
 						ev.preventDefault()
@@ -220,8 +281,8 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					oncontextmenu: (e: MouseEvent) => {
 						// If text is selected show typical right click menu, so text can be copied
 						// also disable while dragging so these two don't interfere on mobile
-						if (window.getSelection()?.toString() === "" && this.draggingOverRuleIndex == null && !ClientDetector.get().isMobileDevice()) {
-							contextDropdown(e, this.getActionsForRule(index, rule))
+						if (window.getSelection()?.toString() === "" && mailbox.draggingOverRuleIndex == null && !ClientDetector.get().isMobileDevice()) {
+							contextDropdown(e, this.getActionsForRule(mailbox, index, rule))
 						}
 					},
 					role: "listitem",
@@ -314,7 +375,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							icon: Icons.More,
 							size: ButtonSize.Small,
 							click: createDropdown({
-								lazyButtons: () => this.getActionsForRule(index, rule),
+								lazyButtons: () => this.getActionsForRule(mailbox, index, rule),
 								width: 260,
 							}),
 						}),
@@ -331,37 +392,34 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	private getActionsForRule(index: number, rule: ExpandedInboxRule): DropdownButtonAttrs[] {
+	private getActionsForRule(mailbox: MailboxViewState, index: number, rule: ExpandedInboxRule): DropdownButtonAttrs[] {
 		return [
 			{
 				label: "edit_action" as TranslationKey,
-				click: () =>
-					mailLocator.mailboxModel
-						.getUserMailboxDetails()
-						.then(async (mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, await this.inboxRuleModel(), rule)),
+				click: async () => AddInboxRuleDialog.show(mailbox.mailboxDetail, await this.inboxRuleModel(), rule),
 			},
 			index > 1
 				? {
 						label: "moveToTop_action" as TranslationKey,
-						click: () => this.model.moveRuleToFirst(rule, index),
+						click: () => this.model.moveRuleToFirst(mailbox.mailboxDetail, rule, index),
 					}
 				: null,
 			index > 0
 				? {
 						label: "moveUp_action" as TranslationKey,
-						click: () => this.model.moveRuleUp(rule, index),
+						click: () => this.model.moveRuleUp(mailbox.mailboxDetail, rule, index),
 					}
 				: null,
-			index < this.model.orderedInboxRules.length - 1
+			index < this.model.getOrderedInboxRules(mailbox.mailboxDetail).length - 1
 				? {
 						label: "moveDown_action" as TranslationKey,
-						click: () => this.model.moveRuleDown(rule, index),
+						click: () => this.model.moveRuleDown(mailbox.mailboxDetail, rule, index),
 					}
 				: null,
-			index < this.model.orderedInboxRules.length - 2
+			index < this.model.getOrderedInboxRules(mailbox.mailboxDetail).length - 2
 				? {
 						label: "moveToBottom_action" as TranslationKey,
-						click: () => this.model.moveRuleToLast(rule, index),
+						click: () => this.model.moveRuleToLast(mailbox.mailboxDetail, rule, index),
 					}
 				: null,
 			{
@@ -522,16 +580,29 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			})
 			await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": mailsAffected }))
 		} else {
-			const rules = await inboxRuleModel.getOrderedInboxRules()
-			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>await this.inboxRuleHandler())
+			const rulesPerMailbox = this.mailboxes.map(({ mailboxDetail }) => ({ mailboxDetail, rules: this.model.getOrderedInboxRules(mailboxDetail) }))
+			await applyRulesWithProgress(rulesPerMailbox, <ExpandedInboxRuleHandler>await this.inboxRuleHandler())
 		}
 	}
 }
 
-export async function applyRuleWithProgress(rules: Array<ExpandedInboxRule>, inboxRuleHandler: ExpandedInboxRuleHandler): Promise<void> {
+export async function applyRulesWithProgress(
+	rulesPerMailbox: ReadonlyArray<{ mailboxDetail: MailboxDetail; rules: Array<ExpandedInboxRule> }>,
+	inboxRuleHandler: ExpandedInboxRuleHandler,
+): Promise<void> {
 	const progressStream = stream(0)
 	const abort = new AbortController()
-	const mailsAffected = await showProgressDialog("pleaseWait_msg", inboxRuleHandler.applyRulesToAllMails(progressStream, abort, rules), {
+	const applyToAll = async () => {
+		let mailsAffected = 0
+		for (const [index, { mailboxDetail, rules }] of rulesPerMailbox.entries()) {
+			if (abort.signal.aborted) break
+			const mailboxProgress = stream(0)
+			mailboxProgress.map((progress) => progressStream((index * 100 + progress) / rulesPerMailbox.length))
+			mailsAffected += await inboxRuleHandler.applyRulesToAllMails(mailboxProgress, abort, mailboxDetail, rules)
+		}
+		return mailsAffected
+	}
+	const mailsAffected = await showProgressDialog("pleaseWait_msg", applyToAll(), {
 		progressStream,
 		headerBarAttrs: {
 			middle: "applyingInboxRules_label",

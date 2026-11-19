@@ -177,8 +177,8 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 
 	private entityUpdatesListener: EntityUpdatesListener = {
 		id: "PartnerView",
-		onEntityUpdatesReceived: (updates: EntityUpdateData[]) => {
-			return this.onEntityUpdatesReceived(updates)
+		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
+			return this.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 		},
 		priority: ListenerPriority.NORMAL,
 	}
@@ -237,10 +237,10 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		void this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		await this._currentViewer?.onEntityUpdatesReceived(updates)
+	async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+		await this._currentViewer?.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 
-		await this.detailsViewer?.onEntityUpdatesReceived(updates)
+		await this.detailsViewer?.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 	}
 
 	getViewSlider(): ViewSlider | null {

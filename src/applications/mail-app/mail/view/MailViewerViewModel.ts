@@ -811,13 +811,17 @@ export class MailViewerViewModel {
 		return (
 			this.logins.isInternalUserLoggedIn() &&
 			isNotNull(this.mailboxDetails) &&
-			!isSharedMailbox(this.mailboxDetails) &&
+			this.supportsInboxRules(this.mailboxDetails) &&
 			this.getFolderInfo()?.folderType === MailSetKind.INBOX
 		)
 	}
 
 	canCreateInboxRule(): boolean {
-		return this.logins.isInternalUserLoggedIn() && isNotNull(this.mailboxDetails) && !isSharedMailbox(this.mailboxDetails)
+		return this.logins.isInternalUserLoggedIn() && isNotNull(this.mailboxDetails) && this.supportsInboxRules(this.mailboxDetails)
+	}
+
+	private supportsInboxRules(mailboxDetails: MailboxDetail): boolean {
+		return !isSharedMailbox(mailboxDetails) || !this.inboxRuleModel.isUsingLegacyInboxRules()
 	}
 
 	canShowHeaders(): boolean {

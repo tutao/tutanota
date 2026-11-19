@@ -9,7 +9,7 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
 import { elementIdPart, elementIdToId, getElementId, getListId, isSameId } from "@tutao/meta"
-import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { ProgrammingError } from "@tutao/app-env"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, isEmpty, isNotNull } from "@tutao/utils"
@@ -35,10 +35,10 @@ export class InboxRuleModel {
 	) {}
 
 	async init() {
-		const mailboxGroupRoot = await this.getUserMailboxGroupRoot()
+		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
 		const props = await this.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 		this.hasLegacyInboxRules = !isEmpty(props.inboxRules)
-		this.ableToUseExpandedInboxRules = isNotNull(mailboxGroupRoot.inboxRules)
+		this.ableToUseExpandedInboxRules = isNotNull(userMailboxGroupRoot.inboxRules)
 		this.usingLegacyInboxRules = !this.ableToUseExpandedInboxRules || this.hasLegacyInboxRules
 	}
 
@@ -62,11 +62,11 @@ export class InboxRuleModel {
 	}
 
 	private async migrateInboxRules(legacyInboxRules: InboxRule[]) {
-		const mailboxGroupRoot = await this.getUserMailboxGroupRoot()
-		if (!mailboxGroupRoot.mailboxProperties) {
+		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
+		if (!userMailboxGroupRoot.mailboxProperties) {
 			// The server will throw an error if the Mailbox Properties are not created, mailbox properties are created on the client side only when first accessed
 			// there is a small chance that the user has never done an action that prompted the creation of the mailboxProperties
-			await this.mailboxModel.loadOrCreateMailboxProperties(mailboxGroupRoot)
+			await this.mailboxModel.loadOrCreateMailboxProperties(userMailboxGroupRoot)
 		}
 
 		for (const legacyInboxRule of legacyInboxRules) {
@@ -88,7 +88,7 @@ export class InboxRuleModel {
 				enabled: isNotNull(targetFolder),
 			})
 
-			await this.createInboxRule(inboxRule)
+			await this.createInboxRule(inboxRule, await this.mailboxModel.getUserMailboxDetails())
 		}
 	}
 
@@ -97,27 +97,27 @@ export class InboxRuleModel {
 		return mailboxGroupRoot
 	}
 
-	async getOrderedInboxRules(): Promise<ExpandedInboxRule[]> {
-		const [inboxRulesById, inboxRuleOrder] = await Promise.all([this.getInboxRulesMap(), this.getInboxRuleOrder()])
+	async getOrderedInboxRules(mailboxDetail: MailboxDetail): Promise<ExpandedInboxRule[]> {
+		const [inboxRulesById, inboxRuleOrder] = await Promise.all([this.getInboxRulesMap(mailboxDetail), this.getInboxRuleOrder(mailboxDetail)])
 		return inboxRuleOrder.map(({ listElementId }) => inboxRulesById.get(listElementId) ?? null).filter(isNotNull)
 	}
 
-	async getInboxRuleOrder(): Promise<IdTupleWrapper[]> {
-		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
-		const mailboxProperties = await this.mailboxModel.getMailboxProperties(userMailboxGroupRoot)
+	async getInboxRuleOrder(mailboxDetail: MailboxDetail): Promise<IdTupleWrapper[]> {
+		const mailboxGroupRoot = mailboxDetail.mailboxGroupRoot
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxGroupRoot)
 		return mailboxProperties.inboxRuleOrder
 	}
 
-	private async getUnsortedInboxRules(): Promise<ExpandedInboxRule[]> {
-		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
+	private async getUnsortedInboxRules(mailboxDetail: MailboxDetail): Promise<ExpandedInboxRule[]> {
+		const mailboxGroupRoot = mailboxDetail.mailboxGroupRoot
 		return await this.entityClient.loadAll(
 			ExpandedInboxRuleTypeRef,
-			assertNotNull(userMailboxGroupRoot.inboxRules, "expanded inbox rules list missing from mailboxGroupRoot").list,
+			assertNotNull(mailboxGroupRoot.inboxRules, "expanded inbox rules list missing from mailboxGroupRoot").list,
 		)
 	}
 
-	async getInboxRulesMap(): Promise<Map<Id, ExpandedInboxRule>> {
-		const unsortedInboxRules = await this.getUnsortedInboxRules()
+	async getInboxRulesMap(mailboxDetail: MailboxDetail): Promise<Map<Id, ExpandedInboxRule>> {
+		const unsortedInboxRules = await this.getUnsortedInboxRules(mailboxDetail)
 		const inboxRulesById = new Map<Id, ExpandedInboxRule>()
 		for (const rule of unsortedInboxRules) {
 			inboxRulesById.set(getElementId(rule), rule)
@@ -126,16 +126,16 @@ export class InboxRuleModel {
 		return inboxRulesById
 	}
 
-	async createInboxRule(rule: ExpandedInboxRule): Promise<void> {
-		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
+	async createInboxRule(rule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<void> {
+		const mailboxGroupRoot = mailboxDetail.mailboxGroupRoot
 
-		if (!userMailboxGroupRoot.inboxRules) {
+		if (!mailboxGroupRoot.inboxRules) {
 			throw new ProgrammingError("Trying to create an expanded inbox rule when the list has not been added to the mailbox!")
 		}
 
-		rule._ownerGroup = elementIdToId(userMailboxGroupRoot._id)
+		rule._ownerGroup = elementIdToId(mailboxGroupRoot._id)
 		// When the inbox rule is created, the server adds it to the inboxRuleOrder on MailboxProperties
-		await this.entityClient.setup(userMailboxGroupRoot.inboxRules.list, rule, null)
+		await this.entityClient.setup(mailboxGroupRoot.inboxRules.list, rule, null)
 	}
 
 	async updateInboxRule(rule: ExpandedInboxRule): Promise<void> {
@@ -147,9 +147,9 @@ export class InboxRuleModel {
 		await this.entityClient.erase(rule)
 	}
 
-	async updateInboxRuleOrder(newOrder: ExpandedInboxRule[]) {
-		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
-		const mailboxProperties = await this.mailboxModel.getMailboxProperties(userMailboxGroupRoot)
+	async updateInboxRuleOrder(newOrder: ExpandedInboxRule[], mailboxDetail: MailboxDetail) {
+		const mailboxGroupRoot = mailboxDetail.mailboxGroupRoot
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxGroupRoot)
 
 		mailboxProperties.inboxRuleOrder = newOrder.map((rule) => createIdTupleWrapper({ listId: getListId(rule), listElementId: getElementId(rule) }))
 		await this.entityClient.update(mailboxProperties)
@@ -165,15 +165,22 @@ export class InboxRuleModel {
 	}
 
 	async getInboxRulesThatReferenceMailSets(sets: readonly MailSet[]): Promise<ExpandedInboxRule[]> {
-		if (this.usingLegacyInboxRules) return []
+		if (this.usingLegacyInboxRules || isEmpty(sets)) return []
 
-		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
-		const relevantLabels = sets.filter((label) => label._ownerGroup === userMailboxGroupRoot._ownerGroup)
+		const ownerGroup = sets[0]._ownerGroup
+		if (ownerGroup === null || sets.some((set) => set._ownerGroup !== ownerGroup)) {
+			console.warn("tried to get inbox rules for mail sets belonging to different mailboxes...")
+			return []
+		}
+
+		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(ownerGroup)
+		const mailboxGroupRoot = mailboxDetail.mailboxGroupRoot
+		const relevantLabels = sets.filter((label) => label._ownerGroup === mailboxGroupRoot._ownerGroup)
 		if (isEmpty(relevantLabels)) {
 			return []
 		}
 
-		const unsortedInboxRules = await this.getUnsortedInboxRules()
+		const unsortedInboxRules = await this.getUnsortedInboxRules(mailboxDetail)
 		return unsortedInboxRules.filter((rule) => {
 			for (const action of rule.actions) {
 				if (sets.some((label) => isSameId(action.value, label._id))) {
