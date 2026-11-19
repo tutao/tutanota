@@ -344,6 +344,8 @@ export class BlobFacade {
 
 		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
 		const chunkSizeBytes = MAX_BLOB_SIZE_BYTES
+		// sum of the size of all chunks of this transfer that were completely uploaded so far
+		// this is only for the finished chunks because we might fail and retry progress for individual chunks
 		let bytesUploadedSoFar = 0
 
 		const chunkGenerator = splitFileIntoChunks(chunkSizeBytes, file)
@@ -351,10 +353,14 @@ export class BlobFacade {
 		const doBlobRequest = async (chunk: EncryptedChunk) => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
 			const refTokenWrapper = await this.uploadEncryptedChunk(chunk, blobServerAccessInfo, abortController.signal, (bytes) => {
+				// this is a chunk uploading progress callback
+				// for this transfer we uploaded all the bytesUploadedSoFar (complete chunk data) plus the progress we just made for this chunk
 				this.progressDispatcher.onChunkUploaded({ transferId, uploadedBytes: bytesUploadedSoFar + bytes, totalBytes: file.size })
 			})
+			// at this point the chunk is fully uploaded, we  can add its size to total transfer progress
+			bytesUploadedSoFar += chunk.byteLength
 			// notify upload listeners that the chunk is fully uploaded in case upload progress event comes too late
-			this.progressDispatcher.onChunkUploaded({ transferId, uploadedBytes: file.size, totalBytes: file.size })
+			this.progressDispatcher.onChunkUploaded({ transferId, uploadedBytes: bytesUploadedSoFar, totalBytes: file.size })
 			return refTokenWrapper
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
@@ -370,9 +376,8 @@ export class BlobFacade {
 				if (abortController.signal.aborted) {
 					throw new CancelledError("Upload aborted")
 				}
-				const response = await doBlobRequest(encryptedChunk)
-				bytesUploadedSoFar += encryptedChunk.byteLength
-				return response
+
+				return await doBlobRequest(encryptedChunk)
 			}, doEvictToken)
 		}
 
@@ -431,7 +436,7 @@ export class BlobFacade {
 				if (chunkUri != null) {
 					uploadState.bytesUploadedPerBlob.set(chunkUri, 0)
 					const chunkId = generateFileChunkId()
-					const unencryptedChunkSize = fileMeta.size
+					const unencryptedChunkSize = await this.fileApp.getSize(chunkUri)
 
 					this.nativeUploadProgressState.set(chunkId, uploadState)
 					return { chunkUri, chunkId, unencryptedChunkSize }
