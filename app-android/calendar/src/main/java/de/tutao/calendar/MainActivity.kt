@@ -52,7 +52,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
 import de.tutao.calendar.push.AndroidNativePushFacade
-import de.tutao.calendar.push.LocalNotificationsFacade
+import de.tutao.calendar.push.CalendarLocalNotificationsFacade
 import de.tutao.calendar.push.PushNotificationService
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.calendar.widget.WidgetRefresher
@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 		val tempDir = TempDir(applicationContext)
 		val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 
-		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		val localNotificationsFacade = CalendarLocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
 			AndroidFileFacade(
 				this,

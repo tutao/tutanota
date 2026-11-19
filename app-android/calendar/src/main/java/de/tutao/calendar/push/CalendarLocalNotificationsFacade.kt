@@ -43,7 +43,7 @@ private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
 /** @see [de.tutao.tutashared.push.INotificationsHandler]
  */
-class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
+class CalendarLocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
 	LocalNotificationsFacade, FileNotificationSender {
 	companion object {
 		private const val TAG = "LocalNotifications"

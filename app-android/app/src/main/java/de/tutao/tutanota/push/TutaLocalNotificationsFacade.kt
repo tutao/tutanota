@@ -51,7 +51,7 @@ private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
-class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
+class TutaLocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
 	LocalNotificationsFacade, FileNotificationSender {
 	companion object {
 		private const val TAG = "LocalNotifications"
