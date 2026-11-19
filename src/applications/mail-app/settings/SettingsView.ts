@@ -886,9 +886,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			}
 		}
 
-		await this._currentViewer?.onEntityUpdatesReceived(updates)
+		await this._currentViewer?.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 
-		await this.detailsViewer?.onEntityUpdatesReceived(updates)
+		await this.detailsViewer?.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 	}
 
 	private async reloadTemplateData(): Promise<SettingsFolder<TemplateGroupInstance>[]> {
