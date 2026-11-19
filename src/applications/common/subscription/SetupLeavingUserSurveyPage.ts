@@ -66,7 +66,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 							onclick: () => vnode.attrs.skipAction(),
 						}),
 					),
-					m(".mt-8.small", lang.get("cancellationConfirmation_msg")),
+					m(".mt-8.small", { style: { lineHeight: 1.2 } }, lang.get("cancellationConfirmation_msg")),
 				],
 			),
 		])
