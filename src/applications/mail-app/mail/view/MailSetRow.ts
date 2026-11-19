@@ -9,9 +9,9 @@ import { Icon, IconAttrs } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailSet } from "@tutao/entities/tutanota"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { contextDropdown } from "../../../../ui/base/GuiUtils"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export type MailSetRowAttrs = {
 	count: number
@@ -123,7 +123,7 @@ export class MailSetRow implements Component<MailSetRowAttrs> {
 					disableSelectedBackground: true,
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)
-				rightButton && (editMode || (!ClientDetector.get().isMobileDevice() && this.hovered))
+				rightButton && (editMode || (!Singletons.clientDetector.isMobileDevice() && this.hovered))
 					? m(IconButton, {
 							...rightButton,
 							click: (event, dom) => {

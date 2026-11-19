@@ -3,7 +3,6 @@ import { createResizeObserver, debounce, memoized, numberRange } from "../../pla
 import { component_size, font_size, getBaseFontSizePX, px, size } from "../size.js"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { ProgrammingError, TabIndex } from "../../platform-kit/app-env"
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { progressIcon } from "./Icon.js"
 import { Button, ButtonType } from "./Button.js"
 import { ListSwipeHandler } from "./ListSwipeHandler.js"
@@ -14,6 +13,7 @@ import { Styles } from "../styles.js"
 import { Keys } from "../utils/KeyboardKeys"
 import { DropdownButtonAttrs } from "./Dropdown"
 import { contextDropdown } from "./GuiUtils"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>
@@ -262,7 +262,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			},
 			oncreate: (vnode: VnodeDOM) => {
 				const dom = vnode.dom as HTMLElement
-				if (renderConfig.swipe && ClientDetector.get().isMobileDevice()) applySafeAreaInsetMarginLR(dom)
+				if (renderConfig.swipe && Singletons.clientDetector.isMobileDevice()) applySafeAreaInsetMarginLR(dom)
 				const row = {
 					row: renderConfig.createElement(dom),
 					domElement: dom,
@@ -384,7 +384,11 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		// shift click selects a lot of things and enabled multiselect
 		// (there are also key press handlers but they are invoked from another place)
 		let changeType: Parameters<typeof this.changeSelection>[1]
-		if ((ClientDetector.get().isMobileDevice() && this.lastAttrs.state.inMultiselect) || event.ctrlKey || (ClientDetector.get().isMacOS && event.metaKey)) {
+		if (
+			(Singletons.clientDetector.isMobileDevice() && this.lastAttrs.state.inMultiselect) ||
+			event.ctrlKey ||
+			(Singletons.clientDetector.isMacOS && event.metaKey)
+		) {
 			changeType = "togglingIncludingSingle"
 		} else if (event.shiftKey) {
 			changeType = "range"
@@ -626,7 +630,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		this.width = containerDom.clientWidth
 		this.height = containerDom.clientHeight
 
-		if (this.swipeHandler && ClientDetector.get().isMobileDevice()) {
+		if (this.swipeHandler && Singletons.clientDetector.isMobileDevice()) {
 			// with different zoom levels Blink does weird things and shows parts of elements that it shouldn't so we shift them around by a pixel
 			const translateX = this.width + 1
 			this.domSwipeSpacerLeft.style.width = px(this.width)

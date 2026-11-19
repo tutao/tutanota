@@ -10,6 +10,7 @@ import { NotificationContentSelector } from "../../../../mail-app/settings/Notif
 import { EnvProvider } from "../../../../../platform-kit/app-env"
 import { NewsId } from "@tutao/entities/tutanota"
 import { SystemPermissionHandler } from "../../../native/SystemPermissionHandler"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export class RichNotificationsNews implements NewsListItem {
 	private notificationMode: ExtendedNotificationMode | null = null
@@ -22,7 +23,7 @@ export class RichNotificationsNews implements NewsListItem {
 
 	async isShown(_newsId: NewsId): Promise<boolean> {
 		return (
-			EnvProvider.get().isApp() &&
+			Singletons.envProvider.isApp() &&
 			this.pushApp != null &&
 			(this.notificationMode = await this.pushApp.getExtendedNotificationMode()) !== ExtendedNotificationMode.SenderAndSubject
 		)

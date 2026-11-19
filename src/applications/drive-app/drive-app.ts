@@ -22,7 +22,6 @@ import { Styles } from "../../ui/styles"
 import { AppHeaderAttrs } from "../../ui/Header"
 import { DRIVE_PREFIX } from "../../ui/utils/RouteChange"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView"
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { AppNameEnum } from "@tutao/meta"
@@ -41,6 +40,7 @@ import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
 import { FolderItem } from "./drive/view/DriveUtils"
 import { KeyManager } from "../../ui/utils/KeyManager"
 import { PickedDestinationAction } from "./drive/view/DriveItemPicker"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -49,13 +49,12 @@ const urlQueryParams = m.parseQueryString(location.search)
 
 assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
-const envProvider = EnvProvider.get()
-const clientDetector = await ClientDetector.init(envProvider, navigator.userAgent, navigator.platform, AppType.Drive)
-CheckBrowser.ensureIsSupported(clientDetector)
+await Singletons.init(navigator.userAgent, navigator.platform, AppType.Drive)
+CheckBrowser.ensureIsSupported(Singletons.clientDetector)
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
-	client: ClientDetector.get(),
+	client: Singletons.clientDetector,
 	m,
 	lang,
 	root,
@@ -96,7 +95,7 @@ import("../../ui/translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(driveLocator.logins, driveLocator.connectivityModel)
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(driveLocator.desktopSettingsFacade))
 		}
 
@@ -116,7 +115,7 @@ import("../../ui/translations/en.js")
 		driveLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess() {
-					if (EnvProvider.get().isApp()) {
+					if (Singletons.envProvider.isApp()) {
 						driveLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
 				},
@@ -329,7 +328,7 @@ import("../../ui/translations/en.js")
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 			await driveLocator.native.init()
 		}
 		// if (isDesktop()) {

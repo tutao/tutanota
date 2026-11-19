@@ -54,12 +54,12 @@ import { AppPromo } from "../../../common/gui/AppPromo"
 import { DriveActionBar } from "../../drive/view/DriveActionBar"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { Styles } from "../../../../ui/styles"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { DriveFilePicker } from "../../drive/view/DriveFilePicker"
 import { FileType } from "../../drive/model/DriveMimeUtils"
 import { showDriveDuplicateFileDialog } from "../../drive/view/DriveDuplicateFileDialog"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -369,7 +369,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 
 	private renderFilterChips(): Children {
 		return [
-			!ClientDetector.get().isDriveApp() ? this.renderCategoryChip("driveView_action", Icons.DriveFilled) : null,
+			!Singletons.clientDetector.isDriveApp() ? this.renderCategoryChip("driveView_action", Icons.DriveFilled) : null,
 			m(FilterChip, {
 				label: lang.makeTranslation(
 					"btn:date",

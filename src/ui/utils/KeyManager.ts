@@ -4,6 +4,7 @@ import { isNotNull, lazy, mod, Nullable } from "../../platform-kit/utils"
 import m from "mithril"
 import { Keys } from "./KeyboardKeys"
 import { TypeChecks } from "../../platform-kit/app-env/TsTypeChecks"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a, [role=button], [role=input]"
@@ -35,7 +36,7 @@ export type Key = {
  * @param event event to convert
  */
 export function keyboardEventToKeyPress(event: KeyboardEvent): KeyPress {
-	const ctrlOrCmd = EnvProvider.get().isAppleDevice() ? event.metaKey : event.ctrlKey
+	const ctrlOrCmd = Singletons.envProvider.isAppleDevice() ? event.metaKey : event.ctrlKey
 
 	let key = fixWaylandKeyIssue(event)
 
@@ -379,5 +380,5 @@ export function isModifierKeyPressed(key?: Key | string) {
 		return false
 	}
 
-	return EnvProvider.get().isAppleDevice() ? parsedKey === Keys.META : parsedKey === Keys.CTRL
+	return Singletons.envProvider.isAppleDevice() ? parsedKey === Keys.META : parsedKey === Keys.CTRL
 }

@@ -32,6 +32,7 @@ import {
 	createContactWebsite,
 } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../entities/tutanota/Utils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export class ContactImporter {
 	constructor(
@@ -182,7 +183,7 @@ export class ContactImporter {
 		// this if syncing is successful, assuming syncing is enabled.
 		//
 		// Do nothing further if not on iOS, or if syncing is disabled or failed.
-		if (imported && EnvProvider.get().isIOSApp()) {
+		if (imported && Singletons.envProvider.isIOSApp()) {
 			const contactsWeJustImported = selectedStructuredContacts.map((contact) => assertNotNull(contact.rawId))
 			const remove = await Dialog.confirm("importContactRemoveImportedContactsConfirm_msg")
 			if (remove) {

@@ -5,7 +5,7 @@ import { copyToClipboard } from "../../../ui/utils/ClipboardUtils.js"
 import m from "mithril"
 import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
-import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export async function prepareLogContent() {
 	const entries: string[] = []
@@ -21,7 +21,7 @@ ${workerLog.join("\n")}
 `)
 	}
 
-	if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
+	if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isApp()) {
 		entries.push(`== NATIVE LOG ==
 ${await locator.commonSystemFacade.getLog()}
 `)

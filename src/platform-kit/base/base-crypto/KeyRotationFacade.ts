@@ -1444,6 +1444,7 @@ function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
  */
 export class KeyRotationRolloutAction implements RolloutAction {
 	constructor(
+		private readonly envProvider: EnvProvider,
 		private readonly keyRotationFacade: KeyRotationFacade,
 		private readonly userFacade: UserFacade,
 		private readonly rolloutType: RolloutType,
@@ -1454,7 +1455,7 @@ export class KeyRotationRolloutAction implements RolloutAction {
 
 	public async execute(): Promise<void> {
 		// If we have not migrated to argon2 we postpone key rotation.
-		if (!EnvProvider.get().isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
+		if (!this.envProvider.isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
 			const user = this.userFacade.getUser()
 			if (isNotNull(user) && user.accountType !== AccountType.EXTERNAL) {
 				let requiredPasswordKey: Nullable<Aes256Key> = null

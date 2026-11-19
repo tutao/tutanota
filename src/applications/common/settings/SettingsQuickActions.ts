@@ -5,6 +5,7 @@ import { LoginController } from "../api/main/LoginController"
 import { SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
 import { QuickAction } from "../misc/quickactions/QuickActionsModel"
 import { EnvProvider } from "../../../platform-kit/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export async function quickSettingsActions(router: Router, logins: LoginController): Promise<readonly QuickAction[]> {
 	return [
@@ -107,7 +108,7 @@ function emailSettings(router: Router): readonly QuickAction[] {
 			description: `${emailSettingsLabel} ${lang.getTranslationText("mailListGrouping_label")}`,
 			exec: () => routeToFolderSection(router, folder, "maillistgrouping"),
 		},
-		EnvProvider.get().isBrowser()
+		Singletons.envProvider.isBrowser()
 			? {
 					description: `${emailSettingsLabel} ${lang.getTranslationText("searchMailbox_label")}`,
 					exec: () => routeToFolderSection(router, folder, "mailindexing"),
@@ -141,7 +142,7 @@ function emailSettings(router: Router): readonly QuickAction[] {
 			description: `${emailSettingsLabel} ${lang.getTranslationText("undoSend_label")}`,
 			exec: () => routeToFolderSection(router, folder, "undoSend"),
 		},
-		!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()
+		!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()
 			? {
 					description: `${emailSettingsLabel} ${lang.getTranslationText("localDataSection_label")}`,
 					exec: () => routeToFolderSection(router, folder, "localdata"),
@@ -166,7 +167,7 @@ function contactSettings(router: Router): readonly QuickAction[] {
 			description: `${contactsSettingsLabel} ${lang.getTranslationText("contactsManagement_label")}`,
 			exec: () => routeToFolder(router, folder),
 		},
-		EnvProvider.get().isApp()
+		Singletons.envProvider.isApp()
 			? {
 					description: `${contactsSettingsLabel} ${lang.getTranslationText("importFromContactBook_label")}`,
 					exec: () => routeToFolderSection(router, folder, "importcontacts"),
@@ -176,7 +177,7 @@ function contactSettings(router: Router): readonly QuickAction[] {
 			description: `${contactsSettingsLabel} ${lang.getTranslationText("createContacts_label")}`,
 			exec: () => routeToFolderSection(router, folder, "createcontacts"),
 		},
-		EnvProvider.get().isApp()
+		Singletons.envProvider.isApp()
 			? {
 					description: `${contactsSettingsLabel} ${lang.getTranslationText("contactsSynchronization_label")}`,
 					exec: () => routeToFolderSection(router, folder, "contactsync"),
@@ -233,7 +234,7 @@ function notificationSettings(router: Router): readonly QuickAction[] {
 			description: `${notificationsSettingsLabel}`,
 			exec: () => routeToFolder(router, folder),
 		},
-		EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+		Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 			? {
 					description: `${notificationsSettingsLabel} ${lang.getTranslationText("notificationContent_label")}`,
 					exec: () => routeToFolderSection(router, folder, "content"),

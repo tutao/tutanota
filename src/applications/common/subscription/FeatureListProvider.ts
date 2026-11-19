@@ -2,10 +2,11 @@ import Stream from "mithril/stream"
 import { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { downcast, getFromMap } from "@tutao/utils"
-import { DomainConfig, EnvProvider } from "@tutao/app-env"
+import { DomainConfig } from "@tutao/app-env"
 import { PlanPrices } from "@tutao/entities/sys"
 import { AvailablePlans, PlanName, PlanType } from "../../../entities/sys/Utils"
 import { PlanTypeToName } from "./utils/SubscriptionUtils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 let dataProvider: FeatureListProvider | null = null
 
@@ -21,7 +22,7 @@ export class FeatureListProvider {
 		const listResourceUrl = `${this.domainConfig.websiteBaseUrl}/resources/data/features.json`
 		try {
 			const featureList = await fetch(listResourceUrl).then((r) => r.json())
-			if (EnvProvider.get().isIOSApp()) {
+			if (Singletons.envProvider.isIOSApp()) {
 				this.stripUnsupportedIosFeatures(featureList)
 			}
 			this.countFeatures([...featureList.Free.categories, ...featureList.Revolutionary.categories, ...featureList.Legend.categories])

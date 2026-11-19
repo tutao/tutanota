@@ -6,13 +6,13 @@ import { LocalIdentityKeyTrustDatabase } from "../../../../src/app-kit/local-sto
 import { hexToUint8Array } from "../../../../src/platform-kit/utils"
 import testData from "../../api/worker/crypto/CompatibilityTestData.json"
 import { bytesToEd25519PublicKey, SigningKeyPairType } from "../../../../src/platform-kit/crypto"
-import { withOverriddenEnv } from "../../TestUtils"
 import { IdentityKeySourceOfTrust, Mode, ProgrammingError } from "../../../../src/platform-kit/app-env"
 import { LoginFacade } from "../../../../src/platform-kit/base/facades/LoginFacade"
 import { SessionType } from "../../../../src/platform-kit/app-env/SessionType"
 import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
 import { TrustDBEntry } from "../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {
@@ -216,13 +216,17 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 
 	o("feature should be supported when on desktop", async function () {
 		when(loginFacade.getSessionType()).thenResolve(SessionType.Persistent)
-		const isSupported = await withOverriddenEnv({ mode: Mode.Win32 }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		const isSupported = await Singletons.withOverriddenEnvForTest({ mode: Mode.Win32 }, () =>
+			identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported(),
+		)
 		o(isSupported).equals(true)
 	})
 
 	o("feature should NOT be supported when on browser", async function () {
 		when(loginFacade.getSessionType()).thenResolve(SessionType.Persistent)
-		const isSupported = await withOverriddenEnv({ mode: Mode.Browser }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		const isSupported = await Singletons.withOverriddenEnvForTest({ mode: Mode.Browser }, () =>
+			identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported(),
+		)
 		o(isSupported).equals(false)
 	})
 
@@ -230,11 +234,11 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 		let isSupported: boolean
 
 		when(loginFacade.getSessionType()).thenResolve(SessionType.Login)
-		isSupported = await withOverriddenEnv({ mode: Mode.Win32 }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		isSupported = await Singletons.withOverriddenEnvForTest({ mode: Mode.Win32 }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(false)
 
 		when(loginFacade.getSessionType()).thenResolve(SessionType.Temporary)
-		isSupported = await withOverriddenEnv({ mode: Mode.Linux }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		isSupported = await Singletons.withOverriddenEnvForTest({ mode: Mode.Linux }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(false)
 	})
 })

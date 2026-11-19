@@ -11,7 +11,7 @@ export class offline6 extends OfflineMigration {
 		super(VERSION)
 	}
 	async migrate(storage: OfflineStorage): Promise<void> {
-		if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
+		if (!storage.envProvider.isBrowser() && !storage.envProvider.isAdminClient()) {
 			const { uint8ArrayToBase64, stringToUtf8Uint8Array } = await import("../../../platform-kit/utils")
 			const { sha256Hash } = await import("../../../platform-kit/crypto")
 			const userId = storage.getUserId()

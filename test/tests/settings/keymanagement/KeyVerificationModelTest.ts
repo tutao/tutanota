@@ -18,10 +18,10 @@ import {
 	ProgrammingError,
 } from "../../../../src/platform-kit/app-env"
 import { DesktopSystemFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/DesktopSystemFacade.js"
-import { withOverriddenEnv } from "../../TestUtils"
 import { SigningPublicKey } from "../../../../src/platform-kit/crypto/encryption/Ed25519"
 import { PublicKeyIdentifierType } from "../../../../src/platform-kit/crypto"
 import { TrustDBEntry } from "../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
+import { Singletons } from "../../../../src/platform-kit/singletons/singleton"
 
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel
@@ -152,7 +152,7 @@ o.spec("KeyVerificationModelTest", function () {
 
 		o("permission not given, but granted successfully by user", async function () {
 			when(mobileSystemFacade.hasPermission(PermissionType.Camera)).thenResolve(false, true)
-			const success = await withOverriddenEnv(androidEnv, () => keyVerificationModel.requestCameraPermission())
+			const success = await Singletons.withOverriddenEnvForTest(androidEnv, () => keyVerificationModel.requestCameraPermission())
 
 			verify(mobileSystemFacade.requestPermission(PermissionType.Camera))
 			o(success).equals(true)
@@ -162,7 +162,7 @@ o.spec("KeyVerificationModelTest", function () {
 			when(mobileSystemFacade.hasPermission(PermissionType.Camera)).thenResolve(false)
 			when(mobileSystemFacade.requestPermission(PermissionType.Camera)).thenReject(new Error("error"))
 
-			const success = await withOverriddenEnv(androidEnv, () => keyVerificationModel.requestCameraPermission())
+			const success = await Singletons.withOverriddenEnvForTest(androidEnv, () => keyVerificationModel.requestCameraPermission())
 
 			verify(mobileSystemFacade.requestPermission(PermissionType.Camera))
 			o(success).equals(false)
@@ -174,7 +174,7 @@ o.spec("KeyVerificationModelTest", function () {
 
 		o("permission already given", async function () {
 			when(desktopSystemFacade.requestVideoPermission()).thenResolve(true)
-			const success = await withOverriddenEnv(desktopEnv, () => keyVerificationModel.requestCameraPermission())
+			const success = await Singletons.withOverriddenEnvForTest(desktopEnv, () => keyVerificationModel.requestCameraPermission())
 
 			verify(desktopSystemFacade.requestVideoPermission(), { times: 1 })
 			o(success).equals(true)
@@ -183,7 +183,7 @@ o.spec("KeyVerificationModelTest", function () {
 		o("permission not given, and denied by user", async function () {
 			when(desktopSystemFacade.requestVideoPermission()).thenResolve(false)
 
-			const success = await withOverriddenEnv(desktopEnv, () => keyVerificationModel.requestCameraPermission())
+			const success = await Singletons.withOverriddenEnvForTest(desktopEnv, () => keyVerificationModel.requestCameraPermission())
 
 			verify(desktopSystemFacade.requestVideoPermission())
 			o(success).equals(false)

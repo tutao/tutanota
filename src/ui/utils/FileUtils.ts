@@ -1,6 +1,7 @@
 import { intersection, toLowerCase } from "../../platform-kit/utils"
 import { Attachment, WebFile } from "../../entities/tutanota/Utils"
-import { EnvProvider, Mode } from "@tutao/app-env"
+import { Mode } from "@tutao/app-env"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 type StringPredicate = (arg0: string) => boolean
 
@@ -52,7 +53,7 @@ export function unreserveFileName(fileName: string): string {
 	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
 	const extension = getFileExtension(fileName)
 	const baseName = getFileBaseName(fileName)
-	const isReservedOnWindows = EnvProvider.get().getMode() === Mode.Win32 && winReservedRe.test(baseName)
+	const isReservedOnWindows = Singletons.envProvider.getMode() === Mode.Win32 && winReservedRe.test(baseName)
 	return isReservedOnWindows ? `${baseName}_${extension}` : fileName
 }
 

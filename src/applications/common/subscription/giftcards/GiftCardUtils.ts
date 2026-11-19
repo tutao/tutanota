@@ -18,6 +18,7 @@ import { CustomerInfo, CustomerInfoTypeRef, CustomerTypeRef, GiftCard, GiftCardT
 import { urlEncodeHtmlTags } from "@tutao/utils"
 import { idToElementId } from "@tutao/meta"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",
@@ -103,7 +104,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 							label: "shareViaEmail_action",
 							icon: Icons.MailFilled,
 						}),
-						EnvProvider.get().isAndroidApp()
+						Singletons.envProvider.isAndroidApp()
 							? m(IconButton, {
 									click: () => {
 										locator.systemFacade.shareText(
@@ -129,7 +130,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									label: "copyToClipboard_action",
 									icon: Icons.ClipboardFilled,
 								}),
-						!EnvProvider.get().isApp()
+						!Singletons.envProvider.isApp()
 							? m(IconButton, {
 									click: () => {
 										infoMessage = "emptyString_msg"

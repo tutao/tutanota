@@ -56,7 +56,7 @@ export class ClientModelInfo {
 	 * corrupted state so better be safe and use a fresh one.
 	 */
 	public static getNewInstanceForTestsOnly(): ClientModelInfo {
-		assert(EnvProvider.get().isTest(), "This method is only meant for testing")
+		assert(EnvProvider.isTest(), "This method is only meant for testing")
 		return new ClientModelInfo()
 	}
 
@@ -151,9 +151,7 @@ export class ServerModelInfo {
 				applicationTypesJson: JSON.stringify(clientModelInfo.typeModels),
 			}),
 	): ServerModelInfo {
-		if (!EnvProvider.get().isTest()) {
-			throw new ProgrammingError()
-		}
+		assert(EnvProvider.isTest(), "This method is only intended for testing")
 		const serverModelInfo = new ServerModelInfo(clientModelInfo, fetcher)
 		serverModelInfo.applicationTypesHash = "hash"
 		return serverModelInfo

@@ -71,6 +71,7 @@ import {
 	getCacheModeBehavior,
 } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { KdfNonce } from "@tutao/crypto"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -838,7 +839,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
 		// if the cacheStorage for some reason is not (yet) initialized we can not use the cache,
 		// but still want to be able to use the client and do a login, etc.
-		if (!EnvProvider.get().isTest() && !this.cacheStorage.isInitialized()) {
+		if (!Singletons.envProvider.isTest() && !this.cacheStorage.isInitialized()) {
 			return false
 		}
 

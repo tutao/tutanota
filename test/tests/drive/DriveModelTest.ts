@@ -7,13 +7,14 @@ import { EventController } from "../../../src/applications/common/api/main/Event
 import { TransferProgressDispatcher } from "../../../src/applications/common/api/main/TransferProgressDispatcher"
 import { func, matchers, object, when } from "testdouble"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-import { clientInitializedTypeModelResolver, createTestEntity, withOverriddenEnv } from "../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
 import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId, toFolderItem } from "../../../src/applications/drive-app/drive/view/DriveUtils"
 import { elementIdPart, getElementId } from "../../../src/platform-kit/meta"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { FileReference, WebFile } from "../../../src/entities/tutanota/Utils"
 import { WindowFacade } from "../../../src/applications/common/misc/WindowFacade"
 import { Mode } from "../../../src/platform-kit/app-env"
+import { Singletons } from "../../../src/platform-kit/singletons/singleton"
 
 o.spec("DriveModel", function () {
 	let transferController: DriveTransferController
@@ -501,7 +502,7 @@ o.spec("DriveModel", function () {
 
 				verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
 
-				await withOverriddenEnv({ mode: Mode.Darwin }, async () => {
+				await Singletons.withOverriddenEnvForTest({ mode: Mode.Darwin }, async () => {
 					await windowCloseRequest!()
 
 					verify(deleteListenerFunction())
@@ -567,7 +568,7 @@ o.spec("DriveModel", function () {
 				await driveModel.uploadFiles(webFiles, rootIds.root, () => Promise.reject(new Error()))
 
 				verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()))
-				await withOverriddenEnv({ mode: Mode.Linux }, async () => {
+				await Singletons.withOverriddenEnvForTest({ mode: Mode.Linux }, async () => {
 					o.check(windowCloseListenerRan).equals(true)
 					verify(deleteListenerFunction(), { times: 0 })
 				})
@@ -588,7 +589,7 @@ o.spec("DriveModel", function () {
 				await driveModel.downloadFile(createTestEntity(DriveFileTypeRef))
 
 				verify(transferController.download(fileToDownload, "download"))
-				await withOverriddenEnv({ mode: Mode.Darwin }, async () => {
+				await Singletons.withOverriddenEnvForTest({ mode: Mode.Darwin }, async () => {
 					await windowCloseRequest!()
 
 					verify(deleteListenerFunction())
@@ -625,7 +626,7 @@ o.spec("DriveModel", function () {
 				await driveModel.downloadFile(createTestEntity(DriveFileTypeRef))
 
 				verify(transferController.download(fileToDownload, "download"))
-				await withOverriddenEnv({ mode: Mode.Win32 }, async () => {
+				await Singletons.withOverriddenEnvForTest({ mode: Mode.Win32 }, async () => {
 					o.check(windowCloseListenerRan).equals(true)
 					verify(deleteListenerFunction(), { times: 0 })
 				})

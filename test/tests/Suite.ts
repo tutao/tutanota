@@ -285,6 +285,7 @@ import * as td from "testdouble"
 import { EntropySource } from "../../src/platform-kit/crypto"
 import { assert } from "../../src/platform-kit/utils"
 import { EnvProvider } from "../../src/platform-kit/app-env"
+import { Singletons } from "../../src/platform-kit/singletons/singleton"
 
 export async function run({
 	integration,
@@ -395,7 +396,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	})
 
 	o.beforeEach(() => {
-		assert(EnvProvider.get().isTest(), `Expecte to be test. Got: ${EnvProvider.get().getMode()}`)
+		assert(Singletons.envProvider.isTest(), `Expecte to be test. Got: ${Singletons.envProvider.getMode()}`)
 	})
 
 	o.afterEach(function () {

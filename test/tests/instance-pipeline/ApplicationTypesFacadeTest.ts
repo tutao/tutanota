@@ -5,7 +5,6 @@ import { AppName, AppNameEnum, AssociationTypeEnum, CardinalityEnum, EntityTypeE
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
 import { ApplicationTypesGetOut, ServerModelInfo, ServerModels } from "../../../src/platform-kit/instance-pipeline"
-import { withOverriddenEnv } from "../TestUtils"
 import { Mode } from "../../../src/platform-kit/app-env"
 import { FileFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types/FileFacade.js"
 import { ApplicationTypesService_GET, baseModelInfo } from "@tutao/entities/base"
@@ -13,6 +12,7 @@ import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { RestClient } from "../../../src/platform-kit/rest-client"
 import { downcast } from "../../../src/platform-kit/lang-api/common"
+import { Singletons } from "../../../src/platform-kit/singletons/singleton"
 
 const { anything } = matchers
 
@@ -154,13 +154,15 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		const expectedReturn = createApplicationTypesGetOutFromResponse(mockResponse)
 		when(fileFacade.writeToAppDir(anything(), anything())).thenReject(Error("writing failed simulation failed"))
 
-		const actualReturn = await withOverriddenEnv({ mode: Mode.Ios }, () => applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash))
+		const actualReturn = await Singletons.withOverriddenEnvForTest({ mode: Mode.Ios }, () =>
+			applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash),
+		)
 		o(actualReturn).deepEquals(expectedReturn)
 	})
 
 	o("should attempt to read but not fail on read error", async () => {
 		when(fileFacade.readDataFile(anything())).thenReject(Error("reading simulation failed"))
-		await withOverriddenEnv({ mode: Mode.Android }, () => new ApplicationTypesFacade(object(), serverModelInfo, fileFacade))
+		await Singletons.withOverriddenEnvForTest({ mode: Mode.Android }, () => new ApplicationTypesFacade(object(), serverModelInfo, fileFacade))
 		// did not throw
 	})
 
@@ -228,7 +230,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			}),
 		).thenResolve(mockResponse)
 
-		await withOverriddenEnv({ mode: Mode.Darwin }, async () => {
+		await Singletons.withOverriddenEnvForTest({ mode: Mode.Darwin }, async () => {
 			const newServerModel = await new ApplicationTypesFacade(restClient, serverModelInfo, fileFacade).getServerApplicationTypesJson("new-server-hash")
 			o(newServerModel).deepEquals(mockModel)
 		})

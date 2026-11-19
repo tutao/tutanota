@@ -11,7 +11,7 @@ import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -49,7 +49,7 @@ export class WorkerClient {
 				objToError,
 			)
 			await this._dispatcher.postRequest(
-				new Request("setup", [this.getInitialEntropy(), ClientDetector.get().browserData(), locator.clientModelInfo.getApps()]),
+				new Request("setup", [this.getInitialEntropy(), Singletons.clientDetector.browserData(), locator.clientModelInfo.getApps()]),
 			)
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
@@ -57,7 +57,7 @@ export class WorkerClient {
 			// @ts-ignore
 			const WorkerImpl = globalThis.testWorker
 			const workerImpl = new WorkerImpl(this, true)
-			await workerImpl.init(ClientDetector.get().browserData())
+			await workerImpl.init(Singletons.clientDetector.browserData())
 			workerImpl._queue._transport = {
 				postMessage: (msg: any) => this._dispatcher.handleMessage(msg),
 			}
@@ -155,7 +155,7 @@ export class WorkerClient {
 }
 
 export function bootstrapWorker(locator: CommonLocator): WorkerClient {
-	const worker = new WorkerClient(EnvProvider.get())
+	const worker = new WorkerClient(Singletons.envProvider)
 	const start = Date.now()
 	worker.init(locator).then(() => console.log("worker init time (ms):", Date.now() - start))
 	return worker

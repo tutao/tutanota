@@ -24,13 +24,13 @@ import { theme } from "../../../../ui/theme"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { getMailSetName } from "../model/MailUtils"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft } from "../model/MailChecks"
 import { Mail } from "@tutao/entities/tutanota"
 import { MailSetKind, ReplyType } from "../../../../entities/tutanota/Utils"
 import { getMailFolderType } from "../MailUtils"
 import { TutanotaConstants } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.FolderFilled,
@@ -140,7 +140,7 @@ export class MailRow implements VirtualRow<Mail> {
 			// and it NEEDS to have aria-label or it won't read it at all.
 			// Some other readers e.g. TalkBack need aria-description instead
 			// (at least if it's a child of <li>).
-			if (!ClientDetector.get().isIos()) {
+			if (!Singletons.clientDetector.isIos()) {
 				// @ts-ignore
 				this.domElement.ariaDescription = description
 			}

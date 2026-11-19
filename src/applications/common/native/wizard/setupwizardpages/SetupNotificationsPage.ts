@@ -8,6 +8,7 @@ import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
 import { NotificationPermissionsBody } from "../../../settings/NotificationPermissionsDialog.js"
 import { EnvProvider } from "@tutao/app-env"
 import { NativePushServiceApp } from "../../NativePushServiceApp"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export interface NotificationPermissionsData {
 	isNotificationPermissionGranted: boolean
@@ -79,7 +80,7 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 
 	private isPageNeeded(data: NotificationPermissionsData): boolean {
 		// Skip this page if the needed permissions are already granted
-		if (EnvProvider.get().isAndroidApp()) {
+		if (Singletons.envProvider.isAndroidApp()) {
 			return !data.isNotificationPermissionGranted || !data.isBatteryPermissionGranted
 		}
 		return !data.isNotificationPermissionGranted

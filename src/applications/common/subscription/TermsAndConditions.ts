@@ -10,6 +10,7 @@ import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * The most up-to-date versions of the terms and conditions, privacy statement, and gift card terms
@@ -44,7 +45,7 @@ export function renderTermsAndConditionsButton(terms: TermsSection, version: str
 		`a[href=${link}][target=_blank]`,
 		{
 			onclick: (e: MouseEvent) => {
-				if (EnvProvider.get().isApp()) {
+				if (Singletons.envProvider.isApp()) {
 					showServiceTerms(terms, version)
 					e.preventDefault()
 				}

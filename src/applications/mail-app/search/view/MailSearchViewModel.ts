@@ -18,7 +18,7 @@ import {
 	onceAsync,
 } from "@tutao/utils"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { CancelledError, EnvProvider, TutanotaConstants } from "@tutao/app-env"
+import { CancelledError, TutanotaConstants } from "@tutao/app-env"
 import { elementIdToId, getElementId, isSameIdTuple, isSameSingleId } from "@tutao/meta"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import {
@@ -54,9 +54,9 @@ import {
 } from "../../../common/search/SearchUtils"
 import { ListFetchResult, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { MailSearchModel } from "../model/MailSearchModel"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 import { MailIndexingAbortReason } from "../../workerUtils/index/MailIndexer"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {
@@ -395,7 +395,7 @@ export class MailSearchViewModel {
 	)
 
 	isExportingMailsAllowed(): boolean {
-		return this.mailModel.isExportingMailsAllowed() && !ClientDetector.get().isMobileDevice()
+		return this.mailModel.isExportingMailsAllowed() && !Singletons.clientDetector.isMobileDevice()
 	}
 
 	async loadAll() {

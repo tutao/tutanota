@@ -55,8 +55,8 @@ import { SearchViewSearchBar } from "../../../../common/search/SearchViewSearchB
 import { isSameSingleId } from "@tutao/meta"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 import { Styles } from "../../../../../ui/styles"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
 import { EventDetailsActions } from "../../gui/CalendarGuiUtils"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -173,7 +173,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		const availableCalendars = this.searchViewModel.getAvailableCalendars(true)
 		const selectedCalendar = this.searchViewModel.selectedCalendar
 		return [
-			!ClientDetector.get().isCalendarApp() ? this.renderCategoryChip("calendar_label", Icons.CalendarFilled) : null,
+			!Singletons.clientDetector.isCalendarApp() ? this.renderCategoryChip("calendar_label", Icons.CalendarFilled) : null,
 			m(FilterChip, {
 				label: lang.makeTranslation(
 					"btn:date",
@@ -249,7 +249,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						},
 						icon: Icons.CalendarFilled,
 					},
-					!ClientDetector.get().isMailApp() && this.searchViewModel.isDriveEnabled()
+					!Singletons.clientDetector.isMailApp() && this.searchViewModel.isDriveEnabled()
 						? {
 								label: "driveView_action",
 								click: () => {
@@ -317,13 +317,13 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderHeaderRightView(): Children {
-		if (Styles.get().isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp()) {
+		if (Styles.get().isUsingBottomNavigation() && !Singletons.clientDetector.isCalendarApp()) {
 			return m(IconButton, {
 				click: () => this.createNewEventDialog(),
 				label: "newEvent_action",
 				icon: Icons.Plus,
 			})
-		} else if (ClientDetector.get().isCalendarApp()) {
+		} else if (Singletons.clientDetector.isCalendarApp()) {
 			return m.fragment({}, [this.renderSearchResultActions()])
 		}
 	}
@@ -427,7 +427,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					backAction: () => this.viewSlider.focusPreviousColumn(),
 					columnType: "other",
 					title: "search_label",
-					actions: ClientDetector.get().isCalendarApp() ? this.renderEventDetailsActions() : null,
+					actions: Singletons.clientDetector.isCalendarApp() ? this.renderEventDetailsActions() : null,
 					multicolumnActions: () => [],
 					primaryAction: () => null,
 				} satisfies MobileHeaderAttrs),
@@ -495,7 +495,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					...attrs.header,
 					buttons: renderHeaderButtons(),
 				}),
-				bottomNav: !ClientDetector.get().isCalendarApp() ? this.renderBottomNav() : null,
+				bottomNav: !Singletons.clientDetector.isCalendarApp() ? this.renderBottomNav() : null,
 			}),
 		)
 	}

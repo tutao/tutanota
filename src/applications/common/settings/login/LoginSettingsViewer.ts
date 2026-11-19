@@ -35,6 +35,7 @@ import { ifAllowedTutaLinks } from "../../gui/base/TutaLinkUtils"
 import { TextField } from "../../../../ui/base/TextField"
 import { theme } from "../../../../ui/theme"
 import { Checkbox } from "../../../../ui/base/Checkbox"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -65,7 +66,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async updateAppLockData() {
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			this.credentialEncryptionMode = await this.credentialsProvider.getCredentialEncryptionMode()
 		} else if (this.mobileSystemFacade) {
 			this.appLockMethod = await this.mobileSystemFacade.getAppLockMethod()
@@ -298,7 +299,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						click: () => onEdit(),
 					}),
 			})
-		} else if (EnvProvider.get().isDesktop()) {
+		} else if (Singletons.envProvider.isDesktop()) {
 			const usedMode = this.credentialEncryptionMode ?? CredentialEncryptionMode.DEVICE_LOCK
 
 			return m(LegacyTextField, {

@@ -16,7 +16,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId, isSameSingleId, NullEntity } from "../../meta"
+import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId, isSameSingleId, NullEntity } from "@tutao/meta"
 import { CancelledError, DeactivationReason, EnvProvider, ProgrammingError, RolloutType, SessionType, TutanotaConstants } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
@@ -116,6 +116,7 @@ import { isNull } from "@tutao/lang-api"
 import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory"
 import { InstanceKeyFacade } from "../base-crypto/InstanceKeyFacade"
 import { InstanceKeySharingRolloutAction } from "../base-crypto/InstanceKeySharingRolloutAction"
+import { Singletons } from "../../singletons/singleton"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -586,7 +587,7 @@ export class LoginFacade implements SessionTypeProvider {
 				}
 
 				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
-				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: EnvProvider.get().isTest() ? asyncResumeSession : null }
+				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: Singletons.envProvider.isTest() ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}
@@ -903,13 +904,21 @@ export class LoginFacade implements SessionTypeProvider {
 			if (rolloutType === RolloutType.AdminOrUserGroupKeyRotation || rolloutType === RolloutType.OtherGroupKeyRotation) {
 				await this.rolloutFacade.configureRollout(
 					rolloutType,
-					new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey, modernKdfType, sessionType),
+					new KeyRotationRolloutAction(
+						Singletons.envProvider,
+						this.keyRotationFacade,
+						this.userFacade,
+						rolloutType,
+						userPassphraseKey,
+						modernKdfType,
+						sessionType,
+					),
 				)
 			}
 			if (rolloutType === RolloutType.InstanceKeySharing) {
 				await this.rolloutFacade.configureRollout(
 					rolloutType,
-					new InstanceKeySharingRolloutAction(this.instanceKeyFacade, this.userFacade, sessionType),
+					new InstanceKeySharingRolloutAction(Singletons.envProvider, this.instanceKeyFacade, this.userFacade, sessionType),
 				)
 			}
 		}

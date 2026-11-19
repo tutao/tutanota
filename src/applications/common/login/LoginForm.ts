@@ -5,13 +5,12 @@ import { liveDataAttrs } from "../../../ui/AriaUtils"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { EnvProvider } from "@tutao/app-env"
 import { useKeyHandler } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { CheckBrowser } from "../../../ui/CheckBrowser"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -57,7 +56,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 		const canSaveCredentials = CheckBrowser.haveLocalStorage()
-		if (a.savePassword && (EnvProvider.get().isApp() || EnvProvider.get().isDesktop())) {
+		if (a.savePassword && (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop())) {
 			a.savePassword(true)
 		}
 		return m(
@@ -79,7 +78,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						autocompleteAs: Autocomplete.email,
 						onDomInputCreated: (dom) => {
 							this.mailAddressTextField = dom
-							if (!ClientDetector.get().isMobileDevice()) {
+							if (!Singletons.clientDetector.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},
@@ -97,7 +96,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					}),
 				),
 				a.savePassword
-					? EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+					? Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 						? m("small.block.content-fg", lang.get("dataWillBeStored_msg"))
 						: m(
 								".pt-16",
@@ -123,7 +122,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 										? lang.makeTranslation(
 												"onlyPrivateComputer_msg",
 												lang.get("onlyPrivateComputer_msg") +
-													(!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()
+													(!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()
 														? "\n" + lang.get("dataWillBeStored_msg")
 														: ""),
 											)
@@ -135,7 +134,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				m(
 					".pt-16",
 					m(PrimaryButton, {
-						label: EnvProvider.get().isApp() || EnvProvider.get().isDesktop() ? "addAccount_action" : "login_action",
+						label: Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop() ? "addAccount_action" : "login_action",
 						onclick: () => a.onSubmit(a.mailAddress(), a.password()),
 					}),
 				),

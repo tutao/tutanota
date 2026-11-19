@@ -51,9 +51,9 @@ import { CommonSearchListViewAttrs } from "../../../common/search/SearchUtils"
 import { AppPromo } from "../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { Styles } from "../../../../ui/styles"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface ContactSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -277,7 +277,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 						},
 						icon: Icons.CalendarFilled,
 					},
-					!ClientDetector.get().isMailApp() && this.searchViewModel.isDriveEnabled()
+					!Singletons.clientDetector.isMailApp() && this.searchViewModel.isDriveEnabled()
 						? {
 								label: "driveView_action",
 								click: () => {

@@ -1,7 +1,7 @@
 import { assertNotNull } from "@tutao/utils"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { LoginController } from "../api/main/LoginController"
-import { AppType, EnvProvider, PushServiceType } from "@tutao/app-env"
+import { AppType, PushServiceType } from "@tutao/app-env"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { locator } from "../api/main/CommonLocator"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
@@ -13,7 +13,7 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { createPushIdentifier, PushIdentifier, PushIdentifierTypeRef, sysModelInfo } from "@tutao/entities/sys"
 import { elementIdToId, getElementId } from "@tutao/meta"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
@@ -23,7 +23,7 @@ const MOBILE_SYS_MODEL_VERSION = 126
 function effectiveModelVersion(): number {
 	// on desktop, we use generated classes
 	// on mobile, we use handwritten classes
-	return EnvProvider.get().isDesktop() ? sysModelInfo.version : MOBILE_SYS_MODEL_VERSION
+	return Singletons.envProvider.isDesktop() ? sysModelInfo.version : MOBILE_SYS_MODEL_VERSION
 }
 
 interface CurrentPushIdentifier {
@@ -47,7 +47,7 @@ export class NativePushServiceApp {
 
 	async register(): Promise<void> {
 		console.log(`Registering for push notifications for app type ${this.app}`)
-		if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isAndroidApp() || Singletons.envProvider.isDesktop()) {
 			try {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifier())
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.SSE))
@@ -70,7 +70,7 @@ export class NativePushServiceApp {
 					throw e
 				}
 			}
-		} else if (EnvProvider.get().isIOSApp()) {
+		} else if (Singletons.envProvider.isIOSApp()) {
 			const identifier = await this.loadPushIdentifierFromNative()
 
 			if (identifier) {
@@ -136,7 +136,7 @@ export class NativePushServiceApp {
 	private async createPushIdentifierInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
 		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list)
 		const pushIdentifier = createPushIdentifier({
-			displayName: ClientDetector.get().getIdentifier(),
+			displayName: Singletons.clientDetector.getIdentifier(),
 			pushServiceType: pushServiceType,
 			identifier,
 			language: lang.code,
@@ -203,6 +203,6 @@ export class NativePushServiceApp {
 	}
 
 	async allowReceiveCalendarNotifications() {
-		return !EnvProvider.get().isApp() || (await this.getReceiveCalendarNotificationConfig())
+		return !Singletons.envProvider.isApp() || (await this.getReceiveCalendarNotificationConfig())
 	}
 }

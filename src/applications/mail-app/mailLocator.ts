@@ -178,6 +178,7 @@ import { InboxRuleModel } from "./mail/model/InboxRuleModel"
 import { LegacyInboxRuleHandler } from "./mail/model/LegacyInboxRuleHandler"
 import { showMeteredConnectionWarningDialog } from "../common/gui/dialogs/MeteredConnectionWarningDialog"
 import { MailIndexingAbortReason } from "./workerUtils/index/MailIndexer"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -369,7 +370,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly mailOpenedListener: MailOpenedListener = {
-		onEmailOpened: EnvProvider.get().isDesktop()
+		onEmailOpened: Singletons.envProvider.isDesktop()
 			? (mail) => {
 					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
 				}
@@ -551,7 +552,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			const { MobileContactSuggestionProvider } = await import("../common/native/MobileContactSuggestionProvider.js")
 			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
 		} else {
@@ -590,8 +591,8 @@ class MailLocator implements CommonLocator {
 		return new ContactImporter(
 			this.contactFacade,
 			this.systemPermissionHandler,
-			EnvProvider.get().isApp() ? this.mobileContactsFacade : null,
-			EnvProvider.get().isApp() ? this.nativeContactsSyncManager() : null,
+			Singletons.envProvider.isApp() ? this.mobileContactsFacade : null,
+			Singletons.envProvider.isApp() ? this.nativeContactsSyncManager() : null,
 		)
 	}
 
@@ -600,7 +601,7 @@ class MailLocator implements CommonLocator {
 		const { AttachmentDownloader } = await import("./mail/view/MailGuiUtils.js")
 		const eventRepository = await this.calendarEventsRepository()
 		const undoModel = await this.undoModel()
-		const fileApp = EnvProvider.get().isBrowser() ? null : this.fileApp
+		const fileApp = Singletons.envProvider.isBrowser() ? null : this.fileApp
 		const driveModel = await this.driveModel()
 		const fileDownloader = new AttachmentDownloader(this.fileController, fileApp, this.transferProgressDispatcher, driveModel, (action) =>
 			mailLocator.showDriveDestinationPickerDialog(action),
@@ -614,7 +615,7 @@ class MailLocator implements CommonLocator {
 				this.entityClient,
 				this.mailboxModel,
 				this.mailModel,
-				EnvProvider.get().isBrowser() ? null : this.commonSystemFacade,
+				Singletons.envProvider.isBrowser() ? null : this.commonSystemFacade,
 				this.contactModel,
 				this.configFacade,
 				this.fileController,
@@ -760,14 +761,14 @@ class MailLocator implements CommonLocator {
 
 	async credentialsRemovalHandler(): Promise<CredentialRemovalHandler> {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../common/login/CredentialRemovalHandler.js")
-		return EnvProvider.get().isBrowser()
+		return Singletons.envProvider.isBrowser()
 			? new NoopCredentialRemovalHandler()
 			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async (login, userId) => {
-					if (EnvProvider.get().isApp()) {
+					if (Singletons.envProvider.isApp()) {
 						await mailLocator.nativeContactsSyncManager().disableSync(userId, login)
 					}
 					await mailLocator.indexerFacade.deleteIndex(userId)
-					if (EnvProvider.get().isDesktop()) {
+					if (Singletons.envProvider.isDesktop()) {
 						await mailLocator.exportFacade.clearExportState(userId)
 					}
 				})
@@ -777,11 +778,11 @@ class MailLocator implements CommonLocator {
 		const { LoginViewModel } = await import("../common/login/LoginViewModel.js")
 		const credentialsRemovalHandler = await mailLocator.credentialsRemovalHandler()
 		const { MobileAppLock, NoOpAppLock } = await import("../common/login/AppLock.js")
-		const appLock = EnvProvider.get().isApp()
+		const appLock = Singletons.envProvider.isApp()
 			? new MobileAppLock(assertNotNull(this.nativeInterfaces).mobileSystemFacade, assertNotNull(this.nativeInterfaces).nativeCredentialsFacade)
 			: new NoOpAppLock()
 		return () => {
-			const domainConfig = EnvProvider.get().isBrowser()
+			const domainConfig = Singletons.envProvider.isBrowser()
 				? mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
 					mailLocator.domainConfigProvider().getCurrentDomainConfig()
@@ -793,7 +794,7 @@ class MailLocator implements CommonLocator {
 				deviceConfig,
 				domainConfig,
 				credentialsRemovalHandler,
-				EnvProvider.get().isBrowser() ? null : this.pushService,
+				Singletons.envProvider.isBrowser() ? null : this.pushService,
 				appLock,
 			)
 		}
@@ -983,12 +984,17 @@ class MailLocator implements CommonLocator {
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
 
 		this.pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
-		this.pluginManager = new PluginManager(this.pluginConfigurationProvider, new DialogProvider(), new MailPluginIntegrationAdapter(this.mailboxModel))
+		this.pluginManager = new PluginManager(
+			Singletons.envProvider,
+			this.pluginConfigurationProvider,
+			new DialogProvider(),
+			new MailPluginIntegrationAdapter(this.mailboxModel),
+		)
 		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 		this.pluginConfigurationProvider.setPluginManager(this.pluginManager)
 		this.logins.addPostLoginAction(async () => this.pluginConfigurationProvider)
 
-		if (!EnvProvider.get().isBrowser()) {
+		if (!Singletons.envProvider.isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/WebMobileFacade.js")
 			const { WebCommonNativeFacade } = await import("../common/native/WebCommonNativeFacade.js")
@@ -1086,12 +1092,12 @@ class MailLocator implements CommonLocator {
 			)
 
 			this.credentialsProvider = await this.createCredentialsProvider()
-			if (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
+			if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), EnvProvider.get().isApp())
-				if (EnvProvider.get().isDesktop()) {
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), Singletons.envProvider.isApp())
+				if (Singletons.envProvider.isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 					this.fileMailImportController = new FileMailImportController(
@@ -1119,10 +1125,10 @@ class MailLocator implements CommonLocator {
 						new MigrationErrorHandler(this.entityClient, this.serviceExecutor, this.logins),
 					)
 				}
-			} else if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {
+			} else if (Singletons.envProvider.isAndroidApp() || Singletons.envProvider.isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/SystemPermissionHandler.js")
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), EnvProvider.get().isApp())
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), Singletons.envProvider.isApp())
 
 				this.systemFacade.storeServerRemoteOrigin(assertNotNull(env.staticUrl)).catch((e) => console.log("Failed to store remote URL: ", e))
 			}
@@ -1134,7 +1140,7 @@ class MailLocator implements CommonLocator {
 			this.webAuthn = new WebauthnClient(
 				new BrowserWebauthn(navigator.credentials, this.domainConfigProvider().getCurrentDomainConfig()),
 				this.domainConfigProvider(),
-				EnvProvider.get().isApp(),
+				Singletons.envProvider.isApp(),
 			)
 		}
 		this.secondFactorHandler = new SecondFactorHandler(
@@ -1171,7 +1177,7 @@ class MailLocator implements CommonLocator {
 					const { RichNotificationsNews } = await import("../common/misc/news/items/RichNotificationsNews.js")
 					return new RichNotificationsNews(
 						this.newsModel,
-						EnvProvider.get().isApp() || EnvProvider.get().isDesktop() ? this.pushService : null,
+						Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop() ? this.pushService : null,
 						this.systemPermissionHandler,
 					)
 				}
@@ -1211,10 +1217,10 @@ class MailLocator implements CommonLocator {
 			},
 		}
 		const selectedThemeFacade =
-			EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+			Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()
 				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => mailLocator.themeFacade))
 				: new WebThemeFacade(deviceConfig)
-		const lazySanitizer = EnvProvider.get().isTest()
+		const lazySanitizer = Singletons.envProvider.isTest()
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
@@ -1244,9 +1250,9 @@ class MailLocator implements CommonLocator {
 			this.fileController,
 			this.contactModel,
 			timeZone,
-			!EnvProvider.get().isBrowser() ? this.externalCalendarFacade : null,
+			!Singletons.envProvider.isBrowser() ? this.externalCalendarFacade : null,
 			deviceConfig,
-			!EnvProvider.get().isBrowser() ? this.pushService : null,
+			!Singletons.envProvider.isBrowser() ? this.pushService : null,
 			this.syncTracker,
 			lang,
 		)
@@ -1425,7 +1431,7 @@ class MailLocator implements CommonLocator {
 	}
 
 	readonly nativeContactsSyncManager: () => NativeContactsSyncManager = lazyMemoized(() => {
-		assert(EnvProvider.get().isApp(), "isApp")
+		assert(Singletons.envProvider.isApp(), "isApp")
 		return new NativeContactsSyncManager(this.logins, this.mobileContactsFacade, this.entityClient, this.eventController, this.contactModel, deviceConfig)
 	})
 
@@ -1450,7 +1456,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	showSetupWizard = async () => {
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			const { showSetupWizard } = await import("../common/native/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
@@ -1467,12 +1473,12 @@ class MailLocator implements CommonLocator {
 	}
 
 	async updateClients(): Promise<void> {
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			await this.desktopSettingsFacade.manualUpdate()
-		} else if (EnvProvider.get().isApp()) {
-			if (EnvProvider.get().isAndroidApp()) {
+		} else if (Singletons.envProvider.isApp()) {
+			if (Singletons.envProvider.isAndroidApp()) {
 				this.nativeInterfaces?.mobileSystemFacade.openLink("market://details?id=de.tutao.tutanota")
-			} else if (EnvProvider.get().isIOSApp()) {
+			} else if (Singletons.envProvider.isIOSApp()) {
 				this.nativeInterfaces?.mobileSystemFacade.openLink("itms-apps://itunes.apple.com/app/id922429609")
 			}
 		} else {
@@ -1488,9 +1494,9 @@ class MailLocator implements CommonLocator {
 
 	readonly credentialFormatMigrator: () => Promise<CredentialFormatMigrator> = lazyMemoized(async () => {
 		const { CredentialFormatMigrator } = await import("../common/misc/credentials/CredentialFormatMigrator.js")
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, null)
-		} else if (EnvProvider.get().isApp()) {
+		} else if (Singletons.envProvider.isApp()) {
 			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, this.systemFacade)
 		} else {
 			return new CredentialFormatMigrator(deviceConfig, null, null)
@@ -1526,11 +1532,11 @@ class MailLocator implements CommonLocator {
 	 */
 	private async createCredentialsProvider(): Promise<CredentialsProvider> {
 		const { CredentialsProvider } = await import("../common/misc/credentials/CredentialsProvider.js")
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isApp()) {
 			return new CredentialsProvider(
 				this.nativeCredentialsFacade,
 				this.sqlCipherFacade,
-				EnvProvider.get().isDesktop() ? this.interWindowEventSender : null,
+				Singletons.envProvider.isDesktop() ? this.interWindowEventSender : null,
 			)
 		} else {
 			const { WebCredentialsFacade } = await import("../common/misc/credentials/WebCredentialsFacade.js")
@@ -1575,7 +1581,7 @@ class MailLocator implements CommonLocator {
 			this.eventController,
 			this.logins,
 			this.userManagementFacade,
-			EnvProvider.get().isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
+			Singletons.envProvider.isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
 			this.syncTracker,
 			this.driveSearchModel,
@@ -1604,9 +1610,9 @@ class MailLocator implements CommonLocator {
 	}
 
 	async driveFilePicker(): Promise<DriveFilePicker> {
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isDesktop() || Singletons.envProvider.isApp()) {
 			const { AppFilePicker } = await import("../drive-app/drive/view/DriveFilePicker.js")
-			return new AppFilePicker(this.fileApp)
+			return new AppFilePicker(this.fileApp, Singletons.envProvider.isApp(), Singletons.envProvider.isDesktop())
 		} else {
 			const { WebFilePicker } = await import("../drive-app/drive/view/DriveFilePicker.js")
 			return new WebFilePicker()

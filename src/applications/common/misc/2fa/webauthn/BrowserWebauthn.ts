@@ -9,6 +9,7 @@ import {
 } from "@tutao/native-bridge/generatedIpc/types"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { WebauthnError } from "../../../api/common/error/WebauthnError.js"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 
@@ -44,7 +45,7 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	 */
 	async isSupported(): Promise<boolean> {
 		return (
-			!EnvProvider.get().isApp() &&
+			!Singletons.envProvider.isApp() &&
 			this.api != null &&
 			// @ts-ignore see polyfill.js
 			// We just stub BigInt in order to import cborg without issues but we can't actually use it

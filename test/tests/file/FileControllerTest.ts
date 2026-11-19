@@ -8,12 +8,13 @@ import { neverNull } from "../../../src/platform-kit/utils"
 import { FileControllerNative } from "../../../src/applications/common/file/FileControllerNative.js"
 import { FileControllerBrowser } from "../../../src/applications/common/file/FileControllerBrowser.js"
 import * as restError from "../../../src/platform-kit/rest-client/error"
-import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
+import { createTestEntity } from "../TestUtils.js"
 import { ArchiveDataType } from "../../../src/entities/sys/Utils"
 import { TransferId } from "../../../src/entities/drive/Utils"
 import { BlobTypeRef } from "@tutao/entities/sys"
 import { FileReference } from "../../../src/entities/tutanota/Utils"
 import { buildDirectoryStructure } from "../../../src/applications/common/file/FileController"
+import { Singletons } from "../../../src/platform-kit/singletons/singleton"
 
 const { anything, argThat } = matchers
 
@@ -45,7 +46,9 @@ o.spec("FileControllerTest", function () {
 			})
 			const fileReference = object<FileReference>()
 			when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), anything(), anything(), transferId)).thenResolve(fileReference)
-			const result = await withOverriddenEnv(androidEnv, () => fileController.downloadAndDecrypt(file, transferId, ArchiveDataType.Attachments))
+			const result = await Singletons.withOverriddenEnvForTest(androidEnv, () =>
+				fileController.downloadAndDecrypt(file, transferId, ArchiveDataType.Attachments),
+			)
 			verify(
 				blobFacadeMock.downloadAndDecryptNative(
 					ArchiveDataType.Attachments,
@@ -75,7 +78,7 @@ o.spec("FileControllerTest", function () {
 				)
 				await assertThrows(
 					restError.ConnectionError,
-					async () => await withOverriddenEnv(androidEnv, async () => await (await testableFileController.download(file)).promise),
+					async () => await Singletons.withOverriddenEnvForTest(androidEnv, async () => await (await testableFileController.download(file)).promise),
 				)
 				verify(fileAppMock.deleteFile(anything()), { times: 0 }) // mock for cleanup
 			})
@@ -108,7 +111,7 @@ o.spec("FileControllerTest", function () {
 				await assertThrows(
 					restError.ConnectionError,
 					async () =>
-						await withOverriddenEnv(
+						await Singletons.withOverriddenEnvForTest(
 							androidEnv,
 							async () => await (await testableFileController.downloadAll([fileWorks, fileNotWorks], ArchiveDataType.Attachments)).promise,
 						),

@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { ApprovalStatus, EnvProvider, PaymentSetup, TutanotaConstants, UpgradePromptType } from "@tutao/app-env"
+import { ApprovalStatus, EnvProvider, PaymentSetup, TutanotaConstants } from "@tutao/app-env"
 import { GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, getDayShifted, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -82,13 +82,13 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/i
 import { SubscriptionStateCellAttrs } from "../../subscription/components/SubscriptionStateCell"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { shouldOfferSubscriptionRevocation } from "./RevocationEligibility"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { UpdatableSettingsViewer } from "../Interfaces"
 import { openExternalSubscriptionPage, showDowngradeOrResubscribeDialog } from "../../misc/SubscriptionDialogs"
 import { InfoIconAttrs } from "../../../../ui/base/InfoIcon"
 import { showUserUpgradedDeclinedDialog } from "../../ratings/UserUpgradedDeclinedDialog"
 import { deviceConfig } from "../../misc/DeviceConfig"
 import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -363,7 +363,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							},
 						},
 						m(DynamicColorSvg, {
-							path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/feature.svg`,
+							path: `${Singletons.envProvider.getPathPrefix()}/images/leaving-wizard/feature.svg`,
 						}),
 					),
 					m("", lang.getTranslationText("subscriptionSettingsFreePlan_label")),
@@ -471,7 +471,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					".flex.justify-end.gap-8",
 					m(SecondaryButton, {
 						label:
-							EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+							Singletons.envProvider.getPaymentSetup() === PaymentSetup.Appstore
 								? "subscriptionSettingManageSubscription_action"
 								: "subscriptionSettingManageSubscriptionGoogle_action",
 						width: "flex",
@@ -573,7 +573,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleUpgradeSubscription() {
-		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		if (Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default) {
 			const term = await getExternalSubscriptionError()
 			if (term) {
 				return Dialog.message(term)
@@ -695,9 +695,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 
 		const isMailSubscription = this._lastBooking?.subscriptionReference.subscriptionApp === SubscriptionApp.Mail
 
-		if (ClientDetector.get().isCalendarApp() && isMailSubscription) {
+		if (Singletons.clientDetector.isCalendarApp() && isMailSubscription) {
 			return await this.handleAppOpen(SubscriptionApp.Mail)
-		} else if (!ClientDetector.get().isCalendarApp() && !isMailSubscription) {
+		} else if (!Singletons.clientDetector.isCalendarApp() && !isMailSubscription) {
 			return await this.handleAppOpen(SubscriptionApp.Calendar)
 		}
 

@@ -5,7 +5,6 @@ import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/enums
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array } from "@tutao/utils"
 import { AccountType, isExternalPaymentMethod, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Dialog } from "../../../ui/base/Dialog"
 import { ExternalLink } from "../../../ui/base/ExternalLink"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -21,6 +20,7 @@ import {
 	waitUntilCustomerInfoPlanTypeIsCorrect,
 } from "./utils/SubscriptionUtils"
 import { TutanotaConstants } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 type SubscriptionCheckoutData = Pick<PaymentDetailsModel, "options" | "paymentData" | "customer" | "upgradeType"> & { targetPlanType: PlanType }
 
@@ -41,7 +41,7 @@ async function upgradeWithTuta(data: SubscriptionCheckoutData, referralCode: str
 		referralCode,
 		specialPriceUserSingle: null,
 		surveyData: null,
-		app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+		app: Singletons.clientDetector.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 
 	try {

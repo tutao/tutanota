@@ -42,6 +42,7 @@ import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { ClickHandler } from "../../../../ui/base/GuiUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 // These are actions that generally show in the main toolbar for an email
 export type MailViewerToolbarActions = {
@@ -587,7 +588,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 				"p.m-0.mt-8",
 				nextUnsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE
 					? nextUnsubscribeAction.requestUrl
-					: EnvProvider.get().isBrowser()
+					: Singletons.envProvider.isBrowser()
 						? lang.get("unsubscribeHttpPostInfoWeb_msg")
 						: lang.get("unsubscribeHttpPostInfoApp_msg"),
 			),
@@ -626,7 +627,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 											newMailDialog.show()
 										}
 									} else if (nextUnsubscribeAction?.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
-										if (EnvProvider.get().isApp()) {
+										if (Singletons.envProvider.isApp()) {
 											mailLocator.systemFacade.openLink(nextUnsubscribeAction.requestUrl)
 										} else {
 											open(nextUnsubscribeAction.requestUrl)
@@ -797,11 +798,11 @@ export function getMailFilterForType(filter: MailFilterType): ListFilter<Mail> {
 }
 
 export function canDoDragAndDropExport(): boolean {
-	return EnvProvider.get().isDesktop()
+	return Singletons.envProvider.isDesktop()
 }
 
 export function getPrintMailAction(): (() => void) | undefined {
-	if (EnvProvider.get().isApp()) {
+	if (Singletons.envProvider.isApp()) {
 		return () => locator.systemFacade.print()
 	} else if (typeof window.print === "function") {
 		return () => window.print()

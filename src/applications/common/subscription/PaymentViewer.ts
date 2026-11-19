@@ -28,7 +28,6 @@ import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { DeviceType } from "../../../platform-kit/app-env/boot/ClientConstants.js"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
@@ -64,6 +63,7 @@ import Stream from "mithril/stream"
 import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorField"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { SettingsExpander } from "../settings/SettingsExpander"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -186,7 +186,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			if (lastSubscriptionFromTutao) {
 				this.changePaymentMethod()
 			} else if (isMatching && !isExpired) {
-				if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Default) {
+				if (Singletons.envProvider.getPaymentSetup() === PaymentSetup.Default) {
 					this.changePaymentMethod()
 					return
 				} else {
@@ -378,12 +378,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private async doPdfInvoiceDownload(posting: CustomerAccountPosting): Promise<unknown> {
-		if (ClientDetector.get().compressionStreamSupported()) {
+		if (Singletons.clientDetector.compressionStreamSupported()) {
 			return showProgressDialog("pleaseWait_msg", locator.customerFacade.generatePdfInvoice(neverNull(posting.invoiceNumber))).then((pdfInvoice) =>
 				locator.fileController.saveDataFile(pdfInvoice),
 			)
 		} else {
-			if (ClientDetector.get().device === DeviceType.ANDROID) {
+			if (Singletons.clientDetector.device === DeviceType.ANDROID) {
 				return Dialog.message("invoiceFailedWebview_msg", () =>
 					m(
 						"div",
@@ -397,7 +397,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						),
 					),
 				)
-			} else if (ClientDetector.get().isIos()) {
+			} else if (Singletons.clientDetector.isIos()) {
 				return Dialog.message("invoiceFailedIOS_msg")
 			} else {
 				return Dialog.message("invoiceFailedBrowser_msg")

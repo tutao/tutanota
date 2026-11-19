@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import { EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename } from "../../../src/applications/common/desktop/PathUtils.js"
 import path from "node:path"
-import { withOverriddenEnv } from "../TestUtils"
 import { Mode } from "../../../src/platform-kit/app-env"
+import { Singletons } from "../../../src/platform-kit/singletons/singleton"
 
 o.spec("PathUtils", function () {
 	o.spec("nonClobberingFileName Test", function () {
@@ -88,7 +88,7 @@ o.spec("PathUtils", function () {
 		// These would rather be in sanitize file name tests
 		o("invalid/reserved filenames", async function () {
 			o(nonClobberingFilename([], "\x00-\x1f\x80-\x9f.exe")).equals("_-__-_.exe")
-			await withOverriddenEnv({ mode: Mode.Win32 }, () => {
+			await Singletons.withOverriddenEnvForTest({ mode: Mode.Win32 }, () => {
 				o(nonClobberingFilename(["CON-1.exe"], "CON.exe")).equals("CON_.exe")
 				o(nonClobberingFilename([], ".")).equals("._")
 				o(nonClobberingFilename(["._"], ".")).equals("._-1")
@@ -113,7 +113,7 @@ o.spec("PathUtils", function () {
 				o(nonClobberingFilename([], "<>|?/\\CON.")).equals("______CON_")
 			})
 
-			await withOverriddenEnv({ mode: Mode.Linux }, () => {
+			await Singletons.withOverriddenEnvForTest({ mode: Mode.Linux }, () => {
 				o(nonClobberingFilename([], "nul")).equals("nul")
 				o(nonClobberingFilename([], "..")).equals(".._")
 			})

@@ -6,8 +6,9 @@ import { NextcloudPlugin } from "./NextcloudPlugin"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { CustomerConfigPluginError, GeneralPluginError } from "../../sdk/PluginError"
 import { PluginVersion } from "../../sdk/PluginManifest"
-import { HttpClient, HttpClientJavascript, HttpMethod, HttpResponse, MediaType, RestBinaryBody } from "../../../platform-kit/http-client"
-import { EnvProvider, TimeConstants } from "../../../platform-kit/app-env"
+import { HttpUtils, HttpClientJavascript, HttpMethod, HttpResponse, MediaType, RestBinaryBody } from "../../../platform-kit/http-client"
+import { TimeConstants } from "../../../platform-kit/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type NextcloudCredentials = {
 	appPassword: string
@@ -16,7 +17,7 @@ export type NextcloudCredentials = {
 }
 
 export class NextcloudApi {
-	private static httpClient: HttpClient = new HttpClientJavascript(TimeConstants.secondsToMillis(5))
+	private static httpClient: HttpUtils = null!
 	private nextCloudCredentials: Nullable<NextcloudCredentials>
 
 	public constructor(
@@ -26,6 +27,10 @@ export class NextcloudApi {
 		private readonly nextcloudPlugin: NextcloudPlugin,
 	) {
 		this.nextCloudCredentials = null
+	}
+
+	public static initializeHttpClient() {
+		NextcloudApi.httpClient = new HttpClientJavascript(Singletons.envProvider)
 	}
 
 	public setNextcloudCredentials(nextcloudCredentials: NextcloudCredentials): this {
@@ -54,7 +59,7 @@ export class NextcloudApi {
 				"OCS-APIRequest": "true",
 			},
 			MediaType.Json,
-			EnvProvider.get().getTimeOutValue(),
+			Singletons.envProvider.getTimeOutValue(),
 			null,
 			null,
 			null,
@@ -82,7 +87,7 @@ export class NextcloudApi {
 					"Content-Type": "application/x-www-form-urlencoded",
 				},
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				Singletons.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -133,7 +138,7 @@ export class NextcloudApi {
 				null,
 				headers,
 				MediaType.Binary,
-				EnvProvider.get().getTimeOutValue(),
+				Singletons.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -183,7 +188,7 @@ export class NextcloudApi {
 				new RestBinaryBody(dataFile.data),
 				putHeaders,
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				Singletons.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -221,7 +226,7 @@ export class NextcloudApi {
 				null,
 				postHeaders,
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				Singletons.envProvider.getTimeOutValue(),
 				null,
 				null,
 				null,
@@ -282,7 +287,7 @@ export class NextcloudApi {
 				null,
 				{},
 				MediaType.Json,
-				EnvProvider.get().getTimeOutValue(),
+				TimeConstants.secondsToMillis(5),
 				null,
 				null,
 				null,

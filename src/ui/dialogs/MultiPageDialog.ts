@@ -4,13 +4,13 @@ import { ButtonAttrs } from "../base/Button.js"
 import stream from "mithril/stream"
 import { theme } from "../theme.js"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { px, size } from "../size.js"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import { DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
 import { lang } from "../utils/LanguageViewModel.js"
 import { WindowSizeListener } from "../utils/WindowUtils"
 import { IWindowFacade } from "../IWindowFacade"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 type Pages<PageKey extends string> = {
 	[key in PageKey]: {
@@ -140,7 +140,7 @@ export class MultiPageDialog<PageKey extends string> {
 			},
 		)
 
-		if (ClientDetector.get().isMobileDevice()) {
+		if (Singletons.clientDetector.isMobileDevice()) {
 			// Prevent focusing text field automatically on mobile. It opens keyboard, and you don't see all details.
 			this.dialog.setFocusOnLoadFunction(noOp)
 		}

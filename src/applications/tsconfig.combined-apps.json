@@ -73,6 +73,9 @@
 		},
 		{
 			"path": "../entities/tsconfig.entities.sys.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.singletons.json"
 		}
 	]
 }

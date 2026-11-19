@@ -11,6 +11,7 @@ import { EnvProvider, TabIndex } from "@tutao/app-env"
 import { isKeyPressed } from "../../utils/KeyManager"
 import { Keys } from "../../utils/KeyboardKeys"
 import { CheckBrowser } from "../../CheckBrowser"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 const HUE_GRADIENT_BORDER_WIDTH = 1
 const HUE_GRADIENT_HEIGHT = 40
@@ -321,7 +322,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						},
 					},
 					m("img.block.full-width", {
-						src: `${EnvProvider.get().getPathPrefix()}/images/color-hue-picker/hue-gradient-${isDarkTheme() ? "dark" : "light"}.png`,
+						src: `${Singletons.envProvider.getPathPrefix()}/images/color-hue-picker/hue-gradient-${isDarkTheme() ? "dark" : "light"}.png`,
 						alt: "",
 						draggable: false,
 						style: {

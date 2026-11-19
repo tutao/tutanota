@@ -3,7 +3,6 @@ import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
 import {
 	assert,
-	assertNotNull,
 	console,
 	isNotNull,
 	isNull,
@@ -26,12 +25,7 @@ export class ClientDetector {
 	public readonly browser: BrowserType
 	public readonly device: DeviceType
 
-	private static singleton: Nullable<ClientDetector> = null
-	public static get(): ClientDetector {
-		return assertNotNull(ClientDetector.singleton, "ClientDetector not yet initialized. Make sure to call .init() method first")
-	}
-
-	private constructor(
+	public constructor(
 		private readonly envProvider: EnvProvider,
 		private readonly userAgent: TsString,
 		private readonly appType: AppType,
@@ -61,8 +55,7 @@ export class ClientDetector {
 				return false
 			})
 
-		ClientDetector.singleton = new ClientDetector(envProvider, userAgent, appType, isAutomatedBrowser, platform)
-		return ClientDetector.singleton
+		return new ClientDetector(envProvider, userAgent, appType, isAutomatedBrowser, platform)
 	}
 
 	getUserAgent(): NonNullable<TsString> {
@@ -250,7 +243,7 @@ export class ClientDetector {
 				return `${this.device} ${appType} App`
 			}
 			case Mode.Browser:
-				return ClientDetector.get().browser + " Browser"
+				return this.browser + " Browser"
 			case Mode.Linux:
 				return "Linux Desktop"
 			case Mode.Darwin:
@@ -344,11 +337,6 @@ export class ClientDetector {
 		assert(this.envProvider.isTest(), "This method is only supposed to be used from test")
 		;(this.device satisfies DeviceType) = device
 		return this
-	}
-
-	public static createSingletonForTest() {
-		assert(EnvProvider.get().isTest(), "This method is only supposed to be used from test")
-		ClientDetector.singleton = new ClientDetector(EnvProvider.get(), "", AppType.Calendar, false, "")
 	}
 }
 

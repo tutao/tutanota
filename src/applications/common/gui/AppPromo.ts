@@ -1,10 +1,10 @@
 import m, { Children, Component } from "mithril"
 import { Card } from "../../../ui/base/Card"
 import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"
-import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export function renderSearchInOurApps(): Children {
-	if (!EnvProvider.get().isBrowser()) {
+	if (!Singletons.envProvider.isBrowser()) {
 		return null
 	} else {
 		return m.trust(

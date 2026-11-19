@@ -9,6 +9,7 @@ import {
 import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { CredentialType } from "../../../../platform-kit/network/types"
 import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
@@ -125,5 +126,5 @@ export class CredentialsProvider {
 }
 
 export function usingKeychainAuthenticationWithOptions(): boolean {
-	return !EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()
+	return !Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()
 }

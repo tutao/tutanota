@@ -11,13 +11,14 @@ import { InstanceKeyFacade } from "./InstanceKeyFacade"
  */
 export class InstanceKeySharingRolloutAction implements RolloutAction {
 	constructor(
+		private readonly envProvider: EnvProvider,
 		private readonly instanceKeyFacade: InstanceKeyFacade,
 		private readonly userFacade: UserFacade,
 		private readonly sessionType: SessionType,
 	) {}
 
 	public async execute(): Promise<void> {
-		if (!EnvProvider.get().isAdminClient() && this.sessionType !== SessionType.Temporary) {
+		if (!this.envProvider.isAdminClient() && this.sessionType !== SessionType.Temporary) {
 			const user = this.userFacade.getUser()
 			if (user != null && user.accountType !== AccountType.EXTERNAL) {
 				await this.instanceKeyFacade.loadAndProcessPendingInstanceKeySharing(user)

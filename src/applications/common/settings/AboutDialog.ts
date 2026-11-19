@@ -9,10 +9,9 @@ import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
 import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 import { px, size } from "../../../ui/size.js"
 import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { EnvProvider } from "@tutao/app-env"
 import { getTutaLogoSvg } from "../../../ui/base/Logo"
 import { theme } from "../../../ui/theme"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -55,7 +54,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 			]),
 			this.logsLink(),
 			// wrap it in a div so that it's not filling the whole width
-			EnvProvider.get().isApp()
+			Singletons.envProvider.isApp()
 				? m(
 						"",
 						m(Button, {
@@ -69,7 +68,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 	}
 
 	logsLink(): Children {
-		if (ClientDetector.get().isMailApp()) {
+		if (Singletons.clientDetector.isMailApp()) {
 			// Sending logs opens a mail editor, we only want to do this in an app that handles mail
 			return this.sendLogsLink()
 		} else {

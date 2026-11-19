@@ -1,7 +1,8 @@
 import { FileReference } from "../../../../entities/tutanota/Utils"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
-import { EnvProvider, ProgrammingError } from "@tutao/app-env"
+import { ProgrammingError } from "@tutao/app-env"
 import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export class WebFileResolver {
 	constructor(
@@ -9,7 +10,7 @@ export class WebFileResolver {
 		private readonly fileApp: NativeFileApp,
 		private readonly desktopSystemFacade: DesktopSystemFacade,
 	) {
-		if (!EnvProvider.get().isDesktop()) {
+		if (!Singletons.envProvider.isDesktop()) {
 			throw new ProgrammingError("WebFileResolver is for Desktop only!")
 		}
 	}

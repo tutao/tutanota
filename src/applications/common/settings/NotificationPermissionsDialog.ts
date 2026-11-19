@@ -10,6 +10,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { isNotNull } from "@tutao/utils"
 import { NativePushServiceApp } from "../native/NativePushServiceApp"
 import { SystemPermissionHandler } from "../native/SystemPermissionHandler"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderSetupWizardButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
@@ -82,7 +83,7 @@ export class NotificationPermissionsBody implements Component<NotificationPermis
 				}
 				attrs.askForNotificationPermission(isNotificationPermissionGranted)
 			}),
-			!EnvProvider.get().isAndroidApp()
+			!Singletons.envProvider.isAndroidApp()
 				? null
 				: m("section.mt-8.mb-16", [
 						m("p.mb-8.mt-8", lang.get("allowBatteryPermission_msg")),

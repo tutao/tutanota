@@ -20,6 +20,7 @@ import { ThemeController } from "../../../ui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { UserController } from "../api/main/UserController"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export function calendarSettings(entityClient: EntityClient, userController: UserController): SettingsFolder<void> {
 	return new SettingsFolder(
@@ -78,7 +79,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 				() => "adminSubscription_label",
 				() => Icons.TrophyFilled,
 				"subscription",
-				() => new SubscriptionSettingsViewer(EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default ? mobilePaymentsFacade : null),
+				() => new SubscriptionSettingsViewer(Singletons.envProvider.getPaymentSetup() !== PaymentSetup.Default ? mobilePaymentsFacade : null),
 				undefined,
 			).setIsVisibleHandler(() => shouldShowSubscriptionSetting()),
 			new SettingsFolder<void>(

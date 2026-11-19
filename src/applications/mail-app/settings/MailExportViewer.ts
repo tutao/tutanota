@@ -6,6 +6,7 @@ import { mailLocator } from "../mailLocator.js"
 import { MailExportSettings } from "./MailExportSettings"
 import { MailExportController } from "../native/main/MailExportController.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -15,7 +16,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 	constructor() {
 		this.view = this.view.bind(this)
 
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			// export is only available on desktop
 			mailLocator.mailExportController().then((controller) => {
 				this.mailExportController = controller
@@ -29,7 +30,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 			m(
 				".fill-absolute.scroll.plr-24.pb-48",
 				m(".h4.mt-32", lang.get("mailExportSettings_label")),
-				EnvProvider.get().isDesktop() ? this.renderMailExportSettings() : this.renderExportOnlyOnDesktopText(),
+				Singletons.envProvider.isDesktop() ? this.renderMailExportSettings() : this.renderExportOnlyOnDesktopText(),
 			),
 		]
 	}
@@ -45,7 +46,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderExportOnlyOnDesktopText() {
-		const pathPrefix = EnvProvider.get().getPathPrefix()
+		const pathPrefix = Singletons.envProvider.getPathPrefix()
 		return [
 			m(
 				".flex-column.mt-16",
@@ -57,7 +58,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 						label: "downloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (EnvProvider.get().isBrowser()) {
+							if (Singletons.envProvider.isBrowser()) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)

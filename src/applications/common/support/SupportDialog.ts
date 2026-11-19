@@ -2,7 +2,6 @@ import { EnvProvider } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { isSupportVisibilityEnabled, SupportVisibilityMask } from "./SupportVisibilityMask"
 import { MultiPageDialog } from "../../../ui/dialogs/MultiPageDialog"
 import m from "mithril"
@@ -26,6 +25,7 @@ import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "@tutao/meta"
 import { DataFile } from "../../../entities/tutanota/Utils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -338,10 +338,10 @@ function filterCategories(supportData: SupportData) {
 			const visibility = Number(topic.visibility)
 
 			const meetsPlatform =
-				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && ClientDetector.get().isCalendarApp()) ||
-				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && ClientDetector.get().isMailApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && Singletons.clientDetector.isCalendarApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && Singletons.clientDetector.isMailApp()) ||
 				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) &&
-					(ClientDetector.get().isDesktopDevice() || EnvProvider.get().isWebClient()))
+					(Singletons.clientDetector.isDesktopDevice() || Singletons.envProvider.isWebClient()))
 
 			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
 			const meetsCustomerStatus =

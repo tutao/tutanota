@@ -6,12 +6,12 @@ import { Dialog } from "../../../../ui/base/Dialog.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { exportContacts } from "../VCardExporter.js"
 import { mailLocator } from "../../mailLocator.js"
-import { EnvProvider } from "@tutao/app-env"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export async function importAsVCard() {
 	const allowedExtensions = ["vcf"]
-	const contactFiles = EnvProvider.get().isApp()
+	const contactFiles = Singletons.envProvider.isApp()
 		? await showNativeFilePicker(allowedExtensions, true)
 		: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
 	if (contactFiles.length <= 0) return

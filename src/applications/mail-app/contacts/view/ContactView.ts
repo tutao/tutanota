@@ -58,7 +58,6 @@ import { CONTACTLIST_PREFIX } from "../../../../ui/utils/RouteChange.js"
 import { mailLocator } from "../../mailLocator.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../../ui/base/SidebarSectionRow"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
 import { ReceivedGroupInvitation } from "../../../../entities/sys/TypeRefs"
 import { Contact, ContactTypeRef } from "../../../../entities/tutanota/TypeRefs"
@@ -67,6 +66,7 @@ import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ContactQuickSearchBar } from "./ContactQuickSearchBar"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -506,7 +506,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				path: `/contact`,
 				onClick: () => this.viewSlider.focus(this.listColumn),
 				moreButton: this.createMoreButtonAttrs(),
-				alwaysShowMoreButton: ClientDetector.get().isMobileDevice(),
+				alwaysShowMoreButton: Singletons.clientDetector.isMobileDevice(),
 			} satisfies SidebarSectionRowAttrs),
 			m(
 				SidebarSection,
@@ -580,7 +580,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				colors: ButtonColor.Nav,
 			},
 			childAttrs: async () => {
-				const vcardButtons: Array<DropdownButtonAttrs> = EnvProvider.get().isApp()
+				const vcardButtons: Array<DropdownButtonAttrs> = Singletons.envProvider.isApp()
 					? [
 							{
 								label: "importContacts_label",
@@ -624,7 +624,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				this.contactListViewModel.updateSelectedContactList(contactListInfo.groupRoot.entries)
 				this.viewSlider.focus(this.listColumn)
 			},
-			alwaysShowMoreButton: ClientDetector.get().isMobileDevice(),
+			alwaysShowMoreButton: Singletons.clientDetector.isMobileDevice(),
 			moreButton: moreButton,
 		} satisfies SidebarSectionRowAttrs)
 	}

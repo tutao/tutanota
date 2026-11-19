@@ -10,13 +10,7 @@ import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js
 import { arrayEquals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, ofClass, promiseMap } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
-import {
-	clientInitializedTypeModelResolver,
-	createTestEntity,
-	instancePipelineFromTypeModelResolver,
-	removeOriginals,
-	withOverriddenEnv,
-} from "../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
 	Aes,
@@ -224,24 +218,23 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Load", function () {
 		o("load removes network debugging info", async function () {
-			await withOverriddenEnv({ networkDebugging: true }, async () => {
-				const id1 = "id1"
-				const expectedInstance = createTestEntity(AccountingInfoTypeRef, {
-					_id: idToElementId(id1),
-					_permissions: "permissionsId",
-					_ownerGroup: ownerGroupId,
-					_ownerEncSessionKey: encryptedSessionKey.key,
-					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
-				})
-				const requestPath = `${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`
-
-				// mapAndEncrypt is a convenient way to get an instance with network debugging info
-				const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
-				when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(instanceWithDebuggingInfo.getJsonRepresentation())
-				const loadResult = await entityRestClient.load(expectedInstance._type, idToElementId(id1))
-				removeOriginals(loadResult)
-				o(expectedInstance as any).deepEquals(loadResult)
+			instancePipeline.enableNetworkDebugging()
+			const id1 = "id1"
+			const expectedInstance = createTestEntity(AccountingInfoTypeRef, {
+				_id: idToElementId(id1),
+				_permissions: "permissionsId",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
+			const requestPath = `${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`
+
+			// mapAndEncrypt is a convenient way to get an instance with network debugging info
+			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(instanceWithDebuggingInfo.getJsonRepresentation())
+			const loadResult = await entityRestClient.load(expectedInstance._type, idToElementId(id1))
+			removeOriginals(loadResult)
+			o(expectedInstance as any).deepEquals(loadResult)
 		})
 
 		o("loading a list element", async function () {
@@ -323,13 +316,12 @@ o.spec("EntityRestClient", function () {
 			)
 
 			// repeat once again with network debugging enables
-			await withOverriddenEnv({ networkDebugging: true }, async () => {
-				const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
-				when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(calendaroWithDebug.getJsonRepresentation())
-				const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
-				removeOriginals(resultWithDebug)
-				o(resultWithDebug as any).deepEquals(calendar)
-			})
+			instancePipeline.enableNetworkDebugging()
+			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(calendaroWithDebug.getJsonRepresentation())
+			const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
+			removeOriginals(resultWithDebug)
+			o(resultWithDebug as any).deepEquals(calendar)
 		})
 
 		o("when loading encrypted instance and not being logged in it throws an error", async function () {
@@ -373,42 +365,41 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Load Range", function () {
 		o("load range removes network debugging info", async function () {
-			await withOverriddenEnv({ networkDebugging: true }, async () => {
-				const startId = "42"
-				const count = 5
-				const listId = "listId"
-				const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${listId}`
+			instancePipeline.enableNetworkDebugging()
+			const startId = "42"
+			const count = 5
+			const listId = "listId"
+			const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${listId}`
 
-				const calendarListId = "calendarListId"
-				const id1 = "42"
-				const id2 = "43"
-				const calendar1 = createTestEntity(CalendarEventTypeRef, {
-					_id: [calendarListId, id1],
-					_permissions: "some id",
-					_ownerGroup: ownerGroupId,
-					_ownerEncSessionKey: encryptedSessionKey.key,
-					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
-				})
-
-				const calendar2 = createTestEntity(CalendarEventTypeRef, {
-					_id: [calendarListId, id2],
-					_permissions: "some id",
-					_ownerGroup: ownerGroupId,
-					_ownerEncSessionKey: encryptedSessionKey.key,
-					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
-				})
-				const expectedLoadRangeResult = [calendar1, calendar2]
-
-				const untypedCalWithDebug1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sk)
-				const untypedCalWithDebug2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sk)
-
-				when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(
-					OutgoingServerJson.getJsonRepresentationOfMultiple([untypedCalWithDebug1, untypedCalWithDebug2]),
-				)
-				const loadRangeResult = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
-				loadRangeResult.map(removeOriginals)
-				o(expectedLoadRangeResult as any).deepEquals(loadRangeResult)
+			const calendarListId = "calendarListId"
+			const id1 = "42"
+			const id2 = "43"
+			const calendar1 = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id1],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
+
+			const calendar2 = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id2],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const expectedLoadRangeResult = [calendar1, calendar2]
+
+			const untypedCalWithDebug1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sk)
+			const untypedCalWithDebug2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sk)
+
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(
+				OutgoingServerJson.getJsonRepresentationOfMultiple([untypedCalWithDebug1, untypedCalWithDebug2]),
+			)
+			const loadRangeResult = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
+			loadRangeResult.map(removeOriginals)
+			o(expectedLoadRangeResult as any).deepEquals(loadRangeResult)
 		})
 
 		o("Loads a countFrom of entities in a single request", async function () {
@@ -462,32 +453,31 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Load multiple", function () {
 		o("load multiple removes network debugging info", async function () {
-			await withOverriddenEnv({ networkDebugging: true }, async () => {
-				const ids = countFrom(0, 5)
-				const supportData1 = createTestEntity(SupportDataTypeRef, {
-					_id: idToElementId("1"),
-					_permissions: "some id",
-				})
-				const supportData2 = createTestEntity(SupportDataTypeRef, {
-					_id: idToElementId("2"),
-					_permissions: "another id",
-				})
-				const expectedLoadMultipleResult = [supportData1, supportData2]
-
-				const instanceWithDebuggingInfo1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
-				const instanceWithDebuggingInfo2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
-
-				const requestPath = `${await typeRefToRestPath(SupportDataTypeRef)}`
-				when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(
-					OutgoingServerJson.getJsonRepresentationOfMultiple([instanceWithDebuggingInfo1, instanceWithDebuggingInfo2]),
-				)
-
-				const loadMultipleResult = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
-				loadMultipleResult.map(removeOriginals)
-				// There's some weird optimization for list requests where the types to migrate
-				// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
-				o(expectedLoadMultipleResult as any).deepEquals(loadMultipleResult)
+			instancePipeline.enableNetworkDebugging()
+			const ids = countFrom(0, 5)
+			const supportData1 = createTestEntity(SupportDataTypeRef, {
+				_id: idToElementId("1"),
+				_permissions: "some id",
 			})
+			const supportData2 = createTestEntity(SupportDataTypeRef, {
+				_id: idToElementId("2"),
+				_permissions: "another id",
+			})
+			const expectedLoadMultipleResult = [supportData1, supportData2]
+
+			const instanceWithDebuggingInfo1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const instanceWithDebuggingInfo2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
+
+			const requestPath = `${await typeRefToRestPath(SupportDataTypeRef)}`
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(
+				OutgoingServerJson.getJsonRepresentationOfMultiple([instanceWithDebuggingInfo1, instanceWithDebuggingInfo2]),
+			)
+
+			const loadMultipleResult = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
+			loadMultipleResult.map(removeOriginals)
+			// There's some weird optimization for list requests where the types to migrate
+			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
+			o(expectedLoadMultipleResult as any).deepEquals(loadMultipleResult)
 		})
 
 		o("Less than 100 entities requested should result in a single rest request", async function () {

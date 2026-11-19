@@ -1,11 +1,11 @@
 import { CommandExecutor } from "../CommandExecutor"
-import { EnvProvider } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 // In tests, we don't use a real CommandExecutor, so it's safe to instantiate there.
 //
 // But otherwise, we definitely do not want to create a WindowsRegistryFacade on
 // non-Windows.
-if (!EnvProvider.get().isTest() && process.platform !== "win32") {
+if (!Singletons.envProvider.isTest() && process.platform !== "win32") {
 	throw new Error(`Cannot load WindowsRegistryFacade from ${process.platform}`)
 }
 

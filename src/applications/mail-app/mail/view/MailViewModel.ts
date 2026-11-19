@@ -31,7 +31,6 @@ import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { ProcessInboxHandler } from "../model/ProcessInboxHandler"
 import { mailLocator } from "../../mailLocator"
 import { getLabelsWithParentLabelNamesPrepended, moveMails } from "./MailGuiUtils"
@@ -43,12 +42,12 @@ import {
 	ImportFileMailStateTypeRef,
 	Mail,
 	MailBox,
+	MailboxMigrationFolderSyncStateTypeRef,
 	MailboxMigrationSyncStateTypeRef,
 	MailSet,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
-	MailboxMigrationFolderSyncStateTypeRef,
 } from "@tutao/entities/tutanota"
 import { MailboxMigrationSyncStatus, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
@@ -68,6 +67,7 @@ import { MailSearchModel } from "../../search/model/MailSearchModel"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { ExpandedInboxRuleHandler } from "../model/ExpandedInboxRuleHandler"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -454,7 +454,7 @@ export class MailViewModel {
 	}
 
 	isExportingMailsAllowed(): boolean {
-		return this.mailModel.isExportingMailsAllowed() && !ClientDetector.get().isMobileDevice()
+		return this.mailModel.isExportingMailsAllowed() && !Singletons.clientDetector.isMobileDevice()
 	}
 
 	private async getFolderForUserInbox(): Promise<MailSet> {

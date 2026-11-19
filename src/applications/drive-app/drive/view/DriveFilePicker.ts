@@ -5,6 +5,7 @@ import { PosRect } from "../../../../ui/utils/PosRect.js"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { DiskFolder, walkTree } from "./DriveUtils"
 import { promiseMap } from "@tutao/utils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 /**
  * Wrapper for a browser or app file picker.
@@ -25,9 +26,13 @@ export class WebFilePicker implements DriveFilePicker {
 }
 
 export class AppFilePicker implements DriveFilePicker {
-	constructor(private readonly fileApp: NativeFileApp) {
-		if (!EnvProvider.get().isApp() && !EnvProvider.get().isDesktop()) {
-			throw new ProgrammingError(`Trying to use AppFilePicker in browser. Mode: ${EnvProvider.get().getMode()}`)
+	constructor(
+		private readonly fileApp: NativeFileApp,
+		isApp: boolean,
+		isDesktop: boolean,
+	) {
+		if (!isApp && !isDesktop) {
+			throw new ProgrammingError(`Trying to use AppFilePicker in browser. Mode: ${Singletons.envProvider.getMode()}`)
 		}
 	}
 

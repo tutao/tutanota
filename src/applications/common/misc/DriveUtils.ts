@@ -1,10 +1,10 @@
 import type { LoginController } from "../api/main/LoginController"
-import { EnvProvider, FeatureType, Mode } from "../../../platform-kit/app-env"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { FeatureType } from "../../../platform-kit/app-env"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export function isDriveEnabled(loginController: LoginController): boolean {
 	return (
-		(EnvProvider.get().isBrowser() || EnvProvider.get().isDesktop() || ClientDetector.get().isDriveApp()) &&
+		(Singletons.envProvider.isBrowser() || Singletons.envProvider.isDesktop() || Singletons.clientDetector.isDriveApp()) &&
 		loginController.isInternalUserLoggedIn() &&
 		loginController.isEnabled(FeatureType.DriveInternalBeta)
 	)

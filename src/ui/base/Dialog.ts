@@ -26,6 +26,7 @@ import { TextField } from "./TextField"
 import { isOfflineError } from "../../platform-kit/rest-client/error"
 import { Keys } from "../utils/KeyboardKeys"
 import { Checkbox } from "./Checkbox"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export const INPUT = "input.text, input.tutaui-text-field, textarea, div[contenteditable='true']"
@@ -128,7 +129,7 @@ export class Dialog implements ModalComponent {
 			const sidesMargin = Styles.get().isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
 			const bottomMarginForType = isEditLarge ? 0 : margin
 			// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
-			const marginBottom = EnvProvider.get().isAndroidApp()
+			const marginBottom = Singletons.envProvider.isAndroidApp()
 				? `calc(${px(bottomMarginForType)} + ${isKeyboardOpen ? px(Dialog.keyboardHeight) : "var(--safe-area-inset-bottom)"})`
 				: px(isKeyboardOpen ? Dialog.keyboardHeight : bottomMarginForType)
 			return m(
@@ -762,7 +763,7 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-24",
 						m(ImageWithOptionsDialog, {
-							image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/update.svg`,
+							image: `${Singletons.envProvider.getPathPrefix()}/images/dynamic-color-svg/update.svg`,
 							titleText: "updateNeeded_msg",
 							messageText: allowDefer ? "updateFound_label" : "outdatedClient_msg",
 							mainActionText: "update_action",
@@ -865,8 +866,8 @@ export class Dialog implements ModalComponent {
 						".plr-48",
 						m(ImageWithOptionsDialog, {
 							image: success
-								? `${EnvProvider.get().getPathPrefix()}/images/newsletter-unsubscribe/unsubscribe_success.svg`
-								: `${EnvProvider.get().getPathPrefix()}/images/newsletter-unsubscribe/unsubscribe_failure_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
+								? `${Singletons.envProvider.getPathPrefix()}/images/newsletter-unsubscribe/unsubscribe_success.svg`
+								: `${Singletons.envProvider.getPathPrefix()}/images/newsletter-unsubscribe/unsubscribe_failure_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
 							titleText: success ? "unsubscribeSuccessful_title" : "unsubscribeFailed_title",
 							messageText: success ? "unsubscribeSuccessful_msg" : "unsubscribeFailed_msg",
 							mainActionText: "ok_action",
@@ -897,7 +898,7 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-48",
 						m(ImageWithOptionsDialog, {
-							image: `${EnvProvider.get().getPathPrefix()}/images/imap-import/initialization-success.svg`,
+							image: `${Singletons.envProvider.getPathPrefix()}/images/imap-import/initialization-success.svg`,
 							titleText: "migrationSetupComplete_title",
 							messageText: "migrationSetupFinished_msg",
 							mainActionText: "ok_action",

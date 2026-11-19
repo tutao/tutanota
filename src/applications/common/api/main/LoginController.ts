@@ -11,11 +11,11 @@ import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
 import { Credentials } from "../../../../platform-kit/network/types"
 import { ExternalUserKeyDeriver, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 import { CacheMode } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { elementIdToId } from "@tutao/meta"
 import { PreLogoutAction } from "../../../../app-kit/native-bridge/common/PreLogoutAction"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -58,11 +58,11 @@ export class LoginController {
 	 * @param password
 	 */
 	async createPostSignupSession(username: string, password: string) {
-		return await this.loginFacade.createSession(username, password, ClientDetector.get().getIdentifier(), SessionType.Persistent, null, true)
+		return await this.loginFacade.createSession(username, password, Singletons.clientDetector.getIdentifier(), SessionType.Persistent, null, true)
 	}
 
 	async createTemporarySessionOnly(username: string, password: string) {
-		return await this.loginFacade.createSession(username, password, ClientDetector.get().getIdentifier(), SessionType.Temporary, null, true)
+		return await this.loginFacade.createSession(username, password, Singletons.clientDetector.getIdentifier(), SessionType.Temporary, null, true)
 	}
 
 	async deleteSession(accessToken: Base64Url): Promise<void> {
@@ -82,7 +82,7 @@ export class LoginController {
 		sessionType: SessionType,
 		databaseKey: Uint8Array<ArrayBuffer> | null = null,
 	): Promise<NewSessionData> {
-		const newSessionData = await this.loginFacade.createSession(username, password, ClientDetector.get().getIdentifier(), sessionType, databaseKey)
+		const newSessionData = await this.loginFacade.createSession(username, password, Singletons.clientDetector.getIdentifier(), sessionType, databaseKey)
 		const { user, credentials, sessionId, userGroupInfo } = newSessionData
 		await this.onPartialLoginSuccess(
 			{
@@ -110,7 +110,7 @@ export class LoginController {
 		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
 
-		if (!EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isAdminClient()) {
 			await this.loadCustomizations()
 		}
 		await this._determineIfWhitelabel()

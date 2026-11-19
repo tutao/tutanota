@@ -4,8 +4,8 @@ import { EnvProvider } from "../platform-kit/app-env"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "../platform-kit/utils"
 import { ThemeController } from "./ThemeController.js"
-import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { isNull } from "../platform-kit/utils/Utils"
+import { Singletons } from "../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 export type StyleSheetId = "main" | "outline"
@@ -44,7 +44,7 @@ export class Styles {
 		this.bodyWidth = neverNull(document.body).offsetWidth
 		this.bodyHeight = neverNull(document.body).offsetHeight
 
-		if (EnvProvider.get().isTest()) {
+		if (Singletons.envProvider.isTest()) {
 			this.themeColorMeta = null
 		} else {
 			this.themeColorMeta = document.createElement("meta")
@@ -101,15 +101,15 @@ export class Styles {
 	}
 
 	isUsingBottomNavigation(): boolean {
-		return !EnvProvider.get().isAdminClient() && (ClientDetector.get().isMobileDevice() || !this.isDesktopLayout())
+		return !Singletons.envProvider.isAdminClient() && (Singletons.clientDetector.isMobileDevice() || !this.isDesktopLayout())
 	}
 
 	isAppUsingBottomNav(): boolean {
-		return ClientDetector.get().isMailApp()
+		return Singletons.clientDetector.isMailApp()
 	}
 
 	isAppNotUsingBottomNav(): boolean {
-		return ClientDetector.get().isCalendarApp() || ClientDetector.get().isDriveApp()
+		return Singletons.clientDetector.isCalendarApp() || Singletons.clientDetector.isDriveApp()
 	}
 
 	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => Record<string, Partial<CSSStyleDeclaration> | object>) {
@@ -139,7 +139,7 @@ export class Styles {
 
 	private updateDomStyles() {
 		// This is hacking but we currently import gui stuff from a lot of tested things
-		if (EnvProvider.get().isTest()) {
+		if (Singletons.envProvider.isTest()) {
 			return
 		}
 
@@ -155,7 +155,7 @@ export class Styles {
 	private updateDomStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
 		const styleSheet = this.getDomStyleSheet(`css-${id}`)
 		let prepend = ""
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (Singletons.envProvider.isNextCloudPlugin()) {
 			// ignore nextcloud styles for our plugin
 			prepend = `#nextcloud-tutamail {
 				all: unset;

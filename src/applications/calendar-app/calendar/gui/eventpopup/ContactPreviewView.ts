@@ -12,8 +12,8 @@ import { createDropdown } from "../../../../../ui/base/Dropdown.js"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
 import { getContactTitle } from "../../../../common/contactsFunctionality/ContactUtils"
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
 import { formatEventDuration } from "../DateTimeTextFormatterUtils"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export type ContactPreviewViewAttrs = {
 	event: CalendarEvent
@@ -119,7 +119,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 			contact.mailAddresses.map((mailAddress, index) => ({
 				label: lang.makeTranslation("mailAddress_label", `${renderSuffix(mailAddress.customTypeName)}${mailAddress.address}`),
 				click: () => {
-					if (ClientDetector.get().isCalendarApp()) {
+					if (Singletons.clientDetector.isCalendarApp()) {
 						simulateMailToClick(mailAddress.address)
 						return
 					}
@@ -158,9 +158,9 @@ const ActionButtons = pureComponent((contact: Contact) => {
 
 	const onSendMailClick = (event: MouseEvent, dom: HTMLElement) => {
 		if (singleEmailAdress) {
-			if (ClientDetector.get().isCalendarApp()) {
+			if (Singletons.clientDetector.isCalendarApp()) {
 				return
-			} else if (!ClientDetector.get().isCalendarApp()) {
+			} else if (!Singletons.clientDetector.isCalendarApp()) {
 				return writeMail({
 					name: `${contact.firstName} ${contact.lastName}`.trim(),
 					address: contact.mailAddresses[0].address,
@@ -175,7 +175,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 	return m(".full-width.flex.items-center.flex-end.mt-8.gap-8.mr-8", [
 		contact.mailAddresses.length
 			? m(
-					singleEmailAdress && ClientDetector.get().isCalendarApp()
+					singleEmailAdress && Singletons.clientDetector.isCalendarApp()
 						? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration`
 						: "",
 					m(

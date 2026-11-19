@@ -13,6 +13,7 @@ import { isDarkTheme, theme } from "../../../ui/theme.js"
 import { goEuropeanBlue } from "../../../ui/builtinThemes.js"
 import { EnvProvider } from "@tutao/app-env"
 import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -263,7 +264,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	}
 
 	private static renderCampaignRibbon(): Children {
-		const text = EnvProvider.get().isIOSApp()
+		const text = Singletons.envProvider.isIOSApp()
 			? lang.get("save_action").toUpperCase()
 			: lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
 

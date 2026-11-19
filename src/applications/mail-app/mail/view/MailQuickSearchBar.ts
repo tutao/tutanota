@@ -13,6 +13,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: QuickSearchQuery) => Promise<LiveSearchResult<Mail>>
@@ -37,7 +38,7 @@ export class MailQuickSearchBar implements ClassComponent<MailSearchBarAttrs> {
 			shouldOfferUpgrade: attrs.shouldOfferUpgrade,
 			confirmSearch: async () => {
 				if (!attrs.indexingSupported) {
-					Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+					Dialog.message(Singletons.envProvider.isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 					return false
 				}
 				if (await attrs.needsToEnableSearch()) {

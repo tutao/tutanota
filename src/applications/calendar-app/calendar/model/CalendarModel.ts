@@ -129,6 +129,7 @@ import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseU
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { removeTechnicalFields } from "../gui/eventeditor-model/CalendarEventModel"
 import { errorsToString, errToErrorInfo } from "../../../../platform-kit/utils/ErrorInfo"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -1478,7 +1479,7 @@ export class CalendarModel {
 		for (const entityEventData of updates) {
 			// apps handle alarms natively. this code is a candidate to move into
 			// a generic web/native alarm handler
-			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !EnvProvider.get().isApp()) {
+			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !Singletons.envProvider.isApp()) {
 				const alarmInfoId: IdTuple = [assertNotNull(entityEventData.instanceListId), entityEventData.instanceId]
 				if (entityEventData.operation === OperationType.CREATE) {
 					// Updates for UserAlarmInfo and CalendarEvent come in a
@@ -1500,7 +1501,7 @@ export class CalendarModel {
 							throw e
 						}
 					}
-				} else if (entityEventData.operation === OperationType.DELETE && !EnvProvider.get().isApp()) {
+				} else if (entityEventData.operation === OperationType.DELETE && !Singletons.envProvider.isApp()) {
 					await this.cancelUserAlarmInfo(entityEventData.instanceId)
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
@@ -1535,7 +1536,7 @@ export class CalendarModel {
 			}
 		}
 
-		if (!EnvProvider.get().isApp()) {
+		if (!Singletons.envProvider.isApp()) {
 			const pushIdentifier = this.pushService?.getLoadedPushIdentifier()
 			if (pushIdentifier && pushIdentifier.disabled) {
 				return console.log("Push identifier disabled. Skipping alarm schedule")
@@ -1575,8 +1576,8 @@ export class CalendarModel {
 
 	private localAlarmsEnabled(): boolean {
 		return (
-			!EnvProvider.get().isApp() &&
-			!EnvProvider.get().isDesktop() &&
+			!Singletons.envProvider.isApp() &&
+			!Singletons.envProvider.isDesktop() &&
 			this.logins.isInternalUserLoggedIn() &&
 			!this.logins.isEnabled(FeatureType.DisableCalendar)
 		)

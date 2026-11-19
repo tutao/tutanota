@@ -85,11 +85,11 @@ import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomMailboxMigrationFolderSyncStateCacheHandler } from "./CustomMailboxMigrationFolderSyncStateCacheHandler"
-import type { MailIndexerBackend } from "../index/MailIndexerBackend"
 import { random, SymmetricCipherUtils } from "@tutao/crypto"
 import { IndexedDbConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase"
 import { OfflineConfigurationDatabaseDefinitions } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
 import { getEtId } from "@tutao/meta"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -176,7 +176,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	})
 
 	const indexerCore = lazyMemoized(async () => {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			throw new ProgrammingError("getting indexerCore when we should be using SQLite (local-store storage)")
 		}
 		const { IndexerCore } = await import("../index/IndexerCore.js")
@@ -196,7 +196,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		const mailFacade = await locator.mail()
 		const newMailDownloader = defaultMailIndexerNewMailDownloader(locator.base.cachingEntityClient, mailFacade)
 
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
 			const blob = await locator.blob()
@@ -241,7 +241,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		const { IndexedDbContactIndexerBackend } = await import("../index/IndexedDbContactIndexerBackend")
 		const { ContactIndexer } = await import("../index/ContactIndexer.js")
 
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			const persistence = await offlineStorageIndexerPersistence()
 			const backend = new OfflineStorageContactIndexerBackend(locator.base.cachingEntityClient, persistence)
 			return new ContactIndexer(locator.base.cachingEntityClient, locator.base.user, backend)
@@ -261,7 +261,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		const { BulkMailLoader } = await import("../index/BulkMailLoader.js")
 		const mailFacade = await locator.mail()
 		return async () => {
-			if (EnvProvider.get().isOfflineStorageAvailable()) {
+			if (Singletons.envProvider.isOfflineStorageAvailable()) {
 				return new BulkMailLoader(locator.base.cachingEntityClient, locator.base.cachingEntityClient, mailFacade)
 			} else {
 				return new BulkMailLoader(
@@ -287,7 +287,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	}
 
 	// Storage setup
-	if (EnvProvider.get().isOfflineStorageAvailable()) {
+	if (Singletons.envProvider.isOfflineStorageAvailable()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 	}
 
@@ -301,7 +301,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 
 	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
 	let offlineStorageProvider: () => Promise<CachingOfflineStorage | null>
-	if (EnvProvider.get().isOfflineStorageAvailable()) {
+	if (Singletons.envProvider.isOfflineStorageAvailable()) {
 		offlineStorageProvider = async () => {
 			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
 			const { AutosaveDraftsTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
@@ -350,6 +350,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 					SpamClassificationTableDefinitions,
 					OfflineConfigurationDatabaseDefinitions,
 				),
+				locator.base.envProvider,
 			)
 			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
@@ -365,9 +366,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	locator.cacheStorage = maybeUninitializedStorage
 
 	const lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider> = lazyMemoized(async () => {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
-		} else if (EnvProvider.get().isBrowser()) {
+		} else if (Singletons.envProvider.isBrowser()) {
 			return new IndexedDbLastProcessedEventBatchStorageFacade(indexerCore, ephemeralStorageProvider, mailIndexer)
 		} else {
 			return new NoOpLastProcessedEventBatchStorageFacade()
@@ -388,6 +389,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	// Create all platform-kit typed instances
 	const clientModelInfo = initClientModels(apps)
 	locator.base = await createBaseLocator({
+		envProvider: Singletons.envProvider,
 		worker,
 		clientModelInfo,
 		browserData,
@@ -404,8 +406,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		cacheManagement: locator.cacheManagement,
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
-		rsa: await createRsaImplementation(worker, random),
-		fileFacade: EnvProvider.get().isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
+		rsa: await createRsaImplementation(worker, random, Singletons.envProvider),
+		fileFacade: Singletons.envProvider.isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
 		entityMigratorFactory: ({
@@ -595,7 +597,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			)
 		})
 
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			const { OfflineConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase.js")
 			const db = new OfflineConfigurationDatabase(locator.sqlCipherFacade)
 
@@ -609,7 +611,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		}
 	})
 
-	if (EnvProvider.get().isOfflineStorageAvailable()) {
+	if (Singletons.envProvider.isOfflineStorageAvailable()) {
 		locator.autosaveFacade = lazyMemoized(async () => {
 			const { OfflineStorageAutosaveFacade } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
 			return new OfflineStorageAutosaveFacade(locator.sqlCipherFacade)
@@ -618,7 +620,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.autosaveFacade = locator.configFacade as lazyAsync<IndexedDbConfigurationDatabase>
 	}
 
-	if (EnvProvider.get().isOfflineStorageAvailable()) {
+	if (Singletons.envProvider.isOfflineStorageAvailable()) {
 		locator.spamClassifierStorageFacade = lazyMemoized(async () => {
 			const { OfflineStorageSpamClassifierStorageFacade } = await import(
 				"../../../common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade.js"
@@ -632,7 +634,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	locator.indexer = lazyMemoized(async () => {
 		const contact = await contactIndexer()
 
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			const { OfflineStorageIndexer } = await import("../index/OfflineStorageIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
 			return new OfflineStorageIndexer(locator.base.user, persistence, await mailIndexer(), mainInterface.infoMessageHandler, contact)
@@ -657,7 +659,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	})
 
 	locator.search = lazyMemoized(async () => {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			const { OfflineStorageSearchFacade } = await import("../index/OfflineStorageSearchFacade.js")
 			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, await mailIndexer(), await contactIndexer())
 		} else {
@@ -678,7 +680,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 
 	locator.contactSearch = lazyMemoized(async () => {
 		const search = await locator.search()
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		if (Singletons.envProvider.isOfflineStorageAvailable()) {
 			const { OfflineStorageContactSearchFacade } = await import("../index/OfflineStorageContactSearchFacade")
 			return new OfflineStorageContactSearchFacade(search as OfflineStorageSearchFacade)
 		} else {
@@ -748,14 +750,14 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		mainInterface.syncTracker,
 	)
 
-	const cache = EnvProvider.get().isAdminClient() ? null : (locator.base.cache as DefaultEntityRestCache)
+	const cache = Singletons.envProvider.isAdminClient() ? null : (locator.base.cache as DefaultEntityRestCache)
 	locator.eventBusClient = new EventBusClient(
 		mainInterface.wsConnectivityListener,
 		eventBusCoordinator,
 		cache ?? new AdminClientDummyEntityRestCache(),
 		locator.base.user,
 		locator.base.instancePipeline,
-		(path) => new WebSocket(EnvProvider.get().getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(Singletons.envProvider.getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		locator.base.typeModelResolver,
 		locator.base.crypto,
@@ -763,6 +765,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.base.lastProcessedEventBatchStorageFacade,
 		serverDateProvider,
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
+		locator.base.envProvider,
 	)
 
 	locator.Const = TutanotaConstants.Const

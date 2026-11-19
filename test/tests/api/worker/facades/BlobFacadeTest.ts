@@ -28,7 +28,7 @@ import {
 } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
 	ArchiveEnumerationService_GET,
@@ -59,6 +59,7 @@ import { NotAuthorizedError, NotFoundError } from "../../../../../src/platform-k
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { ArchiveDownloaderFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
+import { Singletons } from "../../../../../src/platform-kit/singletons/singleton"
 
 const { anything, captor } = matchers
 
@@ -127,31 +128,30 @@ o.spec("BlobFacade", function () {
 
 	o.spec("upload", function () {
 		o.test("parseBlobPostOutResponse should remove network debugging info", async function () {
-			await withOverriddenEnv({ networkDebugging: true }, async () => {
-				const newBlobFacade = new BlobFacade(
-					restClientMock,
-					suspensionHandlerMock,
-					fileAppMock,
-					aesAppMock,
-					realInstancePipeline,
-					cryptoFacadeMock,
-					blobAccessTokenFacade,
-					object(),
-					typeModelResolver,
-					serviceExecutor,
-					aes,
-				)
+			realInstancePipeline.enableNetworkDebugging()
+			const newBlobFacade = new BlobFacade(
+				restClientMock,
+				suspensionHandlerMock,
+				fileAppMock,
+				aesAppMock,
+				realInstancePipeline,
+				cryptoFacadeMock,
+				blobAccessTokenFacade,
+				object(),
+				typeModelResolver,
+				serviceExecutor,
+				aes,
+			)
 
-				const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
-				const blobServiceResponse = createBlobPostOut({
-					blobReferenceToken: expectedReferenceToken.blobReferenceToken,
-					blobReferenceTokens: [],
-				})
-				const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
-
-				const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(blobServiceResponseWithDebug.getJsonRepresentation())
-				o.check(referenceTokens).deepEquals(expectedReferenceToken)
+			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
+			const blobServiceResponse = createBlobPostOut({
+				blobReferenceToken: expectedReferenceToken.blobReferenceToken,
+				blobReferenceTokens: [],
 			})
+			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
+
+			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(blobServiceResponseWithDebug.getJsonRepresentation())
+			o.check(referenceTokens).deepEquals(expectedReferenceToken)
 		})
 
 		o.test("encryptAndUpload single blob", async function () {
@@ -358,7 +358,7 @@ o.spec("BlobFacade", function () {
 		})
 
 		o.test("encryptAndUploadNative", async function () {
-			await withOverriddenEnv({ networkDebugging: false }, async () => {
+			await Singletons.withOverriddenEnvForTest({ networkDebugging: false }, async () => {
 				const ownerGroup = "ownerId"
 				const sessionKey = symmetricCipherUtils.aes256RandomKey()
 				const transferId = "abcde" as TransferId
@@ -395,10 +395,17 @@ o.spec("BlobFacade", function () {
 					responseBody: stringToUtf8Uint8Array(blobServiceServerResponse.getJsonRepresentation()),
 				})
 				when(fileAppMock.getFilesMetaData([uploadedFileUri])).thenResolve([
-					{ size: 1024, location: uploadedFileUri, name: "file1", cid: "abc", _type: "FileReference", mimeType: "" },
+					{
+						size: 1024,
+						location: uploadedFileUri,
+						name: "file1",
+						cid: "abc",
+						_type: "FileReference",
+						mimeType: "",
+					},
 				])
 
-				const referenceTokens = await withOverriddenEnv({ mode: Mode.Linux }, () =>
+				const referenceTokens = await Singletons.withOverriddenEnvForTest({ mode: Mode.Linux }, () =>
 					blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey, transferId),
 				)
 
@@ -621,7 +628,7 @@ o.spec("BlobFacade", function () {
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 
-			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Linux }, () => {
+			const decryptedFileReference: FileReference = await Singletons.withOverriddenEnvForTest({ mode: Mode.Linux }, () => {
 				return blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType), transferId)
 			})
 
@@ -695,7 +702,7 @@ o.spec("BlobFacade", function () {
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri2, decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 
-			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Linux }, () => {
+			const decryptedFileReference: FileReference = await Singletons.withOverriddenEnvForTest({ mode: Mode.Linux }, () => {
 				return blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType), transferId)
 			})
 
@@ -760,7 +767,7 @@ o.spec("BlobFacade", function () {
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 
-			await withOverriddenEnv({ mode: Mode.Linux }, async () => {
+			await Singletons.withOverriddenEnvForTest({ mode: Mode.Linux }, async () => {
 				await assertThrows(ProgrammingError, () =>
 					blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType), transferId),
 				)

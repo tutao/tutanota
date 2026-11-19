@@ -1,10 +1,10 @@
-import { assertNotNull, isNotNull } from "./functional"
-import { TsJson } from "./types/ecmascript"
+import { isNotNull } from "./functional"
+import { TypeChecks } from "./types/utility"
 
 export class RuntimeInfo {
-	public static readonly _isWorker: boolean = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
+	public static readonly _isWorker: boolean = TypeChecks.isObject(globalThis.WorkerGlobalScope) && self instanceof WorkerGlobalScope
 	public static readonly _isNode: boolean =
-		typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node !== "undefined"
+		TypeChecks.isObject(globalThis.process) && TypeChecks.isObject(globalThis.process.versions) && TypeChecks.isObject(globalThis.process.versions.node)
 
 	public static indexedDbIsSupported(): boolean {
 		try {
@@ -16,11 +16,5 @@ export class RuntimeInfo {
 
 	public static hasTouchEvent(): boolean {
 		return isNotNull(window.TouchEvent)
-	}
-
-	public static globallyDefinedEnv(): string {
-		// Note:
-		// since we do not have access to EnvType here, we cannot return that type
-		return TsJson.stringify(assertNotNull(globalThis.env, "Expected env variable to be always there"))
 	}
 }

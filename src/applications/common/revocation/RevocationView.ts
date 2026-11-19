@@ -12,8 +12,8 @@ import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { LoginScreenHeader } from "../../../ui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { createSurveyData } from "@tutao/entities/sys"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -91,7 +91,7 @@ export class RevocationView extends BaseTopLevelView implements TopLevelView<Rev
 				details: surveyResult.details,
 				version: SURVEY_VERSION_NUMBER,
 				clientVersion: env.versionNumber,
-				clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
+				clientPlatform: Singletons.clientDetector.getClientPlatform().valueOf().toString(),
 			})
 			await showProgressDialog("pleaseWait_msg", this.model.createSubscriptionRevocationRequest(data))
 		} else {

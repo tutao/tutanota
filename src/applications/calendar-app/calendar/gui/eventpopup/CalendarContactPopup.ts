@@ -8,7 +8,6 @@ import { DROPDOWN_MARGIN, showDropdown } from "../../../../../ui/base/Dropdown.j
 import { IconButton } from "../../../../../ui/base/IconButton.js"
 import { CalendarContactPreviewViewModel } from "./CalendarContactPreviewViewModel.js"
 import { ContactPreviewView } from "./ContactPreviewView.js"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { ContactEditor } from "../../../../mail-app/contacts/ContactEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { listIdPart } from "../../../../../platform-kit/meta"
@@ -17,6 +16,7 @@ import { calendarLocator } from "../../../calendarLocator.js"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { PosRect } from "../../../../../ui/utils/PosRect"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 /**
  * small modal displaying all relevant information about a contact in a compact fashion. offers limited editing capabilities to participants in the
@@ -40,7 +40,7 @@ export class ContactEventPopup implements ModalComponent {
 	}
 
 	private readonly handleEditButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = async (ev: MouseEvent, receiver: HTMLElement) => {
-		if (ClientDetector.get().isCalendarApp()) {
+		if (Singletons.clientDetector.isCalendarApp()) {
 			if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
 
 			const query = `contactId=${stringToBase64(this.model.contact._id.join("/"))}`

@@ -9,9 +9,9 @@ import { Styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../base/RootView.js"
 import { EnvProvider } from "../../platform-kit/app-env"
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { WindowSizeListener } from "../utils/WindowUtils"
 import { IWindowFacade } from "../IWindowFacade"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 export type GestureInfo = {
@@ -140,7 +140,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 									}),
 								),
 							),
-							Styles.get().isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp() ? attrs.bottomNav : null,
+							Styles.get().isUsingBottomNavigation() && !Singletons.clientDetector.isCalendarApp() ? attrs.bottomNav : null,
 						],
 					),
 					this.getColumnsForOverlay().map((c) => m(c, { onResize: noOp })),

@@ -12,6 +12,7 @@ import { MoreInfoLink } from "../MoreInfoLink.js"
 import { EnvProvider } from "@tutao/app-env"
 import { ifAllowedTutaLinks } from "../../../gui/base/TutaLinkUtils"
 import { createReferralCodePostIn, ReferralCodeService_POST } from "@tutao/entities/sys"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 export type ReferralLinkAttrs = {
 	referralLink: string
@@ -84,7 +85,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 	}
 
 	private async shareAction(referralLink: string): Promise<void> {
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			// open native share dialog on mobile
 			const shareMessage = this.getReferralLinkMessage(referralLink)
 			return locator.systemFacade.shareText(shareMessage, lang.get("referralSettings_label")).then()

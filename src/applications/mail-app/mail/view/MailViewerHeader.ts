@@ -45,6 +45,7 @@ import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
 import { contextDropdown } from "../../../../ui/base/GuiUtils"
 import { ExtensionPoint, PluginLanguageCode } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -657,7 +658,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							},
 							m(".flex.col." + responsiveCardHMargin(), [
 								m(".flex.flex-wrap.gap-12", this.renderAttachmentContainer(viewModel, attachments, importFile)),
-								EnvProvider.get().isIOSApp()
+								Singletons.envProvider.isIOSApp()
 									? null
 									: m(
 											".flex",

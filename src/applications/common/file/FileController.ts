@@ -13,10 +13,10 @@ import { ArchiveDataType } from "../../../entities/sys/Utils"
 import { DataFile, FileReference, WebFile } from "../../../entities/tutanota/Utils"
 import { TransferId } from "../../../entities/drive/Utils"
 import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { createReferencingInstance, DownloadableFileEntity } from "../../../entities/storage/BlobUtils"
 import { DiskFolder } from "../../drive-app/drive/view/DriveUtils"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -348,7 +348,9 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 		// It's unclear to me why target=_blank is being ignored. If there is a way to ensure that it always opens a new tab,
 		// Then we should do that instead of this, because it's preferable to keep the mime type.
 		const needsPdfWorkaround =
-			dataFile.mimeType === "application/pdf" && ClientDetector.get().browser === BrowserType.FIREFOX && ClientDetector.get().browserVersion! >= 98
+			dataFile.mimeType === "application/pdf" &&
+			Singletons.clientDetector.browser === BrowserType.FIREFOX &&
+			Singletons.clientDetector.browserVersion! >= 98
 
 		const mimeType = needsPdfWorkaround ? "application/octet-stream" : dataFile.mimeType
 
@@ -369,7 +371,7 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 				window.URL.revokeObjectURL(url)
 			}, 2000)
 		} else {
-			if (ClientDetector.get().isIos() && ClientDetector.get().browser === BrowserType.CHROME && typeof FileReader === "function") {
+			if (Singletons.clientDetector.isIos() && Singletons.clientDetector.browser === BrowserType.CHROME && typeof FileReader === "function") {
 				const reader = new FileReader()
 				const downloadPromise = newPromise((resolve) => {
 					reader.onloadend = async function () {
@@ -401,7 +403,7 @@ export async function downloadAndDecryptFromArchive(
 }
 
 export async function showNativeFilePicker(fileTypes?: Array<string>, isFileOnly: boolean = false): Promise<ReadonlyArray<DataFile>> {
-	if (EnvProvider.get().isApp()) {
+	if (Singletons.envProvider.isApp()) {
 		const rect = { width: 0, height: 0, left: 0, top: 0 } as DOMRect
 		try {
 			const fileApp = locator.fileApp

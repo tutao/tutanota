@@ -37,12 +37,12 @@ import { InboxRuleActionType, InboxRuleConditionType, MailSetKind, MAX_NBR_OF_MA
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
 import { isOfflineError, LockedError } from "@tutao/rest-client/error"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Icon, IconSize } from "../../../ui/base/Icon"
 import { contextDropdown } from "../../../ui/base/GuiUtils"
 import { ColumnWidth, createRowActions, Table, TableLineAttrs } from "../../../ui/base/Table"
 import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 import { LegacyInboxRuleHandler } from "../mail/model/LegacyInboxRuleHandler"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -89,7 +89,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const tableLines = this.isUsingLegacyInboxRules ? this.legacyInboxRuleTableLines() : this.renderInboxRuleTableLines()
-		const isMobile = ClientDetector.get().isMobileDevice()
+		const isMobile = Singletons.clientDetector.isMobileDevice()
 
 		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
 		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback" : ""}`
@@ -220,7 +220,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					oncontextmenu: (e: MouseEvent) => {
 						// If text is selected show typical right click menu, so text can be copied
 						// also disable while dragging so these two don't interfere on mobile
-						if (window.getSelection()?.toString() === "" && this.draggingOverRuleIndex == null && !ClientDetector.get().isMobileDevice()) {
+						if (window.getSelection()?.toString() === "" && this.draggingOverRuleIndex == null && !Singletons.clientDetector.isMobileDevice()) {
 							contextDropdown(e, this.getActionsForRule(index, rule))
 						}
 					},

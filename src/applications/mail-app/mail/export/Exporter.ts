@@ -13,6 +13,7 @@ import { Mail } from "@tutao/entities/tutanota"
 import { elementIdPart } from "../../../../platform-kit/meta"
 
 import { DataFile } from "../../../../entities/tutanota/Utils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 const EXPORT_CHUNK_SIZE = 10000
 
@@ -21,7 +22,7 @@ export async function generateMailFile(bundle: MailBundle, fileName: string, mod
 }
 
 export async function getMailExportMode(): Promise<MailExportMode> {
-	if (EnvProvider.get().isDesktop()) {
+	if (Singletons.envProvider.isDesktop()) {
 		const ConfigKeys = await import("../../../../platform-kit/app-env/ConfigKeys")
 		const mailExportMode = (await locator.desktopSettingsFacade
 			.getStringConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode)

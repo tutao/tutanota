@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { initLocator, locator } from "../../src/applications/mail-app/workerUtils/worker/WorkerLocator.js"
-import { browserDataStub, createTestEntity, withOverriddenEnv } from "./TestUtils.js"
-import { SessionType } from "../../src/platform-kit/app-env"
+import { browserDataStub, createTestEntity } from "./TestUtils.js"
+import { EnvType, SessionType } from "../../src/platform-kit/app-env"
 import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,
@@ -23,6 +23,7 @@ import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { NamedClientModel } from "../../src/platform-kit/instance-pipeline"
 import { AppNameEnum } from "../../src/platform-kit/meta"
+import { Singletons } from "../../src/platform-kit/singletons/singleton"
 
 function loadFolders(folderListId: Id): Promise<MailSet[]> {
 	return locator.base.cachingEntityClient.loadAll(MailSetTypeRef, folderListId)
@@ -38,7 +39,9 @@ function loadContactList() {
 	return locator.base.cachingEntityClient.loadRoot(ContactListTypeRef, locator.base.user.getUserGroupId())
 }
 
-await withOverriddenEnv({ staticUrl: "http://localhost:9000" }, () => {
+await (async function <R>(override: Partial<EnvType>, action: () => R): Promise<R> {
+	return Singletons.withOverriddenEnvForTest(override, action)
+})({ staticUrl: "http://localhost:9000" }, () => {
 	o.spec("integration test", function () {
 		let mailbox = null
 		o("login, read mails, update contact", async function () {

@@ -10,7 +10,6 @@ import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icon, progressIcon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { isDarkTheme, theme } from "../../../../ui/theme"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { Styles } from "../../../../ui/styles"
 import { DropdownButtonAttrs, DropdownChildAttrs, showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
@@ -37,6 +36,7 @@ import { createEmailSenderListElement } from "@tutao/entities/sys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { getElementId } from "@tutao/meta"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -316,7 +316,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.setDomBody(dom)
 				this.updateLineHeight(dom)
 				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
-				if (ClientDetector.get().isMobileDevice()) {
+				if (Singletons.clientDetector.isMobileDevice()) {
 					this.resizeObserverViewport?.disconnect()
 					this.resizeObserverViewport = createResizeObserver(() => {
 						if (this.pinchZoomable) {
@@ -346,7 +346,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 
-				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
+				if (Singletons.clientDetector.isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
 					this.createPinchZoom(this.shadowDomMailContent, vnode.dom as HTMLElement)
 				}
 			},
@@ -414,7 +414,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 		const wrapNode = document.createElement("div")
 		wrapNode.id = "shadow-mail-body"
-		wrapNode.className = "drag selectable touch-callout break-word-links" + (ClientDetector.get().isMobileDevice() ? " break-pre" : "")
+		wrapNode.className = "drag selectable touch-callout break-word-links" + (Singletons.clientDetector.isMobileDevice() ? " break-pre" : "")
 		wrapNode.setAttribute("data-testid", "mailBody_label")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height)
 		wrapNode.style.transformOrigin = "0px 0px"
@@ -443,7 +443,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.shadowDomRoot.appendChild(Styles.get().getStyleSheetElement("main"))
 		this.shadowDomRoot.appendChild(wrapNode)
 
-		if (ClientDetector.get().isMobileDevice()) {
+		if (Singletons.clientDetector.isMobileDevice()) {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
 			this.resizeObserverZoomable = createResizeObserver(() => {

@@ -131,7 +131,7 @@ export class WorkerImpl implements NativeInterface {
 
 		// only register oncaught error handler if we are in the *real* worker scope
 		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
-		if (workerScope && !EnvProvider.get().isMainOrNode()) {
+		if (workerScope && !EnvProvider.isMainOrNode()) {
 			workerScope.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
 				this.sendError(event.reason)
 			})

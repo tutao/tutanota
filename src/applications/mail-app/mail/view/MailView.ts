@@ -90,6 +90,7 @@ import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { showDeleteFolderPopup } from "./DeleteMailSetPopup"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -642,7 +643,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											.then(() => true)
 											.catch(
 												ofClass(IndexingNotSupportedError, () => {
-													Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+													Dialog.message(Singletons.envProvider.isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 													return false
 												}),
 											),
@@ -1245,7 +1246,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			import("../../../common/support/SupportDialog.js").then(({ showSupportDialog }) => showSupportDialog(locator.logins))
 		}
 
-		if (EnvProvider.get().isApp()) {
+		if (Singletons.envProvider.isApp()) {
 			let userGroupInfo = locator.logins.getUserController().userGroupInfo
 			locator.pushService.closePushNotification(
 				userGroupInfo.mailAddressAliases.map((alias) => alias.mailAddress).concat(userGroupInfo.mailAddress || []),

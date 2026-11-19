@@ -1,4 +1,4 @@
-import { isNotNull, Nullable, ProgrammingError, RuntimeInfo, structuredClone, TsInt, TsRecord, TsString } from "@tutao/lang-api"
+import { isNotNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJson, TsRecord, TsString } from "@tutao/lang-api"
 import { ClientType } from "./TutanotaConstants"
 
 // keep in sync with LaunchHtml.js meta tag title
@@ -95,13 +95,13 @@ export enum Mode {
 const assertionsEnabled: boolean = false
 
 export class EnvProvider {
-	private static singleton: EnvProvider = new EnvProvider(env)
-	private static boot: boolean = RuntimeInfo._isNode && !RuntimeInfo._isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
+	private static boot: boolean =
+		RuntimeInfo._isNode && !RuntimeInfo._isWorker && (EnvProvider.isDesktop(globalThis.env) || EnvProvider.isAdminClient(globalThis.env))
 
-	private constructor(private readonly env: EnvType) {}
+	public constructor(private readonly env: EnvType) {}
 
-	public static get(): EnvProvider {
-		return EnvProvider.singleton
+	public getStringifiedEnv(): TsString {
+		return TsJson.stringify(this.env)
 	}
 
 	public getVersionNumber(): TsString {
@@ -145,7 +145,7 @@ export class EnvProvider {
 		}
 	}
 
-	public setPathPrefix(pathPrefix: string): void {
+	public setPathPrefix(pathPrefix: TsString): void {
 		this.env.shadowDomAppRoot = pathPrefix
 	}
 
@@ -169,7 +169,10 @@ export class EnvProvider {
 	}
 
 	public isDesktop(): boolean {
-		return this.env.mode === Mode.Darwin || this.env.mode === Mode.Win32 || this.env.mode === Mode.Linux
+		return EnvProvider.isDesktop(this.env)
+	}
+	private static isDesktop(env: EnvType): boolean {
+		return env.mode === Mode.Darwin || env.mode === Mode.Win32 || env.mode === Mode.Linux
 	}
 
 	public isBrowser(): boolean {
@@ -181,7 +184,11 @@ export class EnvProvider {
 	}
 
 	public isAdminClient(): boolean {
-		return this.env.mode === Mode.Admin
+		return EnvProvider.isAdminClient(this.env)
+	}
+
+	private static isAdminClient(env: EnvType): boolean {
+		return env.mode === Mode.Admin
 	}
 
 	public getMode(): Mode {
@@ -192,15 +199,15 @@ export class EnvProvider {
 		return this.isDesktop() || this.isAdminClient()
 	}
 
-	public isMainOrNode(): boolean {
-		return !RuntimeInfo._isWorker || RuntimeInfo._isNode || this.isTest()
+	public static isMainOrNode(): boolean {
+		return !RuntimeInfo._isWorker || RuntimeInfo._isNode || EnvProvider.isTest()
 	}
 
-	public isWorkerOrNode(): boolean {
-		return RuntimeInfo._isWorker || RuntimeInfo._isNode || this.isTest()
+	public static isWorkerOrNode(): boolean {
+		return RuntimeInfo._isWorker || RuntimeInfo._isNode || EnvProvider.isTest()
 	}
 
-	public isWorker(): boolean {
+	public static isWorker(): boolean {
 		return RuntimeInfo._isWorker
 	}
 
@@ -234,26 +241,13 @@ export class EnvProvider {
 		return domainConfig.apiUrl.replace(/^http/, "ws")
 	}
 
-	/**
-	 * Rewrites the scheme to api://|apis:// which is intercepted by the ApiSchemeHandler on iOS
-	 * This is done in order to avoid preflight requests with Origin asset://app
-	 * @param url
-	 */
-	public rewriteSchemeForIos(url: string): TsString {
-		if (this.isIOSApp()) {
-			// http:// -> api:// and https:// -> apis://
-			return url.replace(/^http/, "api")
-		}
-		return url
-	}
-
 	/** @TTranspileIgnore by the time we make use of transpiled code, this function would not exists */
 	public static assertMainOrNode(): void {
 		if (!assertionsEnabled) {
 			return
 		}
 
-		if (!EnvProvider.get().isMainOrNode()) {
+		if (!EnvProvider.isMainOrNode()) {
 			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 
@@ -268,7 +262,7 @@ export class EnvProvider {
 			return
 		}
 
-		if (!EnvProvider.get().isMainOrNode()) {
+		if (!EnvProvider.isMainOrNode()) {
 			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 	}
@@ -279,22 +273,12 @@ export class EnvProvider {
 			return
 		}
 
-		if (!EnvProvider.get().isWorkerOrNode()) {
+		if (!EnvProvider.isWorkerOrNode()) {
 			throw new ProgrammingError("this code must not run in the gui thread")
 		}
 	}
 
-	public static async withOverriddenEnvForTest<R>(override: Partial<EnvType>, action: () => R): Promise<R> {
-		if (!EnvProvider.get().isTest()) {
-			throw new Error("This method is only meant for testing")
-		}
-
-		const previousEnv = structuredClone(EnvProvider.get().env)
-		;(EnvProvider.get().env satisfies EnvType) = Object.assign(EnvProvider.get().env, override)
-		try {
-			return await action()
-		} finally {
-			;(EnvProvider.get().env satisfies EnvType) = previousEnv
-		}
+	public static isTest(): boolean {
+		return globalThis.env.mode === Mode.Test
 	}
 }

@@ -11,7 +11,6 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../../ui/base/Button.js"
 import { ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { assertNotNull, convertTextToHtml, newPromise, noOp, Thunk } from "../../../../../platform-kit/utils"
 import type { HtmlEditor } from "../../../../../ui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
@@ -28,6 +27,7 @@ import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffs
 import { getTimeFormatForUser } from "../../../../common/api/common/utils/UserUtils"
 import { PosRect } from "../../../../../ui/utils/PosRect"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
+import { Singletons } from "../../../../../platform-kit/singletons/singleton"
 
 const enum ConfirmationResult {
 	Cancel,
@@ -160,7 +160,7 @@ export class EventEditorDialog {
 				help: "save_action",
 			})
 
-		if (ClientDetector.get().isMobileDevice()) {
+		if (Singletons.clientDetector.isMobileDevice()) {
 			// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
 			dialog.setFocusOnLoadFunction(noOp)
 		}

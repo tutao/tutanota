@@ -2,13 +2,13 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { Card } from "../../../../ui/base/Card"
 import { SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 type SupportSuccessPageAttrs = {
 	dialog: Dialog
@@ -30,7 +30,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 						m(
 							".block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/rate-us.svg`,
+								path: `${Singletons.envProvider.getPathPrefix()}/images/dynamic-color-svg/rate-us.svg`,
 							}),
 						),
 					),
@@ -48,7 +48,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 	private renderAppStoreLinks(dialog: Dialog) {
 		const closeDialog = () => dialog.close()
 
-		if (ClientDetector.get().isCalendarApp()) {
+		if (Singletons.clientDetector.isCalendarApp()) {
 			return m.fragment({}, [
 				this.renderAppStoreLink(TutanotaConstants.TUTA_CALENDAR_APP_STORE_URL, closeDialog),
 				this.renderGooglePlayLink(TutanotaConstants.TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),

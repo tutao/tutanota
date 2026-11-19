@@ -57,7 +57,7 @@ import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoad
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
-import { DomainConfig, EnvProvider, ProgrammingError } from "../../src/platform-kit/app-env"
+import { DomainConfig, ProgrammingError } from "../../src/platform-kit/app-env"
 import { TypeChecks } from "../../src/platform-kit/app-env/TsTypeChecks"
 import { EventController } from "../../src/applications/common/api/main/EventController"
 import { EntityUpdateData, EntityUpdatesListener } from "../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -469,8 +469,6 @@ export function modelMapperFromTypeModelResolver(typeModelResolver: TypeModelRes
 export function offlineMapperFromTypeModelResolver(typeModelResolver: TypeModelResolver): OfflineMapper {
 	return new OfflineMapper(typeModelResolver)
 }
-
-export const withOverriddenEnv = EnvProvider.withOverriddenEnvForTest
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)

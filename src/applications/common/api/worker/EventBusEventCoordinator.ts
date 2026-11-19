@@ -2,7 +2,7 @@ import { EventBusListener } from "../../../../app-kit/local-store/event/EventBus
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { EnvProvider, RolloutType } from "@tutao/app-env"
+import { RolloutType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync } from "@tutao/utils"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -25,6 +25,7 @@ import { idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/m
 import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { MailboxImporter } from "../../../mail-app/workerUtils/migration/MailboxImporter"
 import { IndexedDbConfigurationDatabase } from "./facades/lazy/IndexedDbConfigurationDatabase"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -52,7 +53,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		await this.eventController.onEntityUpdatesReceived(events, groupId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
-		if (!EnvProvider.get().isTest() && !EnvProvider.get().isAdminClient() && !EnvProvider.get().isOfflineStorageAvailable()) {
+		if (!Singletons.envProvider.isTest() && !Singletons.envProvider.isAdminClient() && !Singletons.envProvider.isOfflineStorageAvailable()) {
 			const configurationDatabase = (await this.configurationDatabase()) as IndexedDbConfigurationDatabase
 			await configurationDatabase.onEntityUpdatesReceived(events, batchId, groupId)
 			this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
@@ -108,7 +109,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	}
 
 	private async onSyncDone() {
-		if (this.userFacade.isLeader() && !EnvProvider.get().isAdminClient()) {
+		if (this.userFacade.isLeader() && !Singletons.envProvider.isAdminClient()) {
 			const userIdentityKeyCreationAction = {
 				execute: async () => {
 					const identityKeyCreator = await this.identityKeyCreator()

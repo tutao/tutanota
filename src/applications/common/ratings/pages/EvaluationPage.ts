@@ -9,6 +9,7 @@ import { UserSatisfactionDialogPage } from "../UserSatisfactionDialog.js"
 import { px } from "../../../../ui/size.js"
 import { EnvProvider } from "@tutao/app-env"
 import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 interface EvaluationPageAttrs {
 	triggerType: TriggerType
@@ -19,7 +20,7 @@ interface EvaluationPageAttrs {
 export class EvaluationPage implements Component<EvaluationPageAttrs> {
 	view({ attrs }: Vnode<EvaluationPageAttrs>): Children {
 		return m(ImageWithOptionsDialog, {
-			image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/love-it.svg`,
+			image: `${Singletons.envProvider.getPathPrefix()}/images/dynamic-color-svg/love-it.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingHowAreWeDoing_title",
 			messageText: "ratingExplanation_msg",
@@ -40,7 +41,7 @@ export class EvaluationPage implements Component<EvaluationPageAttrs> {
 			lastRatingPromptedDate != null && DateTime.fromJSDate(getCurrentDate()).diff(DateTime.fromJSDate(lastRatingPromptedDate), ["years"]).years <= 1
 
 		if (!hasRated) {
-			if (EnvProvider.get().isIOSApp()) {
+			if (Singletons.envProvider.isIOSApp()) {
 				// We cannot get the result of the user rating on iOS, so we have to set the date here.
 				deviceConfig.setLastRatingPromptedDate(getCurrentDate())
 				dialog.close()

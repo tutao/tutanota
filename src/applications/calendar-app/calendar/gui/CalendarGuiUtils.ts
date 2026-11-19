@@ -69,6 +69,7 @@ import { clone } from "@tutao/meta"
 import { IcsCalendarEvent } from "../export/CalendarParser"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { pureComponent } from "../../../../ui/base/PureComponent"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export interface IntervalOption {
 	value: number
@@ -1003,7 +1004,7 @@ export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardE
 	},
 ): Key | undefined {
 	let key
-	if (event.metaKey && EnvProvider.get().isAppleDevice()) {
+	if (event.metaKey && Singletons.envProvider.isAppleDevice()) {
 		key = Keys.META
 	} else if (event.ctrlKey) {
 		key = Keys.CTRL

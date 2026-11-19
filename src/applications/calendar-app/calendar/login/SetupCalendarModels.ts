@@ -9,6 +9,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 export async function setupCalendarModels(
 	lazyCalendarModel: lazyAsync<CalendarModel>,
@@ -25,7 +26,7 @@ export async function setupCalendarModels(
 				lazyCalendarEventUpdateCoordinator().then((calendarEventUpdateCoordinator) => calendarEventUpdateCoordinator.init())
 				remindActiveOutOfOfficeNotification(entityClient)
 
-				if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+				if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 					handleExternalSync(calendarModel, syncTracker)
 				}
 			})
@@ -34,7 +35,7 @@ export async function setupCalendarModels(
 }
 
 function handleExternalSync(calendarModel: CalendarModel, syncTracker: SyncTracker) {
-	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+	if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 		syncTracker.addSyncListener({
 			id: "SetupCalendarModel",
 			priority: ListenerPriority.HIGH,

@@ -12,9 +12,9 @@ import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { LoginScreenHeader } from "../../../ui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { createSurveyData, CustomerAccountTerminationRequest } from "@tutao/entities/sys"
 import { px } from "../../../ui/size"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -95,7 +95,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				details: surveyResult.details,
 				version: SURVEY_VERSION_NUMBER,
 				clientVersion: env.versionNumber,
-				clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
+				clientPlatform: Singletons.clientDetector.getClientPlatform().valueOf().toString(),
 			})
 			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(data))
 		} else {

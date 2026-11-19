@@ -3,6 +3,7 @@ import { UserController } from "../api/main/UserController.js"
 import { assertNotNull } from "@tutao/utils"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 // the customer may have been reminded when they were a free account, so we can't use lastUpgradeReminder being null as a marker.
 // we use a date that's shortly before we started issuing reminders for legacy accounts and after we started only allowing new plans as upgrades.
@@ -15,7 +16,7 @@ export async function shouldShowUpgradeReminder(userController: UserController, 
 	// * do not show to new plans, they already switched
 	// * do not show in ios app, users can't upgrade there.
 	// * do not show while a user is signing up.
-	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || EnvProvider.get().isIOSApp()) return false
+	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || Singletons.envProvider.isIOSApp()) return false
 
 	const customerInfo = await userController.loadCustomerInfo()
 	const customerProperties = await userController.loadCustomerProperties()

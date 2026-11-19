@@ -9,9 +9,9 @@ import { goEuropeanBlue } from "./builtinThemes"
 import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
-import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { CheckBrowser } from "./CheckBrowser"
 import { downcast } from "@tutao/utils"
+import { Singletons } from "../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -29,7 +29,7 @@ export function getFonts(): string {
 		"sans-serif",
 	]
 	// workaround for incorrect Japanese font see https://github.com/tutao/tutanota/issues/1909
-	if (EnvProvider.get().getMode() === Mode.Darwin && lang.code === "ja") fonts.push("SimHei", "黑体")
+	if (Singletons.envProvider.getMode() === Mode.Darwin && lang.code === "ja") fonts.push("SimHei", "黑体")
 	fonts.push("Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol")
 	return fonts.join(", ")
 }
@@ -42,11 +42,11 @@ export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 const scrollbarWidthHeight = px(18)
 
 async function loadFonts() {
-	if (!EnvProvider.get().isNextCloudPlugin()) return
+	if (!Singletons.envProvider.isNextCloudPlugin()) return
 
 	const fonts = [
-		new FontFace("Ionicons", `url('${EnvProvider.get().getPathPrefix()}/images/font.ttf')`),
-		new FontFace("MDIO", `url('${EnvProvider.get().getPathPrefix()}/images/MDIO-Semibold.woff2')`),
+		new FontFace("Ionicons", `url('${Singletons.envProvider.getPathPrefix()}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${Singletons.envProvider.getPathPrefix()}/images/MDIO-Semibold.woff2')`),
 	]
 	for (const font of fonts) {
 		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
@@ -69,7 +69,7 @@ export class MainStyles {
 			loadFonts()
 			return {
 				"#link-tt":
-					EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
+					Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient()
 						? {
 								"pointer-events": "none",
 								"font-size": rem(font_size.smaller_em),
@@ -90,14 +90,14 @@ export class MainStyles {
 							}
 						: {},
 				"#link-tt.reveal":
-					EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
+					Singletons.envProvider.isDesktop() || Singletons.envProvider.isAdminClient()
 						? {
 								opacity: 1,
 								transition: "opacity .1s linear",
 								"z-index": 9999,
 							}
 						: {},
-				"*:not(input):not(textarea)": EnvProvider.get().isAdminClient()
+				"*:not(input):not(textarea)": Singletons.envProvider.isAdminClient()
 					? {}
 					: {
 							"user-select": "none",
@@ -169,10 +169,10 @@ export class MainStyles {
 				":root": {
 					// We need it because we can't get env() value from JS directly
 					// environment-variables return 0px on Android, that's why we are using var for Android
-					"--safe-area-inset-bottom": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-bottom)" : "env(safe-area-inset-bottom)",
-					"--safe-area-inset-top": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
-					"--safe-area-inset-right": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
-					"--safe-area-inset-left": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
+					"--safe-area-inset-bottom": Singletons.envProvider.isAndroidApp() ? "var(--safe-area-inset-bottom)" : "env(safe-area-inset-bottom)",
+					"--safe-area-inset-top": Singletons.envProvider.isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
+					"--safe-area-inset-right": Singletons.envProvider.isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
+					"--safe-area-inset-left": Singletons.envProvider.isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
 
 					// Setting "color-scheme" ensures that browser input dialogs -- such as those for date and time
 					// inputs -- do not get rendered as white-on-black or black-on-white when the browser or system
@@ -968,7 +968,7 @@ export class MainStyles {
 					"text-decoration": "underline",
 				},
 				".hover-ul:hover": {
-					"text-decoration": EnvProvider.get().isApp() ? "none" : "underline",
+					"text-decoration": Singletons.envProvider.isApp() ? "none" : "underline",
 				},
 				// positioning1
 				".fill-absolute": {
@@ -1022,16 +1022,16 @@ export class MainStyles {
 				},
 				"*": {
 					"scrollbar-color": `${theme.on_surface_variant} transparent`,
-					"scrollbar-width": !ClientDetector.get().isMobileDevice() ? "thin" : "none",
+					"scrollbar-width": !Singletons.clientDetector.isMobileDevice() ? "thin" : "none",
 				},
-				"::-webkit-scrollbar": !ClientDetector.get().isMobileDevice()
+				"::-webkit-scrollbar": !Singletons.clientDetector.isMobileDevice()
 					? {
 							background: "transparent",
 							width: scrollbarWidthHeight, // width of vertical scrollbar
 							height: scrollbarWidthHeight, // width of horizontal scrollbar
 						}
 					: {},
-				"::-webkit-scrollbar-thumb": !ClientDetector.get().isMobileDevice()
+				"::-webkit-scrollbar-thumb": !Singletons.clientDetector.isMobileDevice()
 					? {
 							background: theme.on_surface_variant,
 							// reduce the background
@@ -1130,7 +1130,7 @@ export class MainStyles {
 				},
 				// Stretch editor a little bit more than parent so that the content is visible
 				".full-height": {
-					"min-height": ClientDetector.get().isIos() ? "101%" : "100%",
+					"min-height": Singletons.clientDetector.isIos() ? "101%" : "100%",
 				},
 				".full-width": {
 					width: "100%",
@@ -2142,19 +2142,19 @@ export class MainStyles {
 					"flex-shrink": 0,
 					"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
 				},
-				".nav-button:hover": !EnvProvider.get().isApp()
+				".nav-button:hover": !Singletons.envProvider.isApp()
 					? {
 							// "text-decoration": "underline",
 							// opacity: 0.7,
 						}
 					: {},
-				".nav-button:focus": ClientDetector.get().isDesktopDevice()
+				".nav-button:focus": Singletons.clientDetector.isDesktopDevice()
 					? {
 							// "text-decoration": "underline",
 							// opacity: 0.7,
 						}
 					: {},
-				"button:focus, button:hover": ClientDetector.get().isDesktopDevice()
+				"button:focus, button:hover": Singletons.clientDetector.isDesktopDevice()
 					? {
 							opacity: 0.7,
 						}
@@ -2798,7 +2798,7 @@ export class MainStyles {
 					padding: "35%",
 					margin: "-35% -35%",
 				},
-				".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": ClientDetector.get().isDesktopDevice()
+				".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": Singletons.clientDetector.isDesktopDevice()
 					? {
 							opacity: 0.7,
 						}

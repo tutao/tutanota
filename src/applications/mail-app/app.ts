@@ -36,7 +36,6 @@ import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import type { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
-import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
@@ -66,6 +65,7 @@ import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { KeyManager } from "../../ui/utils/KeyManager"
 import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 import { MigrationPreLogoutAction } from "./mail/migration/MigrationPreLogoutAction"
+import { Singletons } from "../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -96,13 +96,12 @@ if (isSessionStorageAvailable()) {
 
 assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
-const envProvider = EnvProvider.get()
-const clientDetector = await ClientDetector.init(envProvider, navigator.userAgent, navigator.platform, AppType.Mail)
-CheckBrowser.ensureIsSupported(clientDetector)
+await Singletons.init(navigator.userAgent, navigator.platform, AppType.Mail)
+CheckBrowser.ensureIsSupported(Singletons.clientDetector)
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
-	client: ClientDetector.get(),
+	client: Singletons.clientDetector,
 	m,
 	lang,
 	root,
@@ -116,7 +115,7 @@ window.tutao = {
 setupExceptionHandling()
 
 const startRoute = getStartUrl(urlQueryParams)
-const nextCloudPrefix = EnvProvider.get().isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
+const nextCloudPrefix = Singletons.envProvider.isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
 history.replaceState(null, "", nextCloudPrefix + startRoute)
 
 registerForMailto()
@@ -139,11 +138,11 @@ import("../../ui/translations/en.js")
 			{ app: "accounting", clientModel: accountingTypeModels, modelInfo: accountingModelInfo },
 		]
 		let shadowRoot: ShadowRoot | null = null
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (Singletons.envProvider.isNextCloudPlugin()) {
 			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
 			const appRoot = assertNotNull(htmlContainer.getAttribute("app-root"))
 			const prefix = new URL(appRoot).pathname.split("/")[1]
-			EnvProvider.get().setPathPrefix(`/${prefix}/tutamail/js`)
+			Singletons.envProvider.setPathPrefix(`/${prefix}/tutamail/js`)
 			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
 		}
 
@@ -158,7 +157,7 @@ import("../../ui/translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel)
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
 
@@ -173,7 +172,7 @@ import("../../ui/translations/en.js")
 				console.error("Failed to fetch translation: " + userLanguage.code, e)
 			})
 
-			if (EnvProvider.get().isDesktop()) {
+			if (Singletons.envProvider.isDesktop()) {
 				mailLocator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
 			}
 		}
@@ -194,10 +193,10 @@ import("../../ui/translations/en.js")
 					if (sessionType === SessionType.Temporary) {
 						return
 					}
-					if (EnvProvider.get().isApp()) {
+					if (Singletons.envProvider.isApp()) {
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 						const syncManager = mailLocator.nativeContactsSyncManager()
-						if (syncManager.isEnabled() && EnvProvider.get().isIOSApp()) {
+						if (syncManager.isEnabled() && Singletons.envProvider.isIOSApp()) {
 							const canSync = await syncManager.canSync()
 							if (!canSync) {
 								await syncManager.disableSync()
@@ -214,7 +213,7 @@ import("../../ui/translations/en.js")
 						return
 					}
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
-					if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
+					if (!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()) {
 						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
 						m.redraw()
 					}
@@ -289,7 +288,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
+		if (!Singletons.envProvider.isBrowser() && !Singletons.envProvider.isAdminClient()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { CalendarPostLoginAction } = await import("../common/offline/CalendarPostLoginAction.js")
 				return new CalendarPostLoginAction(
@@ -315,7 +314,7 @@ import("../../ui/translations/en.js")
 			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
 		})
 
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { MigrationPostLoginAction } = await import("./mail/migration/MigrationPostLoginAction")
 				return new MigrationPostLoginAction(
@@ -336,7 +335,7 @@ import("../../ui/translations/en.js")
 			const { newMailEditorFromLocalDraftData } = await import("./mail/editor/MailEditor.js")
 			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils.js")
 			const { AttachmentDownloader } = await import("./mail/view/MailGuiUtils.js")
-			const fileApp = EnvProvider.get().isBrowser() ? null : mailLocator.fileApp
+			const fileApp = Singletons.envProvider.isBrowser() ? null : mailLocator.fileApp
 			const driveModel = await mailLocator.driveModel()
 			return new OpenLocallySavedDraftAction(
 				mailLocator.autosaveFacade,
@@ -353,7 +352,7 @@ import("../../ui/translations/en.js")
 			)
 		})
 
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				return {
 					onPartialLoginSuccess: async () => {},
@@ -408,7 +407,7 @@ import("../../ui/translations/en.js")
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 
 		const sendDriveFileViaMail =
-			EnvProvider.get().isDesktop() || EnvProvider.get().isWebClient()
+			Singletons.envProvider.isDesktop() || Singletons.envProvider.isWebClient()
 				? async (file: DriveFile) => {
 						const { newMailEditorForDriveFiles } = await import("./mail/editor/MailEditor.js")
 						const editor = await newMailEditorForDriveFiles(
@@ -919,7 +918,7 @@ import("../../ui/translations/en.js")
 			),
 		})
 		// We set the prefix to empty string intentionally here. See (https://mithril.js.org/route.html?utm_source=chatgpt.com#routing-strategies)
-		m.route.prefix = EnvProvider.get().isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
+		m.route.prefix = Singletons.envProvider.isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
 
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
@@ -942,7 +941,7 @@ import("../../ui/translations/en.js")
 			},
 		}
 
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (Singletons.envProvider.isNextCloudPlugin()) {
 			const mountPoint = document.createElement("div")
 			assertNotNull(shadowRoot).appendChild(mountPoint)
 			m.route(mountPoint, startRoute, resolvers)
@@ -953,10 +952,10 @@ import("../../ui/translations/en.js")
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) {
 			await mailLocator.native.init()
 		}
-		if (EnvProvider.get().isDesktop()) {
+		if (Singletons.envProvider.isDesktop()) {
 			const { exposeNativeInterface } = await import("../common/api/common/ExposeNativeInterface.js")
 			mailLocator.logins.addPostLoginAction(async () => exposeNativeInterface(mailLocator.native).postLoginActions)
 		}
@@ -1197,7 +1196,7 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 
 function registerForMailto() {
 	// don't do this if we're in an iframe, in an app or the navigator doesn't allow us to do this.
-	if (window.parent === window && !EnvProvider.get().isDesktop() && typeof navigator.registerProtocolHandler === "function") {
+	if (window.parent === window && !Singletons.envProvider.isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 		let origin = location.origin
 		try {
 			// @ts-ignore third argument removed from spec, but use is still recommended

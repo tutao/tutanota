@@ -2,6 +2,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../platform-kit/app-env/boot/ClientConstants"
 import { assertNotNull, TypeChecks } from "@tutao/lang-api"
+import { Singletons } from "../platform-kit/singletons/singleton"
 
 export class CheckBrowser {
 	public static readonly overflowAuto: string = CheckBrowser.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
@@ -22,7 +23,7 @@ export class CheckBrowser {
 		if (!clientHaveExpectedFeatures) {
 			throw new Error("Unsupported")
 		}
-		if (EnvProvider.get().isBrowser() && !CheckBrowser.webAssemblyIsSupported()) {
+		if (Singletons.envProvider.isBrowser() && !CheckBrowser.webAssemblyIsSupported()) {
 			const webAssemblyError = new Error()
 			webAssemblyError.name = "NoWASMSupport"
 			throw webAssemblyError

@@ -11,6 +11,7 @@ import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 import { ThemeCustomizations, UnknownThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "./WhitelabelCustomizations"
 import { HtmlSanitizerInterface } from "./utils/HtmlSanitizerInterface"
 import { type ThemeFacade } from "../app-kit/native-bridge/common/generatedipc/types/ThemeFacade"
+import { Singletons } from "../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -64,7 +65,7 @@ export class ThemeController implements BaseThemeProvider {
 			// mithril's parseQueryString does not follow standard exactly so we try to use the same thing we use on the native side
 			const themeJson = window.location.href ? new URL(window.location.href).searchParams.get("theme") : null
 
-			if ((EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && themeJson) {
+			if ((Singletons.envProvider.isApp() || Singletons.envProvider.isDesktop()) && themeJson) {
 				const parsedTheme: ThemeCustomizations = this.parseCustomizations(themeJson)
 
 				// We also don't need to save anything in this case
@@ -187,7 +188,7 @@ export class ThemeController implements BaseThemeProvider {
 
 	private async resolveThemePreference(newThemePreference: ThemePreference): Promise<ThemeId> {
 		if (newThemePreference === "auto:light|dark") {
-			if (EnvProvider.get().isNextCloudPlugin()) {
+			if (Singletons.envProvider.isNextCloudPlugin()) {
 				const nextcloudTheme = document.body.dataset.themes
 				if (nextcloudTheme?.includes("default")) {
 					return (await this.themeFacade.prefersDark()) ? "dark" : "light"
@@ -293,7 +294,7 @@ export class ThemeController implements BaseThemeProvider {
 	}
 
 	shouldAllowChangingTheme(): boolean {
-		return window.whitelabelCustomizations == null && !EnvProvider.get().isNextCloudPlugin()
+		return window.whitelabelCustomizations == null && !Singletons.envProvider.isNextCloudPlugin()
 	}
 
 	/**

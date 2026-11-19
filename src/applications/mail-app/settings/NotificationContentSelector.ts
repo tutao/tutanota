@@ -6,6 +6,7 @@ import { renderNotificationPermissionsDialog } from "../../common/settings/Notif
 import { EnvProvider } from "../../../platform-kit/app-env"
 import { NativePushServiceApp } from "../../common/native/NativePushServiceApp"
 import { SystemPermissionHandler } from "../../common/native/SystemPermissionHandler"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 export interface NotificationContentSelectorAttrs {
 	extendedNotificationMode: ExtendedNotificationMode
@@ -19,7 +20,7 @@ export class NotificationContentSelector implements Component<NotificationConten
 		return m(DropDownSelector, {
 			label: "notificationContent_label",
 			// Subject is not available on desktop at the moment.
-			items: EnvProvider.get().isDesktop()
+			items: Singletons.envProvider.isDesktop()
 				? [
 						{
 							name: lang.get("notificationPreferenceNoSenderOrSubject_action"),
@@ -47,7 +48,7 @@ export class NotificationContentSelector implements Component<NotificationConten
 			selectedValue: vnode.attrs.extendedNotificationMode,
 			selectionChangedHandler: async (newValue) => {
 				// Permissions only exist on mobile, so we should not check on other platforms
-				if (EnvProvider.get().isApp()) {
+				if (Singletons.envProvider.isApp()) {
 					const isNotificationPermissionGranted = await vnode.attrs.systemPermissionHandler.hasPermission(PermissionType.Notification)
 					if (isNotificationPermissionGranted) {
 						vnode.attrs.onChange(newValue)

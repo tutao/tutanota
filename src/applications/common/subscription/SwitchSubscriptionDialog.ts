@@ -27,7 +27,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 } from "../../../entities/sys/Utils"
-import { BookingFailureReason, EnvProvider, UnsubscribeFailureReason, TutanotaConstants } from "@tutao/app-env"
+import { BookingFailureReason, TutanotaConstants, UnsubscribeFailureReason } from "@tutao/app-env"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -57,12 +57,12 @@ import { getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 import { getPrivateBusinessSwitchButton, InvoiceData, SubscriptionActionButtons } from "./utils/PaymentUtils"
 import { showManageSubscriptionThroughExternalStoreDialog } from "../misc/SubscriptionDialogs"
+import { Singletons } from "../../../platform-kit/singletons/singleton"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -411,7 +411,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 				break
 
 			case UnsubscribeFailureReason.ACTIVE_APPSTORE_SUBSCRIPTION:
-				if (EnvProvider.get().isIOSApp()) {
+				if (Singletons.envProvider.isIOSApp()) {
 					await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 					return false
 				} else {
@@ -462,7 +462,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		referralCode: null,
 		plan: PlanType.Free,
 		surveyData: null,
-		app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+		app: Singletons.clientDetector.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
 		await locator.serviceExecutor.execute(SwitchAccountTypeService_POST, switchAccountTypeData, null)
@@ -556,7 +556,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			customer: elementIdToId(customer._id),
 			specialPriceUserSingle: null,
 			surveyData: null,
-			app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+			app: Singletons.clientDetector.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 
 		try {

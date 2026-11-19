@@ -38,6 +38,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { elementIdPart, getElementId, OperationType } from "../../../../platform-kit/meta"
 import { GroupType } from "../../../../entities/sys/Utils"
+import { Singletons } from "../../../../platform-kit/singletons/singleton"
 
 EnvProvider.assertMainOrNode()
 
@@ -168,7 +169,7 @@ export class NativeContactsSyncManager {
 	 * it can interfere with
 	 */
 	async canSync(): Promise<boolean> {
-		if (!EnvProvider.get().isApp()) {
+		if (!Singletons.envProvider.isApp()) {
 			throw new ProgrammingError("Can only check Contact permissions on app")
 		}
 
@@ -177,7 +178,7 @@ export class NativeContactsSyncManager {
 			return false
 		}
 
-		return !EnvProvider.get().isIOSApp() || this.checkIfExternalCloudSyncOnIos()
+		return !Singletons.envProvider.isIOSApp() || this.checkIfExternalCloudSyncOnIos()
 	}
 
 	/**
@@ -185,7 +186,7 @@ export class NativeContactsSyncManager {
 	 * @returns false if no permission or iCloud sync is enabled and the user cancelled, or true if permission is granted and iCloud sync is disabled (or the user bypassed the warning dialog)
 	 */
 	private async checkIfExternalCloudSyncOnIos(): Promise<boolean> {
-		assert(EnvProvider.get().isIOSApp(), "Can only check cloud syncing on iOS")
+		assert(Singletons.envProvider.isIOSApp(), "Can only check cloud syncing on iOS")
 
 		let localContactStorage = await this.mobileContactsFacade.isLocalStorageAvailable()
 		if (!localContactStorage) {
@@ -397,7 +398,7 @@ export class NativeContactsSyncManager {
 
 	private mergeNativeContactWithTutaContact(contact: StructuredContact, partialContact: Contact): Contact {
 		// TODO: iOS requires a special entitlement from Apple to access these fields
-		const canMergeCommentField = !EnvProvider.get().isIOSApp()
+		const canMergeCommentField = !Singletons.envProvider.isIOSApp()
 
 		return {
 			...partialContact,
