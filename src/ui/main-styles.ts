@@ -226,7 +226,6 @@ export class MainStyles {
 				},
 				"small, .small": {
 					"font-size": rem(font_size.small_em),
-					"line-height": "1.2",
 				},
 				".smaller": {
 					"font-size": rem(font_size.smaller_em),
