@@ -110,7 +110,7 @@ export class MainStyles {
 							/* disable the IOS popup when long-press on a link */
 							"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
 						},
-				"*:not(input):not(textarea):not([draggable='true'])": {
+				"*:not(input):not(textarea):not([draggable='true']):not([draggable='true'] *)": {
 					"-webkit-user-drag": "none",
 				},
 				// Disable outline for mouse and touch navigation

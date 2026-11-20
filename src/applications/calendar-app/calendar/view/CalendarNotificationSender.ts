@@ -95,7 +95,7 @@ export class CalendarNotificationSender {
 					const recipientInfo = findRecipientWithAddress(sendMailModel.bccRecipients(), invalidRecipient)
 
 					if (recipientInfo) {
-						hasRemovedRecipient = sendMailModel.removeRecipient(recipientInfo, RecipientField.BCC, false) || hasRemovedRecipient
+						hasRemovedRecipient = sendMailModel.removeRecipient(recipientInfo, RecipientField.BCC) || hasRemovedRecipient
 					}
 				}
 
