@@ -47,7 +47,8 @@ export class SafeStorageSecretStorage implements SecretStorage {
 		const keyPath = this.getKeyPath(service, account)
 		try {
 			const encPwBuffer = await this.fs.promises.readFile(keyPath)
-			return this.electron.safeStorage.decryptString(encPwBuffer)
+			const { result } = await this.electron.safeStorage.decryptStringAsync(encPwBuffer)
+			return result
 		} catch (e) {
 			if (e.code === "ENOENT") {
 				// the key wasn't created yet
@@ -60,7 +61,7 @@ export class SafeStorageSecretStorage implements SecretStorage {
 	async setPassword(service: string, account: string, password: string): Promise<void> {
 		await this.assertAvailable()
 		const keyPath = this.getKeyPath(service, account)
-		const cypherBuffer = this.electron.safeStorage.encryptString(password)
+		const cypherBuffer = await this.electron.safeStorage.encryptStringAsync(password)
 		return this.fs.promises.writeFile(keyPath, cypherBuffer)
 	}
 
