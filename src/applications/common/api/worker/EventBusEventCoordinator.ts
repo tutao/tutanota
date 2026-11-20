@@ -2,7 +2,7 @@ import { EventBusListener } from "../../../../app-kit/local-store/event/EventBus
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { EnvProvider, RolloutType } from "@tutao/app-env"
+import { AppType, EnvProvider, RolloutType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync } from "@tutao/utils"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -155,7 +155,15 @@ export class EventBusEventCoordinator implements EventBusListener {
 			const migrateInboxRules = {
 				execute: async () => await (await this.mailFacade?.())?.triggerInboxRuleMigration(),
 			}
-			await this.rolloutFacade.configureRollout(RolloutType.ExpandedInboxRuleMigration, migrateInboxRules)
+
+			const noOpAction = {
+				execute: async () => {},
+			}
+
+			await this.rolloutFacade.configureRollout(
+				RolloutType.ExpandedInboxRuleMigration,
+				!EnvProvider.get().isApp() || APP_TYPE === AppType.Mail ? migrateInboxRules : noOpAction,
+			)
 
 			await this.rolloutFacade.processRollout(RolloutType.GroupKeyUpdatePending)
 			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation)
