@@ -780,6 +780,18 @@ export class SendMailModel {
 		return findRecipientWithAddress(this.getRecipientList(type), address)
 	}
 
+	moveRecipient(address: string, from: RecipientField, to: RecipientField) {
+		const recipient = findRecipientWithAddress(this.getRecipientList(from), address)
+		if (recipient == null || from === to) {
+			return
+		}
+		if (findRecipientWithAddress(this.getRecipientList(to), address) == null) {
+			this.getRecipientList(to).push(recipient)
+		}
+		this.removeRecipient(recipient, from, false)
+		this.onMailChanged(null)
+	}
+
 	removeRecipientByAddress(address: string, recipientFields: RecipientField[], notify: boolean = true) {
 		for (const recipientField of recipientFields) {
 			const recipient = findRecipientWithAddress(this.getRecipientList(recipientField), address)

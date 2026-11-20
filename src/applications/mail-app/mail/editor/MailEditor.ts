@@ -162,6 +162,10 @@ const AUTOSAVE_REMOTE_TIMEOUT: number = TimeConstants.minutesToMillis(5)
 // Maximum allowed time before the undo button hides.
 const UNDO_SEND_TIMEOUT: number = TimeConstants.secondsToMillis(UNDO_SEND_TIMEOUT_SECONDS)
 
+const RECIPIENT_DRAG_TYPE = "application/x-tutanota-recipient"
+
+type DraggedRecipient = { address: string; field: RecipientField }
+
 export type MailEditorAttrs = {
 	model: SendMailModel
 	attachmentDownloader: AttachmentDownloader
@@ -1062,6 +1066,19 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				return this.getRecipientClickedContextButtons(recipient, field)
 			},
 			disabled: !this.sendMailModel.logins.isInternalUserLoggedIn(),
+			onRecipientDragStart: (address, event) => {
+				event.dataTransfer?.setData(RECIPIENT_DRAG_TYPE, JSON.stringify({ address, field } satisfies DraggedRecipient))
+				// the collapsed cc and bcc fields have to be visible to be dropped on. Delayed, because changing the DOM in dragstart cancels the drag
+				setTimeout(() => {
+					this.areDetailsExpanded = true
+					m.redraw()
+				}, 0)
+			},
+			canDrop: (event) => event.dataTransfer?.types.includes(RECIPIENT_DRAG_TYPE) ?? false,
+			onDrop: (event) => {
+				const { address, field: from }: DraggedRecipient = JSON.parse(event.dataTransfer!.getData(RECIPIENT_DRAG_TYPE))
+				this.sendMailModel.moveRecipient(address, from, field)
+			},
 			injectionsRight:
 				field === RecipientField.TO && this.sendMailModel.logins.isInternalUserLoggedIn()
 					? m(
