@@ -4,7 +4,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { EnvProvider } from "../../../platform-kit/app-env"
 import { HtmlEditor } from "../../../ui/editor/HtmlEditor"
 import { newPromise } from "../../../platform-kit/utils"
-import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
+import { createSignatureImageClickHandler, promptAltTextForPastedImages } from "../../common/mailFunctionality/SignatureImageHandlers.js"
 import { CustomEmailSignature } from "@tutao/entities/tutanota"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 import { TextField } from "../../../ui/base/TextField"
@@ -26,10 +26,11 @@ export function showCustomSignatureEditor(
 			.setValue(existing?.value ?? "")
 			.enableToolbar()
 			.setToolbarOptions({
-				// Inline images require transporting over IPC boundary and we have not implemented a suitable way yet
-				imageButtonClickHandler: EnvProvider.get().isApp() ? null : insertInlineImageB64ClickHandler,
+				// Uploading images requires transporting them over the IPC boundary and we have not implemented a suitable way yet
+				imageButtonClickHandler: createSignatureImageClickHandler(!EnvProvider.get().isApp()),
 				isNonElevatedBackground: true,
 			})
+		promptAltTextForPastedImages(editor.editor)
 
 		const onclick = async () => {
 			const trimmed = name.trim()

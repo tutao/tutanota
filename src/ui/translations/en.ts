@@ -2682,5 +2682,12 @@ export default {
 		"hasRunningMigrations_msg": "There are still running migrations, please cancel them before downgrading.",
 		"subscriptionSettingsMigrationPaidFeature_label": "Migrations",
 		"subscriptionSettingsMigrationPaidFeature_msg": "If you have running migrations, please cancel them",
+		"signatureImageInfo_msg": "Not every email client displays images that are embedded in a signature, for example Gmail does not. Images that are loaded from a link might be blocked by the email client, depending on its settings.",
+		"imageUpload_action": "Upload image",
+		"imageLink_action": "Add image link",
+		"imageAltText_label": "Alternative text",
+		"imageAltTextInfo_msg": "Describe the image. Email clients that do not display the image show this text instead.",
+		"imageAltTextRequired_msg": "Please enter an alternative text for every image.",
+		"pastedImagesAltText_msg": "The pasted content contains embedded images. Not every email client displays embedded images, and some show a description instead. Please describe each image. If you cancel, the images are not inserted.",
 	}
 }

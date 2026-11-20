@@ -34,6 +34,7 @@ export const enum DialogType {
 	Progress = "Progress",
 	Alert = "Alert",
 	Reminder = "Reminder",
+	Popup_S = "Popup_S",
 	Popup_L = "Popup_L",
 	EditSmall = "EditSmall",
 	EditMedium = "EditMedium",
@@ -274,6 +275,8 @@ export class Dialog implements ModalComponent {
 			dialogStyle += ".dialog-width-alert.pt-16.border-radius-bottom-8"
 		} else if (dialogType === DialogType.Reminder) {
 			dialogStyle += ".dialog-width-m.pt-16.flex.flex-column.border-radius-bottom-8"
+		} else if (dialogType === DialogType.Popup_S) {
+			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-s.flex.flex-column.border-radius-bottom-8.nav-bg"
 		} else if (dialogType === DialogType.Popup_L) {
 			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-l.flex.flex-column.border-radius-bottom-8.nav-bg"
 		} else if (dialogType === DialogType.EditSmall) {

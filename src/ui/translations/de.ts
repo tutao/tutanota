@@ -2682,5 +2682,12 @@ export default {
 		"hasRunningMigrations_msg": "There are still running migrations, please cancel them before downgrading.",
 		"subscriptionSettingsMigrationPaidFeature_label": "Migrations",
 		"subscriptionSettingsMigrationPaidFeature_msg": "If you have running migrations, please cancel them",
+		"signatureImageInfo_msg": "Nicht jeder E-Mail-Client zeigt Bilder an, die in eine Signatur eingebettet sind, z. B. zeigt Gmail sie nicht an. Bilder, die über einen Link geladen werden, können je nach Einstellungen vom E-Mail-Client blockiert werden.",
+		"imageUpload_action": "Bild hochladen",
+		"imageLink_action": "Bildlink hinzufügen",
+		"imageAltText_label": "Alternativtext",
+		"imageAltTextInfo_msg": "Beschreibe das Bild. E-Mail-Clients, die das Bild nicht anzeigen, zeigen stattdessen diesen Text an.",
+		"imageAltTextRequired_msg": "Bitte gib für jedes Bild einen Alternativtext ein.",
+		"pastedImagesAltText_msg": "Der eingefügte Inhalt enthält eingebettete Bilder. Nicht jeder E-Mail-Client zeigt eingebettete Bilder an, manche zeigen stattdessen eine Beschreibung. Bitte beschreibe jedes Bild. Wenn du abbrichst, werden die Bilder nicht eingefügt.",
 	}
 }
