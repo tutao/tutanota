@@ -8,7 +8,6 @@ import androidx.annotation.StringRes
  * It enables decoupling the app-specific LocalNotificationsFacades
  * from the shared classes.
  *
- * @see [INotificationsHandler]
  * @see [NotificationsHandler]
  */
 interface LocalNotificationsFacade {
