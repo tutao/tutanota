@@ -24,9 +24,9 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import de.tutao.calendar.BuildConfig
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
+import de.tutao.tutashared.BuildConfig
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
 import de.tutao.tutashared.push.LocalNotificationsFacade
@@ -41,8 +41,6 @@ private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
-/** @see [de.tutao.tutashared.push.INotificationsHandler]
- */
 class CalendarLocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
 	LocalNotificationsFacade, FileNotificationSender {
 	companion object {

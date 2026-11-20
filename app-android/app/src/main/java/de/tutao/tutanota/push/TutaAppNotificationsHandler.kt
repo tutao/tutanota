@@ -28,15 +28,15 @@ import java.io.File
 import java.util.*
 
 class TutaAppNotificationsHandler(
-	private val localNotificationsFacade: TutaLocalNotificationsFacade,
-	private val sseStorage: SseStorage,
-	private val credentialsEncryption: NativeCredentialsFacade,
-	private val alarmNotificationsManager: AlarmNotificationsManager,
-	defaultClient: OkHttpClient,
-	private val lifecycleScope: LifecycleCoroutineScope,
-	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
-	private val appDir: File,
-	private val suspensionHandler: SuspensionHandler
+    private val localNotificationsFacade: TutaAppLocalNotificationsFacade,
+    private val sseStorage: SseStorage,
+    private val credentialsEncryption: NativeCredentialsFacade,
+    private val alarmNotificationsManager: AlarmNotificationsManager,
+    defaultClient: OkHttpClient,
+    private val lifecycleScope: LifecycleCoroutineScope,
+    private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
+    private val appDir: File,
+    private val suspensionHandler: SuspensionHandler
 ) : NotificationsHandler(localNotificationsFacade, sseStorage, alarmNotificationsManager, defaultClient, suspensionHandler
 	) {
 	override fun onNewNotificationAvailable(sseInfo: SseInfo?) = lifecycleScope.launch {

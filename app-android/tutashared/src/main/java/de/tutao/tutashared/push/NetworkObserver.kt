@@ -77,7 +77,6 @@ class NetworkObserver (
 	}
 
 	fun setNetworkConnectivityListener(networkConnectivityListener: NetworkConnectivityListener) {
-		Log.d(TAG, "setting up networkConnectivityListener")
 		this.networkConnectivityListener = networkConnectivityListener
 	}
 

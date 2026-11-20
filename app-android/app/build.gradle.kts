@@ -102,8 +102,6 @@ android {
 			"FILE_PROVIDER_AUTHORITY",
 			"\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
 		)
-		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"${project.properties["de.tutao.sysModelVersion"]}\"")
-		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"86\"")
 		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
 	}
 
