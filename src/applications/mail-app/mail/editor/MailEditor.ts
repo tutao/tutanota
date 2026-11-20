@@ -1445,15 +1445,15 @@ async function createMailEditorDialog(
 	const headerBarAttrs: DialogHeaderBarAttrs = {
 		leftChildren: () =>
 			Styles.get().isMobileLayout()
-				? m(
-						".ml-negative-8",
-						m(IconButton, {
-							label: "close_alt",
-							click: () => minimize(),
-							icon: Icons.X,
-							colors: ButtonColor.Primary,
-						}),
-					)
+				? m(IconButton, {
+						label: "close_alt",
+						click: () => minimize(),
+						icon: Icons.X,
+						colors: ButtonColor.Primary,
+						style: {
+							marginLeft: px(-size.spacing_8),
+						},
+					})
 				: m(Button, {
 						label: "close_alt",
 						click: () => minimize(),
