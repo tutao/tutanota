@@ -43,7 +43,10 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 				class: vnode.attrs.class,
 			},
 			[
-				m(columnClass + ".ml-negative-8", a.leftChildren ? resolveMaybeLazy(a.leftChildren) : resolveMaybeLazy(a.left).map((a) => m(Button, a))), // ellipsis is not working if the text is directly in the flex element, so create a child div for it
+				m(
+					columnClass + ".ml-negative-8.flex.justify-start",
+					a.leftChildren ? resolveMaybeLazy(a.leftChildren) : resolveMaybeLazy(a.left).map((a) => m(Button, a)),
+				), // ellipsis is not working if the text is directly in the flex element, so create a child div for it
 				a.middle
 					? m(
 							"#dialog-title.flex-third-middle.overflow-hidden.flex.justify-center.items-center.b",

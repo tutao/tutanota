@@ -159,6 +159,9 @@ export class Icon implements Component<IconAttrs> {
 	getContainerClasses(attrs: IconAttrs): string {
 		const container = attrs.container || "span"
 		let classes = container + ".icon"
+		if (attrs.container === "div") {
+			classes += ".flex.justify-center.align-center" // ensures icons are centered with large system font size
+		}
 		if (attrs.hoverText) {
 			classes += ".tooltip"
 		}
