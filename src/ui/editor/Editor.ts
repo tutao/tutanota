@@ -67,7 +67,14 @@ export class Editor implements ImageHandler, Component {
 	 * * sanitizeToDomFragment is called by squire
 	 * * "input" event on squire resets flag.
 	 */
-	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => (this.userHasPasted = true)
+	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => {
+		this.userHasPasted = true
+		if (this.afterPasteHandler != null) {
+			this.imagesBeforePaste = new Set(this.getDOM().querySelectorAll("img"))
+		}
+	}
+	private afterPasteHandler: ((imagesBeforePaste: ReadonlySet<Element>) => unknown) | null = null
+	private imagesBeforePaste: ReadonlySet<Element> = new Set()
 
 	constructor(
 		private minHeight: number | null,
@@ -171,7 +178,13 @@ export class Editor implements ImageHandler, Component {
 			}
 		})
 
-		this.squire!.addEventListener("input", (_: CustomEvent<void>) => (this.userHasPasted = false))
+		this.squire!.addEventListener("input", (_: CustomEvent<void>) => {
+			const wasPaste = this.userHasPasted
+			this.userHasPasted = false
+			if (wasPaste) {
+				this.afterPasteHandler?.(this.imagesBeforePaste)
+			}
+		})
 		domElement.addEventListener("paste", this.pasteListener)
 
 		this.squire!.addEventListener("pathChange", () => {
@@ -303,6 +316,14 @@ export class Editor implements ImageHandler, Component {
 
 			this.squire!.makeLink(url)
 		})
+	}
+
+	/**
+	 * Called after the user pasted something into the editor, with the images that were in the editor before the paste.
+	 * Registered on the editor and not on squire, so it also works if squire is created again.
+	 */
+	setAfterPasteHandler(handler: ((imagesBeforePaste: ReadonlySet<Element>) => unknown) | null) {
+		this.afterPasteHandler = handler
 	}
 
 	insertImage(srcAttr: string, attrs: Record<string, string>): HTMLElement {
