@@ -73,6 +73,18 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     return SwInt(Int(0x10000 + ((UInt32(first) - 0xD800) << 10) + (UInt32(second) - 0xDC00)))
   }
 
+  public func concat(_ str: any ToString...) -> SwString {
+      return SwString(self.inner + str.map{ $0.toString().inner }.joined())
+  }
+
+  public func endsWith(_ searchString: SwString) throws -> Bool {
+    return try self.endsWith(searchString, self.length)
+  }
+
+  public func endsWith(_ searchString: SwString, _ endPosition: SwInt) throws -> Bool {
+      fatalError("not yet implemented")
+  }
+
   public func padStart(_ start: SwInt, _ pad: SwString) throws -> SwString {
     fatalError("not yet implemented")
   }
@@ -137,10 +149,6 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
 
   public func includes(_ substring: SwString) throws -> Bool {
     return self.inner.contains(substring.inner)
-  }
-
-  public func endsWith(_ substring: SwString) throws -> Bool {
-    fatalError("not yet implemented!")
   }
 
   public func startsWith(_ substring: SwString) throws -> Bool {

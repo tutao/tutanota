@@ -100,8 +100,8 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     return self.length
   }
 
-  public func map<R>(_ mapper: (T) async throws -> R) async rethrows -> SwArray<R> {
-    return await SwArray<R>(try self.inner.asyncMap(mapper))
+  public func map<R>(_ mapper: (T) throws -> R) rethrows -> SwArray<R> {
+    return SwArray<R>(try self.inner.map(mapper))
   }
 
   public func flatMap<R>(_ mapper: (T) throws -> SwArray<R>) rethrows -> SwArray<R> {
