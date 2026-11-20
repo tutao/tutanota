@@ -2,7 +2,7 @@ import { EventBusListener } from "../../../../app-kit/local-store/event/EventBus
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { EnvProvider, RolloutType } from "@tutao/app-env"
+import { AppType, EnvProvider, RolloutType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync } from "@tutao/utils"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -152,18 +152,20 @@ export class EventBusEventCoordinator implements EventBusListener {
 			}
 			await this.rolloutFacade.configureRollout(RolloutType.GroupKeyUpdatePending, processGroupKeyUpdates)
 
-			const migrateInboxRules = {
-				execute: async () => await (await this.mailFacade?.())?.triggerInboxRuleMigration(),
-			}
-			await this.rolloutFacade.configureRollout(RolloutType.ExpandedInboxRuleMigration, migrateInboxRules)
-
 			await this.rolloutFacade.processRollout(RolloutType.GroupKeyUpdatePending)
 			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation)
 			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation)
 			await this.rolloutFacade.processRollout(RolloutType.AdminOrUserGroupKeyRotation)
 			await this.rolloutFacade.processRollout(RolloutType.OtherGroupKeyRotation)
 			await this.rolloutFacade.processRollout(RolloutType.InstanceKeySharing)
-			await this.rolloutFacade.processRollout(RolloutType.ExpandedInboxRuleMigration)
+
+			if (!EnvProvider.get().isApp() || APP_TYPE === AppType.Mail) {
+				const migrateInboxRules = {
+					execute: async () => await (await this.mailFacade?.())?.triggerInboxRuleMigration(),
+				}
+				await this.rolloutFacade.configureRollout(RolloutType.ExpandedInboxRuleMigration, migrateInboxRules)
+				await this.rolloutFacade.processRollout(RolloutType.ExpandedInboxRuleMigration)
+			}
 		}
 
 		const useAead = {
