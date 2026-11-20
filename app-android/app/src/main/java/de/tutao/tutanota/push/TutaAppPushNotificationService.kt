@@ -54,7 +54,7 @@ class TutaAppPushNotificationService : PushNotificationService() {
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(this, crypto, appDatabase)
 		val keyStoreFacade = createAndroidKeyStoreFacade()
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
-		val localNotificationsFacade = TutaLocalNotificationsFacade(this, sseStorage)
+		val localNotificationsFacade = TutaAppLocalNotificationsFacade(this, sseStorage)
 		val systemAlarmFacade = SystemAlarmFacade(this, TutaAppAlarmIntentFactory())
 		val dateProvider = DateProviderImpl()
 		val alarmNotificationsManager = AlarmNotificationsManager(

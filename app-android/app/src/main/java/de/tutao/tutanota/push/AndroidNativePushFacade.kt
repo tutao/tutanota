@@ -14,10 +14,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 class AndroidNativePushFacade(
-    private val activity: MainActivity,
-    private val sseStorage: SseStorage,
-    private val alarmNotificationsManager: AlarmNotificationsManager,
-    private val localNotificationsFacade: TutaLocalNotificationsFacade,
+	private val activity: MainActivity,
+	private val sseStorage: SseStorage,
+	private val alarmNotificationsManager: AlarmNotificationsManager,
+	private val localNotificationsFacade: TutaAppLocalNotificationsFacade,
 ) : NativePushFacade {
 	private val json = Json { ignoreUnknownKeys = true }
 

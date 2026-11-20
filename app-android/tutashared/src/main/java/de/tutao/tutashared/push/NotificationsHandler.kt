@@ -24,9 +24,13 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-/** Contains basic notification functionality that is likely to be shared among apps.
- * No default implementation is provided for onNewNotificationAvailable because we expect it to be quite different
- * in each app. */
+/**
+ * The NotificationHandler can process new Notification entities received via the SSE channel. Whenever a new notification
+ * is available, the handler gets notified and then downloads the notifications and process it.
+ *
+ * The abstract method onNewNotificationAvailable should be overridden with app-specific notification behavior.
+ *
+ * */
 abstract class NotificationsHandler(private val localNotificationsFacade: LocalNotificationsFacade,
 									private val sseStorage: SseStorage,
 									private val alarmNotificationsManager: AlarmNotificationsManager,

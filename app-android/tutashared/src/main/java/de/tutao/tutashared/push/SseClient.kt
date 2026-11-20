@@ -195,7 +195,6 @@ class SseClient (
 			userIdObject.put("1351", userId) // GeneratedIdWrapper.value
 			jsonArray.put(userIdObject)
 			jsonObject.put("1355", jsonArray) // SseConnectData.userIds
-			Log.d(TAG, "json: ${jsonObject.toString()}")
 			URLEncoder.encode(jsonObject.toString(), "UTF-8")
 		} catch (e: JSONException) {
 			throw RuntimeException(e)
@@ -214,7 +213,6 @@ class SseClient (
 		check(!connectedSseInfo.userIds.isEmpty()) { "Push identifier but no user IDs" }
 		val userId = connectedSseInfo.userIds.first()
 		val json = requestJson(connectedSseInfo.pushIdentifier, userId)
-		Log.d(TAG, "json: $json")
 		val url = URL(connectedSseInfo.sseOrigin + "/sse?_body=" + json)
 		return ConnectionData(userId, url)
 	}

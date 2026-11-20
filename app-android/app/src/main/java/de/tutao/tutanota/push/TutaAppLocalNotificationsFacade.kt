@@ -29,6 +29,7 @@ import androidx.core.net.toUri
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
+import de.tutao.tutashared.IdTupleWrapper
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
@@ -51,7 +52,7 @@ private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
-class TutaLocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
+class TutaAppLocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
 	LocalNotificationsFacade, FileNotificationSender {
 	companion object {
 		private const val TAG = "LocalNotifications"
