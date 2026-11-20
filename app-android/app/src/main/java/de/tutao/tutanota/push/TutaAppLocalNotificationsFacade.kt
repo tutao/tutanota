@@ -29,7 +29,6 @@ import androidx.core.net.toUri
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
-import de.tutao.tutashared.IdTupleWrapper
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
@@ -354,12 +353,10 @@ class TutaAppLocalNotificationsFacade(private val context: Context, private val 
 			MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
 			notificationInfo.userId
 		)
-		if (notificationInfo.mailId != null) {
-			openMailboxIntent.putExtra(
-				MainActivity.OPEN_USER_MAILBOX_MAILID_KEY,
-				"${notificationInfo.mailId!!.listId}/${notificationInfo.mailId!!.listElementId}"
-			)
-		}
+		openMailboxIntent.putExtra(
+			MainActivity.OPEN_USER_MAILBOX_MAILID_KEY,
+			"${notificationInfo.mailId?.listId}/${notificationInfo.mailId?.listElementId}"
+		)
 		return PendingIntent.getActivity(
 			context.applicationContext,
 			generateNotificationId(),
