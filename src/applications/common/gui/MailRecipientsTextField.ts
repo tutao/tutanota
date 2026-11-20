@@ -32,6 +32,9 @@ export interface MailRecipientsTextFieldAttrs {
 	/** Limit the search dropdown to this number of suggestions before starting to scroll */
 	maxSuggestionsToShow?: number
 	helpLabel?: lazy<Children> | null
+	onRecipientDragStart?: (address: string, event: DragEvent) => void
+	canDrop?: (event: DragEvent) => boolean
+	onDrop?: (event: DragEvent) => void
 }
 
 /**
@@ -109,6 +112,9 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 
 				return lang.makeTranslation(recipient.address, getMailAddressDisplayText(name, recipient.address, false) + verified)
 			},
+			onBubbleDragStart: (recipient, event) => attrs.onRecipientDragStart?.(recipient.address, event),
+			canDrop: attrs.canDrop,
+			onDrop: attrs.onDrop,
 			onClick: (recipient: ResolvableRecipient) => {
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
 					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(

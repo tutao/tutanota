@@ -160,7 +160,6 @@ type InitArgs = {
 export class SendMailModel {
 	private initialized: DeferredObject<void> | null = null
 	onMailChanged: Stream<null> = stream(null)
-	onRecipientDeleted: Stream<{ field: RecipientField; recipient: Recipient } | null> = stream(null)
 	onBeforeSend: () => void = noOp
 	loadedInlineImages: InlineImages = new Map()
 
@@ -783,11 +782,23 @@ export class SendMailModel {
 		return findRecipientWithAddress(this.getRecipientList(type), address)
 	}
 
+	moveRecipient(address: string, source: RecipientField, destination: RecipientField) {
+		const recipient = this.getRecipient(source, address)
+		if (recipient == null || source === destination) {
+			return
+		}
+		if (this.getRecipient(destination, address) == null) {
+			this.getRecipientList(destination).push(recipient)
+		}
+		this.removeRecipient(recipient, source)
+		this.onMailChanged(null)
+	}
+
 	removeRecipientByAddress(address: string, recipientFields: RecipientField[], notify: boolean = true) {
 		for (const recipientField of recipientFields) {
 			const recipient = findRecipientWithAddress(this.getRecipientList(recipientField), address)
 			if (recipient) {
-				this.removeRecipient(recipient, recipientField, notify)
+				this.removeRecipient(recipient, recipientField)
 			}
 		}
 	}
@@ -796,19 +807,11 @@ export class SendMailModel {
 	 * remove recipient from the recipient list
 	 * @return true if the recipient was removed
 	 */
-	removeRecipient(recipient: Recipient, type: RecipientField, notify: boolean = true): boolean {
+	removeRecipient(recipient: Recipient, type: RecipientField): boolean {
 		const recipients = this.recipients.get(type) ?? []
 		const cleanRecipientAddress = cleanMailAddress(recipient.address)
 		const didRemove = findAndRemove(recipients, (r) => cleanMailAddress(r.address) === cleanRecipientAddress)
 		this.markAsChangedIfNecessary(didRemove)
-
-		if (didRemove && notify) {
-			this.onRecipientDeleted({
-				field: type,
-				recipient,
-			})
-		}
-
 		return didRemove
 	}
 
@@ -1412,7 +1415,7 @@ export class SendMailModel {
 						for (const recipient of matching) {
 							// if the mail address no longer exists on the contact then delete the recipient
 							if (!contact.mailAddresses.some((ma) => cleanMatch(ma.address, recipient.address))) {
-								changed = changed || this.removeRecipient(recipient, fieldType, true)
+								changed = changed || this.removeRecipient(recipient, fieldType)
 							} else {
 								// else just modify the recipient
 								recipient.setName(getContactDisplayName(contact))
@@ -1428,7 +1431,7 @@ export class SendMailModel {
 						const toDelete = recipients.filter((recipient) => (recipient.contact && isSameId(recipient.contact._id, contactId)) || false)
 
 						for (const r of toDelete) {
-							changed = changed || this.removeRecipient(r, fieldType, true)
+							changed = changed || this.removeRecipient(r, fieldType)
 						}
 					}
 				}

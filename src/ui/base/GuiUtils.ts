@@ -23,6 +23,7 @@ export const enum DropType {
 	Mail = "Mail",
 	Folder = "Folder",
 	DriveItems = "DriveItems",
+	Recipient = "Recipient",
 }
 
 export type MailDropData = {
