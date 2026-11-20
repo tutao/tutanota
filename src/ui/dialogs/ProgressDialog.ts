@@ -55,8 +55,10 @@ export async function showProgressDialog<T>(
 						oncreate(vnode) {
 							// We need to delay so that the element is attached to the parent
 							setTimeout(() => {
-								;(vnode.dom as HTMLElement).focus()
-							}, 10)
+								if (!finished || (delayDisplayMillis <= 0 && minDialogVisibilityMillis > 0)) {
+									;(vnode.dom as HTMLElement).focus()
+								}
+							}, delayDisplayMillis + 10)
 						},
 					},
 					[
@@ -70,11 +72,9 @@ export async function showProgressDialog<T>(
 		// do not close progress on onClose event
 	})
 	let finished = false
-	setTimeout(() => {
-		if (!finished || (delayDisplayMillis <= 0 && minDialogVisibilityMillis > 0)) {
-			progressDialog.show()
-		}
-	}, delayDisplayMillis)
+
+	progressDialog.show(delayDisplayMillis)
+
 	let start = new Date().getTime()
 	try {
 		const val = await action

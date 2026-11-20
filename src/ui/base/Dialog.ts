@@ -17,7 +17,7 @@ import { DropDownSelector } from "./DropDownSelector.js"
 import { DEFAULT_ERROR, EnvProvider, TabIndex } from "../../platform-kit/app-env"
 import { AriaWindow } from "../AriaUtils"
 import { Styles } from "../styles"
-import { assertNotNull, identity, lazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
+import { assertNotNull, identity, isNull, lazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
 import { getAsLazy, mapLazily, MaybeLazy } from "./MaybeLazy"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
@@ -312,10 +312,31 @@ export class Dialog implements ModalComponent {
 		return this._shortcuts
 	}
 
-	show(): Dialog {
+	/**
+	 * @param delay (in ms) Useful when the dialog needs to be shown in a specific layer, but not be immediately visible.
+	 * DOES NOT change `visible` boolean, only the UI.
+	 */
+	show(delay: number = 0): Dialog {
 		this.focusedBeforeShown = document.activeElement as HTMLElement
 		modal.display(this)
 		this.visible = true
+
+		// macrotask fun, schedule it after we had redrawn and initialized domDialog
+		if (delay > 0) {
+			setTimeout(() => {
+				if (isNull(this.domDialog)) {
+					console.warn("Tried to delay showing dialog, but domDialog is null")
+					return
+				}
+
+				this.domDialog.classList.add("hidden")
+
+				setTimeout(() => {
+					this.domDialog?.classList.remove("hidden")
+				}, delay)
+			}, 0)
+		}
+
 		return this
 	}
 
