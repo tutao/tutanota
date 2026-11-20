@@ -33,7 +33,7 @@ public struct BotdResult {
 }
 
 public final class FingerprintJs {
-  public static func detect(_ monitoring: Bool) async -> Promise<BotdResult> {
+  public static func detect(_ monitoring: Bool) throws -> Promise<BotdResult> {
     fatalError("not implemented")
   }
 }
