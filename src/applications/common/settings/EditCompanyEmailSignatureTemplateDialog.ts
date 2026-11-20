@@ -2,7 +2,7 @@ import m from "mithril"
 import stream from "mithril/stream"
 import { CompanyEmailSignature, CompanyEmailSignatureTemplate, CompanyEmailSignatureTypeRef } from "@tutao/entities/sys"
 import { NewBusinessPlans } from "../../../entities/sys/Utils"
-import { UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
 import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { HtmlEditor } from "../../../ui/editor/HtmlEditor.js"
@@ -20,7 +20,7 @@ import { ofClass } from "@tutao/utils"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { insertInlineImageB64ClickHandler } from "../mailFunctionality/SharedMailUtils.js"
+import { createSignatureImageClickHandler, promptAltTextForPastedImages } from "../mailFunctionality/SignatureImageHandlers.js"
 import {
 	CompanyEmailSignatureData,
 	createCompanyEmailSignatureHtml,
@@ -45,9 +45,10 @@ export async function showCompanyEmailSignatureTemplateDialog(existingTemplate: 
 		.setValue(existingTemplate?.signatureTemplate ?? getDefaultCompanyEmailSignatureTemplate())
 		.enableToolbar()
 		.setToolbarOptions({
-			imageButtonClickHandler: insertInlineImageB64ClickHandler,
+			imageButtonClickHandler: createSignatureImageClickHandler(!EnvProvider.get().isApp()),
 			isNonElevatedBackground: true,
 		})
+	promptAltTextForPastedImages(editor.editor)
 
 	const editSegment = {
 		icon: Icons.PenOutline,
