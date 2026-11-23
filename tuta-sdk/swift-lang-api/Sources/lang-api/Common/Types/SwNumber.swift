@@ -60,6 +60,12 @@ public final class SwInt: Sendable, EquitableIsStructural, Hashable, Comparable 
     return lhs
   }
 
+  public static func -= (lhs: inout SwInt, rhs: SwInt) -> SwInt {
+    let difference = lhs.inner - rhs.inner
+    lhs = SwInt(difference)
+    return lhs
+  }
+
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.inner)
   }
