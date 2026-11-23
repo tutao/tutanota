@@ -618,7 +618,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		/** A map from event id and start time to the event instance. It is not enough to just use an id because different occurrences will have the same id. */
 		const longEvents: Map<string, EventWrapper> = new Map()
 		let shortEvents: Array<Array<EventWrapper>> = []
-		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID as well
+		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID aswell
 		const transientEventUidsByCalendar = groupByAndMapUniquely(
 			this._transientEvents,
 			(eventWrapper) => getListId(eventWrapper.event),
