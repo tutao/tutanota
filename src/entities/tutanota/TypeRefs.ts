@@ -2198,13 +2198,11 @@ export type CustomerAccountCreateDataParams = {
 	date: null | Date
 	lang: string
 	userEncAdminGroupKey: Uint8Array<ArrayBuffer>
-	userEncAccountGroupKey: Uint8Array<ArrayBuffer>
 	adminEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
 	systemAdminPubEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array<ArrayBuffer>
 	code: string
 	systemAdminPublicProtocolVersion: null | NumberString
-	accountGroupKeyVersion: NumberString
 	systemAdminPubKeyVersion: null | NumberString
 	app: NumberString
 
@@ -2222,13 +2220,11 @@ export type CustomerAccountCreateData = {
 	date: null | Date
 	lang: string
 	userEncAdminGroupKey: Uint8Array<ArrayBuffer>
-	userEncAccountGroupKey: Uint8Array<ArrayBuffer>
 	adminEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
 	systemAdminPubEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array<ArrayBuffer>
 	code: string
 	systemAdminPublicProtocolVersion: null | NumberString
-	accountGroupKeyVersion: NumberString
 	systemAdminPubKeyVersion: null | NumberString
 	app: NumberString
 

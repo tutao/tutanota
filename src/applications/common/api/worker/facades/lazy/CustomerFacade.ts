@@ -333,8 +333,6 @@ export class CustomerFacade {
 			systemAdminPubKeyVersion: null,
 			systemAdminPublicProtocolVersion: null,
 			adminEncCustomerServerPropertiesSessionKey: adminEncCustomerServerPropertiesSessionKey.key,
-			userEncAccountGroupKey: new Uint8Array(0), // if we some day start passing the right key here, we'll also need to pass the right version
-			accountGroupKeyVersion: "0",
 			app,
 		})
 		await this.serviceExecutor.execute(CustomerAccountService_POST, data, null)
