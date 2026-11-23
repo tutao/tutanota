@@ -61,7 +61,7 @@ import { windowFacade } from "../../../common/misc/WindowFacade"
 import { UserError } from "../../../common/api/main/UserError"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
-import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
+import { DropDownSelector, SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import {
 	assertNotNull,
@@ -131,8 +131,8 @@ import {
 	checkAttachmentSize,
 	createNewContact,
 	dialogTitleTranslationKey,
-	getEnabledMailAddressesWithUser,
 	getMailAddressDisplayText,
+	getMailboxName,
 	RecipientField,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -766,15 +766,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						},
 						m(DropDownSelector, {
 							label: "sender_label",
-							items: getEnabledMailAddressesWithUser(model.mailboxDetails, model.user().userGroupInfo)
-								.sort()
-								.map((mailAddress) => ({
-									name: mailAddress,
-									value: mailAddress,
-								})),
+							items: this.getEnabledSenderAddresses(model),
 							selectedValue: a.model.getSender(),
 							selectedValueDisplay: getMailAddressDisplayText(a.model.getSenderName(), a.model.getSender(), false),
-							selectionChangedHandler: (selection: string) => model.setSender(selection),
+							selectionChangedHandler: (selection: string) => model.selectSender(selection).then(() => m.redraw()),
 							dropdownWidth: 250,
 						}),
 					),
@@ -1118,6 +1113,22 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		)
 	}
 
+	private getEnabledSenderAddresses(model: SendMailModel): SelectorItemList<string> {
+		const senders = model.getSelectableSenders()
+		const mailboxDetails = senders.map((s) => s.mailboxDetails)
+		return mailboxDetails.flatMap((mailboxDetail) =>
+			senders
+				.filter((s) => s.mailboxDetails === mailboxDetail)
+				.map((s) => s.address)
+				.sort()
+				.map((address) => ({
+					name: address,
+					value: address,
+					group: mailboxDetails.length > 1 ? getMailboxName(locator.logins, mailboxDetail) : undefined,
+				})),
+		)
+	}
+
 	private renderRecipientField(field: RecipientField, fieldText: Stream<string>, search: RecipientsSearchModel): Children {
 		const label = (
 			{
@@ -1307,7 +1318,7 @@ async function createMailEditorDialog(
 			// Nothing needs to be done if the result is "overwrite", it will go on to the save code below
 		}
 
-		const savePromise = model.saveDraft(true, MailMethod.NONE)
+		const savePromise = model.saveDraft(MailMethod.NONE)
 
 		if (manuallySave) {
 			await showProgressDialog("save_msg", savePromise)

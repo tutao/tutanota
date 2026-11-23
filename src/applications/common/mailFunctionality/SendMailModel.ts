@@ -20,6 +20,7 @@ import {
 	CalendarAttendeeStatus,
 	ConversationType,
 	MailMethod,
+	MailSetKind,
 	MAX_ATTACHMENT_SIZE,
 	PartialRecipient,
 	Recipient,
@@ -91,6 +92,7 @@ import {
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
 import { UserError } from "../api/main/UserError.js"
+import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
 import { RecipientNotResolvedError } from "../../../platform-kit/network/error/RecipientNotResolvedError.js"
 import { RecipientsNotFoundError } from "../../../platform-kit/network/error/RecipientsNotFoundError.js"
@@ -219,7 +221,7 @@ export class SendMailModel {
 		public readonly mailboxModel: MailboxModel,
 		public readonly contactModel: ContactModel,
 		private readonly eventController: EventController,
-		public readonly mailboxDetails: MailboxDetail,
+		public mailboxDetails: MailboxDetail,
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
@@ -340,6 +342,26 @@ export class SendMailModel {
 
 	getSender(): string {
 		return this.senderAddress
+	}
+
+	getSelectableSenders(): ReadonlyArray<{ address: string; mailboxDetails: MailboxDetail }> {
+		const allMailboxes = this.mailboxModel.mailboxDetails() ?? [this.mailboxDetails]
+		const userGroupInfo = this.user().userGroupInfo
+		return allMailboxes.flatMap((mailboxDetails) =>
+			getEnabledMailAddressesWithUser(mailboxDetails, userGroupInfo).map((address) => ({ address, mailboxDetails })),
+		)
+	}
+
+	async selectSender(senderAddress: string): Promise<void> {
+		const cleaned = cleanMailAddress(senderAddress)
+		const target = this.getSelectableSenders().find((s) => s.address === cleaned)
+		if (target != null && !isSameId(target.mailboxDetails.mailGroup._id, this.mailboxDetails.mailGroup._id)) {
+			const properties = await this.mailboxModel.getMailboxProperties(target.mailboxDetails.mailboxGroupRoot)
+			this.mailboxDetails = target.mailboxDetails
+			this.mailboxProperties = properties
+			this.markAsChangedIfNecessary(true)
+		}
+		this.setSender(cleaned)
 	}
 
 	/**
@@ -1080,7 +1102,7 @@ export class SendMailModel {
 			// So load up-to-date mail when checking if a new draft is needed
 			if (this.hasMailChanged() || this.draft == null || (await this.needNewDraft(await this.entity.load(MailTypeRef, this.draft._id)))) {
 				// Don't save unnecessarily.
-				await this.saveDraft(true, mailMethod)
+				await this.saveDraft(mailMethod)
 			}
 
 			await this.updateContacts(recipients)
@@ -1201,18 +1223,18 @@ export class SendMailModel {
 		return !isSecurePassword(minimalPasswordStrength)
 	}
 
-	saveDraft(saveAttachments: boolean, mailMethod: MailMethod): Promise<void> {
+	saveDraft(mailMethod: MailMethod): Promise<void> {
 		if (this.currentSavePromise == null) {
 			this.currentSavePromise = Promise.resolve().then(async () => {
 				try {
-					await this.doSaveDraft(saveAttachments, mailMethod)
+					await this.doSaveDraft(mailMethod)
 				} finally {
 					// If there is an error, we still need to reset currentSavePromise
 					this.currentSavePromise = null
 				}
 				if (this.hasMailChanged() && this.doSaveAgain) {
 					this.doSaveAgain = false
-					await this.saveDraft(saveAttachments, mailMethod)
+					await this.saveDraft(mailMethod)
 				}
 			})
 		} else {
@@ -1228,20 +1250,17 @@ export class SendMailModel {
 
 	/**
 	 * Saves the draft.
-	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @param mailMethod
 	 * @returns {Promise} When finished.
 	 * @throws FileNotFoundError when one of the attachments could not be opened
 	 * @throws PreconditionFailedError when the draft is locked
 	 */
-	private async doSaveDraft(saveAttachments: boolean, mailMethod: MailMethod): Promise<void> {
+	private async doSaveDraft(mailMethod: MailMethod): Promise<void> {
 		if (this.initialized == null) {
 			throw new ProgrammingError("init for SendMailModel was not called")
 		}
 		await this.initialized
 		try {
-			const attachments = saveAttachments ? this.attachments : null
-
 			// We also want to create new drafts for drafts edited from trash or spam folder
 			const body = await this.getSanitizedBody()
 
@@ -1251,10 +1270,20 @@ export class SendMailModel {
 			// the draft might have been moved, sent, or scheduled from another client.
 			// Load up-to-date mail when checking if a new draft is needed
 			const upToDateDraft = this.draft && (await this.entity.load(MailTypeRef, this.draft._id))
-			this.draft =
-				upToDateDraft == null || (await this.needNewDraft(upToDateDraft))
-					? await this.createDraft(body, attachments, mailMethod)
-					: await this.updateDraft(body, attachments, upToDateDraft)
+			const needsNewDraft = upToDateDraft == null || (await this.needNewDraft(upToDateDraft))
+			// the sender was changed to an address of another mailbox, the draft must be moved there
+			const draftInOtherMailbox =
+				upToDateDraft != null && !isSameId(idToElementId(assertNotNull(upToDateDraft._ownerGroup)), this.mailboxDetails.mailGroup._id)
+			if (needsNewDraft || draftInOtherMailbox) {
+				// when moving, existing attachments must be re-attached to the new draft, so we cannot skip them
+				this.draft = await this.createDraft(body, this.attachments, mailMethod)
+				if (draftInOtherMailbox && !needsNewDraft) {
+					await this.mailFacade.simpleMoveMails([upToDateDraft._id], MailSetKind.TRASH)
+					await this.mailFacade.deleteMails([upToDateDraft._id], null)
+				}
+			} else {
+				this.draft = await this.updateDraft(body, this.attachments, upToDateDraft)
+			}
 
 			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
 			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<File>(FileTypeRef, fileId), {
