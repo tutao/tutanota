@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
-import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { lang, MaybeTranslation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { assertNotNull, isDomainName, isEmpty, isMailAddress, isNotNull, isRegularExpression } from "@tutao/utils"
 import { clone, elementIdPart, isSameId, isSameIdTuple } from "@tutao/meta"
@@ -235,7 +235,7 @@ export async function show(
 				},
 				[
 					m(
-						".flex.row-gap-8.mt-8",
+						".flex.items-start.row-gap-8.mt-8",
 						{
 							style: {
 								"flex-flow": isNotNull(input) ? "row wrap" : undefined,
@@ -301,29 +301,14 @@ export async function show(
 		}
 
 		const renderAddConditionRow = (): Children => {
-			return m(
-				".flex.center-vertically.row-gap-8.mt-8",
-				{
-					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
-					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
-				},
-				[
-					m(".flex.center-vertically.mr-16.ml-8.smaller", lang.getTranslationText("and_label")),
-					m(SecondaryButton, {
-						width: "flex",
-						icon: Icons.Plus,
-						label: "addCondition_action",
-						onclick: () => {
-							inboxRuleConditions.push({
-								type: stream(InboxRuleConditionType.FROM_EQUALS),
-								value: stream(""),
-								key: currentRowKey++,
-								valid: null,
-							})
-						},
-					}),
-				],
-			)
+			return renderAddRow("addCondition_action", () => {
+				inboxRuleConditions.push({
+					type: stream(InboxRuleConditionType.FROM_EQUALS),
+					value: stream(""),
+					key: currentRowKey++,
+					valid: null,
+				})
+			})
 		}
 
 		const defaultActionOfType = (type: InboxRuleActionType): MailSet | null => {
@@ -369,10 +354,7 @@ export async function show(
 			return renderRow(ruleAction, actionInput, actionIndex, allActions.length > 1, selectionHandler, changeHandler, removeHandler, additionalLine)
 		}
 
-		const renderAddActionRow = (): Children => {
-			if (availableRuleActions.size === 0) {
-				return null
-			}
+		const renderAddRow = (text: MaybeTranslation, onclickAction: () => unknown): Children => {
 			return m(
 				".flex.center-vertically.row-gap-8.mt-8",
 				{
@@ -384,21 +366,28 @@ export async function show(
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
-						label: "addAction_action",
-						onclick: () => {
-							const firstAvailable: SelectorItem<InboxRuleActionType> = assertNotNull(availableRuleActions.values().next().value)
-
-							inboxRuleActions.push({
-								type: stream(firstAvailable.value),
-								valueFolder: stream(defaultActionOfType(firstAvailable.value)),
-								valueLabels: stream([]),
-								key: currentRowKey++,
-								valid: null,
-							})
-						},
+						label: text,
+						onclick: onclickAction,
 					}),
 				],
 			)
+		}
+
+		const renderAddActionRow = (): Children => {
+			if (availableRuleActions.size === 0) {
+				return null
+			}
+			return renderAddRow("addAction_action", () => {
+				const firstAvailable: SelectorItem<InboxRuleActionType> = assertNotNull(availableRuleActions.values().next().value)
+
+				inboxRuleActions.push({
+					type: stream(firstAvailable.value),
+					valueFolder: stream(defaultActionOfType(firstAvailable.value)),
+					valueLabels: stream([]),
+					key: currentRowKey++,
+					valid: null,
+				})
+			})
 		}
 
 		const form = () => {

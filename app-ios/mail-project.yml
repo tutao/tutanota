@@ -91,6 +91,8 @@ targets:
       - target: TutanotaSharedFramework
       - target: TutanotaShareExtension
         codeSign: false
+      - target: TutanotaContactProviderExtension
+        codeSign: false
       - framework: tutasdk.framework
         embed: false
       - framework: StoreKit.framework
