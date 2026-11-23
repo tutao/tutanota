@@ -2227,6 +2227,7 @@ export default {
 		"transfersFailed_msg": "Er ging iets mis",
 		"transferWaiting_msg": "Wachten...",
 		"trash_action": "Prullenmand",
+		"trash_label": "Prullenmand",
 		"trashIsEmpty_msg": "Prullenmand is leeg",
 		"trashItemsSuccess_msg": "{count} Items naar prullenbak verplaatst",
 		"tryAudioCaptcha_action": "Probeer een luisterpuzzel",
