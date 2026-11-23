@@ -2656,5 +2656,6 @@ export default {
 		"retrainSpamFilterNotYet_action": "Noch nicht",
 		"mailAuthSuggestSettings_msg": "Da der strenge Spam-Filter aktiviert ist, wird diese Nachricht immer in den Spam-Ordner verschoben.",
 		"openSpamSettings_action": "Spam-Einstellungen öffnen",
+		"exportPreserveFolderStructure_label": "Ordnerstruktur beibehalten",
 	}
 }

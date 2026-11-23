@@ -2656,5 +2656,6 @@ export default {
 		"retrainSpamFilterNotYet_action": "Not yet",
 		"mailAuthSuggestSettings_msg": "Because strict spam filtering is enabled, this mail is always delivered to the spam folder.",
 		"openSpamSettings_action": "Open spam settings",
+		"exportPreserveFolderStructure_label": "Preserve folder structure",
 	}
 }

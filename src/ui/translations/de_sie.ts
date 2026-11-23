@@ -2656,5 +2656,6 @@ export default {
 		"retrainSpamFilterConfirm_msg": "Wenn sich in anderen Ordnern als Spam noch Spam-E-Mails befinden, wird die Qualität des Spam-Filters schlecht sein. Beim erneuten Trainieren wird der vorhandene Filter verworfen und für alle Postfächer anhand Ihrer E-Mails von Grund auf neu trainiert, was einen Moment dauert. Haben Sie Ihre E-Mails richtig sortiert und sind Sie bereit zum erneuten Trainieren?",
 		"retrainSpamFilterNotYet_action": "Noch nicht",
 		"mailAuthSuggestSettings_msg": "Da der strenge Spam-Filter aktiviert ist, wird diese Nachricht immer in den Spam-Ordner verschoben.",
+		"exportPreserveFolderStructure_label": "Ordnerstruktur beibehalten",
 	}
 }

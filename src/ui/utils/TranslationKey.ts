@@ -2654,3 +2654,4 @@ export type TranslationKeyType =
 	| "retrainSpamFilterNotYet_action"
 	| "mailAuthSuggestSettings_msg"
 	| "openSpamSettings_action"
+	| "exportPreserveFolderStructure_label"

@@ -20,6 +20,8 @@ import {
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetailsTypeRef,
+	MailSetRefTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
@@ -27,6 +29,8 @@ import { BlobServerUrlTypeRef } from "@tutao/entities/storage"
 import { elementIdToId, GENERATED_MAX_ID, getElementId, getLetId, idToElementId } from "../../../../src/platform-kit/meta"
 import { createDataFile } from "../../../../src/applications/common/api/worker/utils/DataFile.js"
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
+import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem.js"
+import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { MailExportController } from "../../../../src/applications/mail-app/native/main/MailExportController"
 import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel"
 import { makeMailBundle } from "../../../../src/applications/mail-app/mail/export/Bundler"
@@ -120,8 +124,31 @@ o.spec("MailExportController", function () {
 					elementIdToId(mailboxDetail.mailbox._id),
 					assertNotNull(mailboxDetail.mailbox.currentMailBag)._id,
 					GENERATED_MAX_ID,
+					false,
 				),
 			)
+		})
+
+		o.test("when exporting with folder structure it passes the folder path of each mail", async function () {
+			const custom = createTestEntity(MailSetTypeRef, { _id: ["setList", "customId"], folderType: MailSetKind.CUSTOM, name: "Custom" })
+			const sub = createTestEntity(MailSetTypeRef, { _id: ["setList", "subId"], folderType: MailSetKind.CUSTOM, name: "Sub", parentFolder: custom._id })
+			const label = createTestEntity(MailSetTypeRef, { _id: ["setList", "labelId"], folderType: MailSetKind.LABEL, name: "Label" })
+			const folderSystem = new FolderSystem([custom, sub])
+			mailboxDetail.mailbox.mailSets = createTestEntity(MailSetRefTypeRef, { _id: "mailSetsId" })
+			when(mailModel.getMailboxFoldersForId("mailSetsId")).thenResolve(folderSystem)
+			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([createTestEntity(BlobServerUrlTypeRef, { url: "baseUrl" })])
+
+			const mailBag = assertNotNull(mailboxDetail.mailbox.currentMailBag)
+			const { mail, mailBundle } = prepareMailData(mailBag, GENERATED_MAX_ID, 1)
+			mail.sets = [label._id, sub._id]
+			prepareMailData(assertNotNull(mailboxDetail.mailbox.archivedMailBags[0]), GENERATED_MAX_ID, 2)
+			prepareMailData(assertNotNull(mailboxDetail.mailbox.archivedMailBags[1]), GENERATED_MAX_ID, 3)
+			when(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.not(GENERATED_MAX_ID), matchers.anything())).thenResolve([])
+
+			await controller.startExport(mailboxDetail, true)
+
+			verify(exportFacade.startMailboxExport(userId, elementIdToId(mailboxDetail.mailbox._id), mailBag._id, GENERATED_MAX_ID, true))
+			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail), ["Custom", "Sub"]))
 		})
 
 		o.test("it runs the export", async function () {
@@ -135,7 +162,7 @@ o.spec("MailExportController", function () {
 
 			await controller.startExport(mailboxDetail)
 
-			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail)))
+			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail), []))
 		})
 
 		o.test("it sets state to locked when a LockedForUser ExportError is thrown", async function () {
@@ -145,6 +172,7 @@ o.spec("MailExportController", function () {
 					elementIdToId(mailboxDetail.mailbox._id),
 					assertNotNull(mailboxDetail.mailbox.currentMailBag)._id,
 					GENERATED_MAX_ID,
+					false,
 				),
 			).thenReject(new ExportError("message", ExportErrorReason.LockedForUser))
 			await controller.startExport(mailboxDetail)
@@ -156,7 +184,9 @@ o.spec("MailExportController", function () {
 		o.test("when the persisted state is finished it does not continue with export", function () {
 			when(exportFacade.getMailboxExportState(userId)).thenResolve({ type: "finished" })
 
-			verify(exportFacade.saveMailboxExport(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			verify(exportFacade.saveMailboxExport(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
+				times: 0,
+			})
 			o(controller.state().type).equals("idle")
 		})
 
@@ -182,7 +212,7 @@ o.spec("MailExportController", function () {
 
 			await controller.resumeIfNeeded()
 
-			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail)))
+			verify(exportFacade.saveMailboxExport(mailBundle, userId, mailBag._id, getElementId(mail), []))
 		})
 
 		o.test("when the exportFacade returns a locked state, the state is set to locked and retry is scheduled", async function () {
@@ -220,7 +250,7 @@ o.spec("MailExportController", function () {
 
 			await controller.startExport(mailboxDetail)
 
-			verify(exportFacade.saveMailboxExport(mailBundle2, userId, mailBag._id, getElementId(mail2)))
+			verify(exportFacade.saveMailboxExport(mailBundle2, userId, mailBag._id, getElementId(mail2), []))
 			verify(exportFacade.endMailboxExport(userId))
 		})
 
@@ -243,9 +273,9 @@ o.spec("MailExportController", function () {
 
 			await controller.startExport(mailboxDetail)
 
-			verify(exportFacade.saveMailboxExport(mailBundle1, userId, currentMailBag._id, getElementId(mail1)))
-			verify(exportFacade.saveMailboxExport(mailBundle2, userId, archivedMailBag1._id, getElementId(mail2)))
-			verify(exportFacade.saveMailboxExport(mailBundle3, userId, archivedMailBag2._id, getElementId(mail3)))
+			verify(exportFacade.saveMailboxExport(mailBundle1, userId, currentMailBag._id, getElementId(mail1), []))
+			verify(exportFacade.saveMailboxExport(mailBundle2, userId, archivedMailBag1._id, getElementId(mail2), []))
+			verify(exportFacade.saveMailboxExport(mailBundle3, userId, archivedMailBag2._id, getElementId(mail3), []))
 			verify(exportFacade.endMailboxExport(userId))
 		})
 
@@ -375,7 +405,7 @@ o.spec("MailExportController", function () {
 			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), GENERATED_MAX_ID, matchers.anything()), { times: 3 })
 
 			// mail1 succeeds
-			verify(exportFacade.saveMailboxExport(matchers.anything(), userId, currentMailBag._id, getElementId(mail)), { times: 1 })
+			verify(exportFacade.saveMailboxExport(matchers.anything(), userId, currentMailBag._id, getElementId(mail), matchers.anything()), { times: 1 })
 			// mail2 fails (throws, see above)
 			verify(exportFacade.saveMailboxExportFailure(userId, currentMailBag._id, [getLetId(mail2)]), { times: 1 })
 			// mail3 & mail4 get marked as failed together (because they have no details for some reason)
