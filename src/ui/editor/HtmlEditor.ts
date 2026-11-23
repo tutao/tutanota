@@ -33,6 +33,7 @@ export class HtmlEditor implements Component {
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
 	private isDisplayOnly: boolean = false
+	private backgroundClass: string | null = null
 
 	constructor(
 		private readonly htmlSanitizer: HtmlSanitizerInterface,
@@ -52,10 +53,16 @@ export class HtmlEditor implements Component {
 		this.initializeEditorListeners()
 	}
 
+	setBackgroundClass(cssClass: string | null): HtmlEditor {
+		this.backgroundClass = cssClass
+		return this
+	}
+
 	view(): Children {
 		const modeSwitcherLabel = this.modeSwitcherLabel
 		let borderClasses =
 			".mt-16" +
+			(this.backgroundClass ? "." + this.backgroundClass : "") +
 			(this._showBorders ? (this.active && this.editor.isEnabled() ? ".editor-border-active.border-radius" : ".editor-border.border-radius.") : "")
 
 		const renderedInjections = this.injections?.() ?? null
