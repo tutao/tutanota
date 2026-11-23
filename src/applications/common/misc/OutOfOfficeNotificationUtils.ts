@@ -3,11 +3,11 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { getDayShifted } from "@tutao/utils"
 import { MailboxGroupRootTypeRef, OutOfOfficeNotification, OutOfOfficeNotificationTypeRef } from "@tutao/entities/tutanota"
-import m, { Component } from "mithril"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
-import { ButtonType } from "../../../ui/base/Button"
-import * as notificationOverlay from "../../../ui/base/NotificationOverlay.js"
 import { idToElementId } from "@tutao/meta"
+import m, { Component } from "mithril"
+import * as notificationOverlay from "../../../ui/base/NotificationOverlay.js"
+import { ButtonType } from "../../../ui/base/Button"
 
 /**
  * Returns true if notifications are currently sent.
@@ -63,18 +63,16 @@ export function getDefaultNotificationLabel(organizationMessageEnabled: boolean)
 }
 
 /**
- * Loads the out of office notification from the server and shifts the end date (from the first second of the following day to the first second of the last day)
- * which is needed to display the correct end date.
+ * Loads the out of office notification of the given mailbox group from the server.
+ * Shared mailboxes have their own notification on their MailboxGroupRoot.
  */
-export function loadOutOfOfficeNotification(): Promise<OutOfOfficeNotification | null> {
-	const mailMembership = locator.logins.getUserController().getUserMailGroupMembership()
-	return locator.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailMembership.group)).then((grouproot) => {
-		if (grouproot.outOfOfficeNotification) {
-			return locator.entityClient.load<OutOfOfficeNotification>(OutOfOfficeNotificationTypeRef, idToElementId(grouproot.outOfOfficeNotification))
-		} else {
-			return null
-		}
-	})
+export async function loadOutOfOfficeNotification(mailGroupId: Id): Promise<OutOfOfficeNotification | null> {
+	const mailboxGroupRoot = await locator.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+	if (mailboxGroupRoot.outOfOfficeNotification) {
+		return locator.entityClient.load(OutOfOfficeNotificationTypeRef, idToElementId(mailboxGroupRoot.outOfOfficeNotification))
+	} else {
+		return null
+	}
 }
 
 function deactivateOutOfOfficeNotification(entityClient: EntityClient, notification: OutOfOfficeNotification): Promise<void> {
@@ -83,7 +81,7 @@ function deactivateOutOfOfficeNotification(entityClient: EntityClient, notificat
 }
 
 export function remindActiveOutOfOfficeNotification(entityClient: EntityClient): Promise<void> {
-	return loadOutOfOfficeNotification().then((notification) => {
+	return loadOutOfOfficeNotification(locator.logins.getUserController().getUserMailGroupMembership().group).then((notification) => {
 		if (notification && isNotificationCurrentlyActive(notification, new Date())) {
 			const notificationMessage: Component = {
 				view: () => {

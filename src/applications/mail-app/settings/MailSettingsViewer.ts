@@ -5,20 +5,15 @@ import { OperationType } from "../../../platform-kit/meta"
 import { LazyLoaded, ofClass } from "../../../platform-kit/utils"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../../ui/base/Dialog"
-import { Icons } from "../../../ui/base/icons/Icons"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
-import type { LegacyTextFieldAttrs } from "../../../ui/base/LegacyTextField.js"
 import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
-import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
+import { OutOfOfficeSettingsTable } from "./OutOfOfficeSettingsTable"
 import { deviceConfig, ListAutoSelectBehavior, MailListDisplayMode } from "../../common/misc/DeviceConfig"
-import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
-import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../../common/misc/MailboxPropertiesUtils.js"
 import { MailAddressTableModel } from "../../common/settings/mailaddress/MailAddressTableModel.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../../platform-kit/network/GroupUtils.js"
@@ -32,7 +27,6 @@ import {
 	MailboxGroupRoot,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
-	OutOfOfficeNotification,
 	OutOfOfficeNotificationTypeRef,
 	TutanotaProperties,
 	TutanotaPropertiesTypeRef,
@@ -57,8 +51,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_noAutomaticContacts: boolean | null
 	_enableMailIndexing: boolean | null
 	_indexStateWatch: Stream<any> | null
-	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
-	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
+	private readonly outOfOfficeTable = new OutOfOfficeSettingsTable()
 	private _storageFieldValue: Stream<string>
 	private customerInfo: CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
@@ -73,7 +66,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._noAutomaticContacts = mailLocator.logins.getUserController().props.noAutomaticContacts
 		this._enableMailIndexing = mailLocator.mailModel.indexingSupported
 		this.mailAddressTableExpanded = false
-		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 
 		this.mailSearchModel = new LazyLoaded(() => {
@@ -94,10 +86,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		})
 
 		this._updateMailboxPropertiesSettings()
-
-		this._outOfOfficeNotification = new LazyLoaded(() => loadOutOfOfficeNotification(), null)
-
-		this._outOfOfficeNotification.getAsync().then(() => this._updateOutOfOfficeNotification())
 
 		this.customerInfo = null
 		this._storageFieldValue = stream("")
@@ -151,23 +139,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
 			dropdownWidth: 300,
-		}
-
-		const editOutOfOfficeNotificationButtonAttrs: IconButtonAttrs = {
-			label: "outOfOfficeNotification_title",
-			click: () => {
-				this._outOfOfficeNotification.getAsync().then((notification) => showEditOutOfOfficeNotificationDialog(notification))
-			},
-			icon: Icons.PenFilled,
-			size: ButtonSize.Compact,
-		}
-
-		const outOfOfficeAttrs: LegacyTextFieldAttrs = {
-			label: "outOfOfficeNotification_title",
-			value: this._outOfOfficeStatus(),
-			oninput: this._outOfOfficeStatus,
-			isReadOnly: true,
-			injectionsRight: () => [m(IconButton, editOutOfOfficeNotificationButtonAttrs)],
 		}
 
 		const defaultUnconfidentialAttrs: DropDownSelectorAttrs<boolean> = {
@@ -334,7 +305,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
 					m("#spamreports", m(DropDownSelector, reportMovedMailsAttrs)),
-					m("#outofoffice", m(LegacyTextField, outOfOfficeAttrs)),
+					m("#outofoffice", m(this.outOfOfficeTable)),
 					m("#undoSend", m(DropDownSelector, this.makeUndoSendMailsDropdownAttrs())),
 					this.renderLocalDataSection(),
 					this.mailAddressTableModel
@@ -456,14 +427,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	_updateOutOfOfficeNotification(): void {
-		const notification = this._outOfOfficeNotification.getLoaded()
-
-		this._outOfOfficeStatus(formatActivateState(notification))
-
-		m.redraw()
-	}
-
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			const { operation } = update
@@ -471,7 +434,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				const props = await mailLocator.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
 			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
-				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
+				await this.outOfOfficeTable.reload()
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
 				this._mailboxProperties.reload().then(() => this._updateMailboxPropertiesSettings())
 			}
