@@ -7,7 +7,7 @@ public final class SwMap<K: Hashable, V>: @unchecked Sendable {
         storage.count
     }
 
-    public func set(_ key: K, value: V) {
+    public func set(_ key: K, _ value: V) {
         storage[key] = value
     }
 

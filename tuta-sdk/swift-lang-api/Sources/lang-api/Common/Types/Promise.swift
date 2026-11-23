@@ -3,23 +3,40 @@ private struct UncheckedSendable<V>: @unchecked Sendable {
   let value: V
 }
 
+public protocol PromiseProtocol {
+  associatedtype Value
+  func await() async throws -> Value
+}
+
 /// A JS-like promise, backed by a `Task`.
 ///
 /// The body of a transpiled async function runs inside `Promise.async` (`return Promise.async { () async throws -> T in ... }`),
 /// and `await p` is transpiled to `try await p.await()`. Functions returning a promise are not `async` themselves,
 /// so they can be called from synchronous code (e.g. `ids.map(...)`), just like in JS.
-public final class Promise<T>: @unchecked Sendable {
+public final class Promise<T>: @unchecked Sendable, PromiseProtocol {
+  public typealias Value = T
   private let task: Task<UncheckedSendable<T>, Error>
 
   private init(task: Task<UncheckedSendable<T>, Error>) {
     self.task = task
   }
 
-  /// Runs `block` as the body of an async function. An error thrown by `block` rejects the promise
-  /// and is rethrown by `await()`.
-  public static func async(_ block: @escaping () async throws -> T) -> Promise<T> {
+  public init<P: PromiseProtocol>(_ block: @escaping () async throws -> P) where P.Value == T {
     let body = UncheckedSendable(value: block)
-    return Promise(task: Task { UncheckedSendable(value: try await body.value()) })
+    self.task = Task { UncheckedSendable(value: try await (try await body.value()).await()) }
+  }
+
+  public init(_ block: @escaping () async throws -> T) {
+    let body = UncheckedSendable(value: block)
+    self.task = Task { UncheckedSendable(value: try await body.value()) }
+  }
+
+  public static func `async`<P: PromiseProtocol>(_ block: @escaping () async throws -> P) -> Promise<T> where P.Value == T  {
+    return Promise(block)
+  }
+
+  public static func `async`(_ block: @escaping () async throws -> T) -> Promise<T> {
+    return Promise(block)
   }
 
   @discardableResult
@@ -27,8 +44,12 @@ public final class Promise<T>: @unchecked Sendable {
     return try await task.value.value
   }
 
+  public func then<P: PromiseProtocol>(_ action: @escaping (T) throws -> P) throws -> Promise<P.Value> {
+    return Promise<P.Value>{ try action(try await self.await()) }
+  }
+
   public func then<R>(_ action: @escaping (T) throws -> R) throws -> Promise<R> {
-    return Promise<R>.async { try action(try await self.await()) }
+    return Promise<R>{ try action(try await self.await()) }
   }
 
   public func `catch`<R>(_ action: @escaping (TutanotaError) throws -> R) throws -> Promise<R> {
@@ -49,8 +70,8 @@ public final class Promise<T>: @unchecked Sendable {
     }
   }
 
-  public static func resolve(_ value: Promise<T>) -> Promise<T> {
-    return value
+  public static func resolve<P: PromiseProtocol>(_ value: P) -> Promise<P.Value> {
+    return Promise<P.Value>{ value }
   }
 
   public static func resolve(_ value: T) -> Promise<T> {
@@ -61,6 +82,6 @@ public final class Promise<T>: @unchecked Sendable {
 
 extension Promise<Void> {
   public static func resolve() -> Promise<Void> {
-    return Promise<Void>.resolve(())
+    return Promise.resolve(())
   }
 }
