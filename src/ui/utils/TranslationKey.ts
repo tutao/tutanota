@@ -1,4 +1,3 @@
-// AUTO-GENERATED WITH tutanota-translation-sanitizer. DO NOT EDIT!
 export type TranslationKeyType =
 	| "about_label"
 	| "accentColor_label"
@@ -1504,6 +1503,7 @@ export type TranslationKeyType =
 	| "exportVCard_action"
 	| "exportUsers_action"
 	| "exportRunningElsewhere_label"
+	| "exportPreserveFolderStructure_label"
 	| "exportMailbox_label"
 	| "exportFinished_label"
 	| "exportErrorTooManyRequests_label"
