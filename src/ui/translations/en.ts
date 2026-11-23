@@ -2643,6 +2643,7 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"editSpamRule_action": "Edit spam rule",
-		"badNetworkOrRequest_msg": "The connection was aborted too early or there was a problem with the request. Please try again or try a different client or browser. A bad network could also be causing this problem."
+		"badNetworkOrRequest_msg": "The connection was aborted too early or there was a problem with the request. Please try again or try a different client or browser. A bad network could also be causing this problem.",
+		"couldNotImportContactField_msg": "Could not import the following information:"
 	}
 }

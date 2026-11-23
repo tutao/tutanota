@@ -2642,3 +2642,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "editSpamRule_action"
 	| "badNetworkOrRequest_msg"
+	| "couldNotImportContactField_msg"

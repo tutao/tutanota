@@ -5,6 +5,7 @@ import { vCardFileToVCards, vCardListToContacts } from "../../../src/application
 import en from "../../../src/ui/translations/en.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import { createContact, createContactAddress, createContactMailAddress, createContactPhoneNumber } from "@tutao/entities/tutanota"
+import { ContactAddressType, ContactCustomDateType } from "../../../src/entities/tutanota/Utils"
 
 o.spec("VCardImporterTest", function () {
 	o.before(async function () {
@@ -20,7 +21,7 @@ o.spec("VCardImporterTest", function () {
 
 		lang.init(en)
 	})
-	o("testFileToVCards", function () {
+	o.test("testFileToVCards", function () {
 		let str = `BEGIN:VCARD
 VERSION:3.0
 FN:proto type
@@ -59,10 +60,10 @@ ADR;TYPE=WORK:;;Strasse 30, 67890 hamburg ;;;;`,
 		//prepares for further usage --> removes Begin and End tag and pushes the content between those tags into an array
 		o(vCardFileToVCards(str)!).deepEquals(expected)
 	})
-	o("testImportEmpty", function () {
+	o.test("testImportEmpty", function () {
 		o(vCardFileToVCards("")).equals(null)
 	})
-	o("testImportWithoutLinefeed", function () {
+	o.test("testImportWithoutLinefeed", function () {
 		let str = `BEGIN:VCARD
 VERSION:3.0
 FN:proto type
@@ -99,7 +100,7 @@ ADR;TYPE=WORK:;;Strasse 30, 67890 hamburg ;;;;`,
 		//Unfolding lines for content lines longer than 75 characters
 		o(vCardFileToVCards(str)!).deepEquals(expected)
 	})
-	o("TestBEGIN:VCARDinFile", function () {
+	o.test("TestBEGIN:VCARDinFile", function () {
 		let str = `BEGIN:VCARD
 VERSION:3.0
 FN:proto type
@@ -139,7 +140,7 @@ NOTE:BEGIN:VCARD\\n i Love VCARDS;`,
 		]
 		o(vCardFileToVCards(str)!).deepEquals(expected)
 	})
-	o("windowsLinebreaks", function () {
+	o.test("windowsLinebreaks", function () {
 		let str =
 			"BEGIN:VCARD\r\nVERSION:3.0\r\nFN:proto type\r\nN:type;proto;;;\r\nADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland\r\nEND:VCARD\r\n"
 		let expected = [
@@ -150,7 +151,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		]
 		o(vCardFileToVCards(str)!).deepEquals(expected)
 	})
-	o("testToContactNames", function () {
+	o.test("testToContactNames", function () {
 		const vcardData = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
@@ -192,7 +193,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		expectedContact._ownerGroup = ""
 		o(parsedContacts).deepEquals([expectedContact])
 	})
-	o("testEmptyAddressElements", function () {
+	o.test("testEmptyAddressElements", function () {
 		const vcardData = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
@@ -235,7 +236,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		o(parsedContacts).deepEquals([expectedContact])
 	})
 
-	o("testTooManySpaceElements", function () {
+	o.test("testTooManySpaceElements", function () {
 		const vcardData = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
@@ -278,14 +279,14 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		o(parsedContacts).deepEquals([expectedContact])
 	})
 
-	o("testVCard4", function () {
+	o.test("testVCard4", function () {
 		let aContent = "VERSION:4.0\nN:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;Basche\nNOTE:Hello World\\nHier ist ein Umbruch"
 		let a = `BEGIN:VCARD\n${aContent}\nEND:VCARD\n`
 		let bContent = "version:4.0\nFN:John B"
 		let b = `begin:vcard\n${bContent}\nend:vcard\n`
 		o(vCardFileToVCards(a + b)).deepEquals([aContent, bContent])
 	})
-	o("testTypeInUserText", function () {
+	o.test("testTypeInUserText", function () {
 		const vcardContent = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
 		const parsedContacts = vCardListToContacts(vcardContent, "")
 		const expectedContact = createContact({
@@ -339,7 +340,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		expectedContact._ownerGroup = ""
 		o(parsedContacts[0]).deepEquals(expectedContact)
 	})
-	o("test vcard 4.0 date format", function () {
+	o.test("test vcard 4.0 date format", function () {
 		let vcards = `BEGIN:VCARD
 VERSION:3.0
 BDAY:19540331
@@ -352,7 +353,7 @@ END:VCARD`
 		o(neverNull(contacts[0].birthdayIso)).equals("1954-03-31")
 		o(neverNull(contacts[1].birthdayIso)).equals("--06-26")
 	})
-	o("simple vcard 4.0 import with v4 date format", function () {
+	o.test("simple vcard 4.0 import with v4 date format", function () {
 		let vcards = `BEGIN:VCARD
 VERSION:4.0
 BDAY:19540331
@@ -365,7 +366,7 @@ END:VCARD`
 		o(neverNull(contacts[0].birthdayIso)).equals("1954-03-31")
 		o(neverNull(contacts[1].birthdayIso)).equals("--06-26")
 	})
-	o("test import without year", function () {
+	o.test("test import without year", function () {
 		let vcards = `BEGIN:VCARD
 VERSION:3.0
 BDAY:1111-03-31
@@ -378,7 +379,7 @@ END:VCARD`
 		o(neverNull(contacts[0].birthdayIso)).equals("--03-31")
 		o(neverNull(contacts[1].birthdayIso)).equals("--03-31")
 	})
-	o("quoted printable utf-8 entirely encoded", function () {
+	o.test("quoted printable utf-8 entirely encoded", function () {
 		let vcards =
 			"BEGIN:VCARD\n" +
 			"VERSION:2.1\n" +
@@ -389,7 +390,7 @@ END:VCARD`
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
 		o(neverNull(contacts[0].addresses[0].address)).equals("Teststraße 42")
 	})
-	o("quoted printable utf-8 partially encoded", function () {
+	o.test("quoted printable utf-8 partially encoded", function () {
 		let vcards =
 			"BEGIN:VCARD\n" +
 			"VERSION:2.1\n" +
@@ -400,7 +401,7 @@ END:VCARD`
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
 		o(neverNull(contacts[0].addresses[0].address)).equals("Teststraße 42")
 	})
-	o("base64 utf-8", function () {
+	o.test("base64 utf-8", function () {
 		let vcards =
 			"BEGIN:VCARD\n" +
 			"VERSION:2.1\n" +
@@ -411,7 +412,7 @@ END:VCARD`
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
 		o(neverNull(contacts[0].addresses[0].address)).equals("Ääähhmm")
 	})
-	o("test with latin charset", function () {
+	o.test("test with latin charset", function () {
 		let vcards =
 			"BEGIN:VCARD\n" +
 			"VERSION:2.1\n" +
@@ -422,12 +423,12 @@ END:VCARD`
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
 		o(neverNull(contacts[0].addresses[0].address)).equals("Rua das Nações")
 	})
-	o("test with no charset but encoding", function () {
+	o.test("test with no charset but encoding", function () {
 		let vcards = "BEGIN:VCARD\n" + "VERSION:2.1\n" + "N;ENCODING=QUOTED-PRINTABLE:=4E;\n" + "END:VCARD\nD"
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
 		o(neverNull(contacts[0].lastName)).equals("N")
 	})
-	o("base64 implicit utf-8", function () {
+	o.test("base64 implicit utf-8", function () {
 		let vcards =
 			"BEGIN:VCARD\n" +
 			"VERSION:2.1\n" +
@@ -439,7 +440,7 @@ END:VCARD`
 		o(neverNull(contacts[0].addresses[0].address)).equals("Ääähhmm")
 	})
 	o.spec("protonmail exports are imported correctly", function () {
-		o("protonmail v4.0 simple import", function () {
+		o.test("protonmail v4.0 simple import", function () {
 			let vCard =
 				"BEGIN:VCARD\n" +
 				"VERSION:4.0\n" +
@@ -457,11 +458,11 @@ END:VCARD`
 			o(contacts[0].mailAddresses.length).equals(1)
 			o(contacts[0].mailAddresses[0].address).equals("johnsuser@test.tuta.com")
 		})
-		o("protonmail v4.0 complicated import", function () {
+		o.test("protonmail v4.0 complicated import", function () {
 			let vCard =
 				"BEGIN:VCARD\n" +
 				"VERSION:4.0\n" +
-				"ADR;PREF=1:;;908 S 1780 W;Orem;UT;;USA\n" +
+				"ADR;PREF=1:;;9 S 3 W;City;UT;;USA\n" +
 				"NOTE:This is a note\n" +
 				"TEL;PREF=1:8013194412\n" +
 				"TEL;TYPE=cell;PREF=2:+49530112345\n" +
@@ -481,6 +482,81 @@ END:VCARD`
 			o(contacts[0].phoneNumbers[0].number).equals("8013194412")
 			o(contacts[0].phoneNumbers[1].number).equals("+49530112345")
 			o(contacts[0].comment).equals("This is a note")
+		})
+		o.test("More that two items import correctly", function () {
+			const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:A A
+N:A;A;;;
+EMAIL;TYPE=INTERNET,HOME;PREF=1:aa@tutao.com
+ITEM1.EMAIL;TYPE=HOME:custom@tuta.com
+ITEM2.URL:tuta.com
+ITEM3.URL:tuta.io
+ITEM4.URL:tutanota.de
+END:VCARD`
+
+			let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vCard)), "")
+			o(contacts.length).equals(1)
+			o(contacts[0].mailAddresses.length).equals(2)
+			o(contacts[0].mailAddresses[0].address).equals("aa@tutao.com")
+			o(contacts[0].mailAddresses[0].type).equals(ContactAddressType.PRIVATE)
+			o(contacts[0].mailAddresses[1].address).equals("custom@tuta.com")
+			o(contacts[0].mailAddresses[1].type).equals(ContactAddressType.PRIVATE)
+			o(contacts[0].websites.length).equals(3)
+			o(contacts[0].websites[0].url).equals("tuta.com")
+			o(contacts[0].websites[1].url).equals("tuta.io")
+			o(contacts[0].websites[2].url).equals("tutanota.de")
+		})
+		o.test("Custom labels import correctly", function () {
+			const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:A A
+N:A;A;;;
+EMAIL;TYPE=INTERNET,HOME;PREF=1:aa@tutao.com
+ITEM1.EMAIL;TYPE=INTERNET:custom@tuta.com
+ITEM1.X-ABLABEL:tztuz
+ITEM2.URL:tuta.com
+ITEM2.X-ABLABEL:HomePage
+ITEM3.URL:tuta.io
+ITEM3.X-ABLABEL:school
+ITEM4.URL:tutanota.de
+ITEM4.X-ABLABEL:Hidden
+END:VCARD`
+
+			let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vCard)), "")
+			o(contacts.length).equals(1)
+			o(contacts[0].mailAddresses.length).equals(2)
+			o(contacts[0].mailAddresses[0].address).equals("aa@tutao.com")
+			o(contacts[0].mailAddresses[0].type).equals(ContactAddressType.PRIVATE)
+			o(contacts[0].mailAddresses[0].customTypeName).equals("")
+			o(contacts[0].mailAddresses[1].address).equals("custom@tuta.com")
+			o(contacts[0].mailAddresses[1].type).equals(ContactAddressType.CUSTOM)
+			o(contacts[0].mailAddresses[1].customTypeName).equals("tztuz")
+			o(contacts[0].websites.length).equals(3)
+			o(contacts[0].websites[0].url).equals("tuta.com")
+			o(contacts[0].websites[0].type).equals(ContactAddressType.CUSTOM)
+			o(contacts[0].websites[0].customTypeName).equals("HomePage")
+			o(contacts[0].websites[1].url).equals("tuta.io")
+			o(contacts[0].websites[1].type).equals(ContactAddressType.CUSTOM)
+			o(contacts[0].websites[1].customTypeName).equals("school")
+			o(contacts[0].websites[2].url).equals("tutanota.de")
+			o(contacts[0].websites[2].type).equals(ContactAddressType.CUSTOM)
+			o(contacts[0].websites[2].customTypeName).equals("Hidden")
+		})
+		o.test("Anniversary gets imported", function () {
+			const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:A A
+N:A;A;;;
+EMAIL;TYPE=INTERNET,HOME;PREF=1:aa@tutao.com
+ANNIVERSARY;VALUE=DATE:--0822
+END:VCARD`
+
+			let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vCard)), "")
+			o(contacts.length).equals(1)
+			o(contacts[0].customDate.length).equals(1)
+			o(contacts[0].customDate[0].type).equals(ContactCustomDateType.ANNIVERSARY)
+			o(contacts[0].customDate[0].dateIso).equals("--08-22")
 		})
 	})
 })
