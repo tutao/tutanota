@@ -64,6 +64,8 @@ function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256
 	return uint8ArrayTo256Key(keyBytes)
 }
 
+const DRIVE_FILE_SHARE_SALT_BYTES = 16
+
 /**
  * Manages public sharing for Drive files
  */
@@ -144,7 +146,7 @@ export class DriveFileSharingFacade {
 		return { file: updatedFile, shareInfo: await this.getShareInfoForManagement(updatedFile) }
 	}
 	private async createShareVerifier(shareKey: Aes256Key, nonce: KdfNonce, password: string): Promise<Uint8Array<ArrayBuffer>> {
-		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
+		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", DRIVE_FILE_SHARE_SALT_BYTES)
 		const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
 		return createAuthVerifier(passwordKey)
 	}
@@ -233,7 +235,7 @@ export class DriveFileSharingFacade {
 		if (isNotNull(share.ownerEncPassword)) {
 			// share is protected with a password
 			// 1. Derive a salt (SLT) from the share key (SHK), the nonce (N), and a domain separator.
-			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
+			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", DRIVE_FILE_SHARE_SALT_BYTES)
 			const password = this.cryptoWrapper.decryptString(groupKey.object, share.ownerEncPassword)
 			// 	2. Derive a password key (PWK) from the salt (SLT) and a user provided password (PWD).
 			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)

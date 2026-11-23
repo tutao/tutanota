@@ -108,7 +108,7 @@ o.spec("DriveFileSharingFacade", function () {
 			const decryptedPassword = "decrypted password"
 
 			const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
-			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
+			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 16)
 
 			when(keyLoaderFacade.loadSymGroupKey("ownerGroup", 0)).thenResolve(fileGroupKey.object)
 			entityRestClientMock.addElementInstances(share)
