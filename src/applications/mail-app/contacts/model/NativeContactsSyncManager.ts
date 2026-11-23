@@ -1,4 +1,4 @@
-import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "../../../../platform-kit/utils"
+import { defer, getFirstOrThrow, getFromMap, ofClass } from "../../../../platform-kit/utils"
 import { ContactSyncResult, MobileContactsFacade, StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
 import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
 import {
@@ -138,6 +138,7 @@ export class NativeContactsSyncManager {
 	 * @return is sync succeeded. It might fail if we don't have a permission.
 	 */
 	async enableSync(): Promise<boolean> {
+		this.assertOSAddressBookAccess()
 		const loginUsername = this.loginController.getUserController().loginUsername
 		const contactListId = await this.contactModel.getContactListId()
 		if (contactListId == null) return false
@@ -164,48 +165,11 @@ export class NativeContactsSyncManager {
 	/**
 	 * Check if syncing contacts is possible/allowed right now.
 	 *
-	 * On Android, this method simply requests permission to access contacts. On iOS, this also checks iCloud sync, as
-	 * it can interfere with
+	 * On Android, this method simply requests permission to access contacts.
 	 */
 	async canSync(): Promise<boolean> {
-		if (!EnvProvider.get().isApp()) {
-			throw new ProgrammingError("Can only check Contact permissions on app")
-		}
-
-		const isContactPermissionGranted = await locator.systemPermissionHandler.requestPermission(PermissionType.Contacts, "allowContactReadWrite_msg")
-		if (!isContactPermissionGranted) {
-			return false
-		}
-
-		return !EnvProvider.get().isIOSApp() || this.checkIfExternalCloudSyncOnIos()
-	}
-
-	/**
-	 * Check that we are allowed to sync contacts on an iOS device
-	 * @returns false if no permission or iCloud sync is enabled and the user cancelled, or true if permission is granted and iCloud sync is disabled (or the user bypassed the warning dialog)
-	 */
-	private async checkIfExternalCloudSyncOnIos(): Promise<boolean> {
-		assert(EnvProvider.get().isIOSApp(), "Can only check cloud syncing on iOS")
-
-		let localContactStorage = await this.mobileContactsFacade.isLocalStorageAvailable()
-		if (!localContactStorage) {
-			const choice = await Dialog.choiceVertical("externalContactSyncDetectedWarning_msg", [
-				{ text: "settings_label", value: "settings", type: "primary" },
-				{ text: "enableAnyway_action", value: "enable" },
-				{ text: "cancel_action", value: "cancel" },
-			])
-			switch (choice) {
-				case "enable":
-					break
-				case "settings":
-					locator.systemFacade.openLink("App-prefs:CONTACTS&path=ACCOUNTS")
-					return false
-				case "cancel":
-					return false
-			}
-		}
-
-		return true
+		this.assertOSAddressBookAccess()
+		return await locator.systemPermissionHandler.requestPermission(PermissionType.Contacts, "allowContactReadWrite_msg")
 	}
 
 	/**
@@ -241,6 +205,12 @@ export class NativeContactsSyncManager {
 			throw e
 		}
 		return true
+	}
+
+	private assertOSAddressBookAccess() {
+		if (!EnvProvider.get().isAndroidApp()) {
+			throw new ProgrammingError("Can only sync contacts to local address book on Android app")
+		}
 	}
 
 	private async askToDedupeContacts(contactsToDedupe: readonly StructuredContact[]) {

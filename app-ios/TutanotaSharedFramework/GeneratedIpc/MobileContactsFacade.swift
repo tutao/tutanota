@@ -47,11 +47,6 @@ public protocol MobileContactsFacade : Sendable {
 		_ contactId: String?
 	) async throws -> Void
 	/**
-	 * Whether contacts can be persisted locally
-	 */
-	func isLocalStorageAvailable(
-	) async throws -> Bool
-	/**
 	 * Find all contacts that match the list, returning their raw IDs.
 	 */
 	func findLocalMatches(

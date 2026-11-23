@@ -67,11 +67,6 @@
 			],
 			"ret": "void"
 		},
-		"isLocalStorageAvailable": {
-			"doc": "Whether contacts can be persisted locally",
-			"arg": [],
-			"ret": "boolean"
-		},
 		"findLocalMatches": {
 			"doc": "Find all contacts that match the list, returning their raw IDs.",
 			"arg": [

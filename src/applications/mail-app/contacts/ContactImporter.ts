@@ -169,20 +169,14 @@ export class ContactImporter {
 	private async onContactImportConfirmed(contactListId: string | null, selectedContacts: Contact[], allImportableContacts: Map<Contact, StructuredContact>) {
 		const importer = await mailLocator.contactImporter()
 		const mobileContactsFacade = assertNotNull(this.mobileContactsFacade)
-		const nativeContactSyncManager = assertNotNull(this.nativeContactSyncManager)
-
 		const selectedStructuredContacts: StructuredContact[] = selectedContacts.map((selectedContact) =>
 			assertNotNull(allImportableContacts.get(selectedContact)),
 		)
-
 		await importer.importContacts(selectedContacts, assertNotNull(contactListId))
-		const imported = nativeContactSyncManager.isEnabled() && (await nativeContactSyncManager.syncContacts())
 
 		// On iOS, we want to give the option to remove the contacts locally, but we obviously only want to do
 		// this if syncing is successful, assuming syncing is enabled.
-		//
-		// Do nothing further if not on iOS, or if syncing is disabled or failed.
-		if (imported && EnvProvider.get().isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			const contactsWeJustImported = selectedStructuredContacts.map((contact) => assertNotNull(contact.rawId))
 			const remove = await Dialog.confirm("importContactRemoveImportedContactsConfirm_msg")
 			if (remove) {

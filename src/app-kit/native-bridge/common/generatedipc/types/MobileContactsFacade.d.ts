@@ -39,11 +39,6 @@ export interface MobileContactsFacade {
 	deleteContacts(username: string, contactId: string | null): Promise<void>
 
 	/**
-	 * Whether contacts can be persisted locally
-	 */
-	isLocalStorageAvailable(): Promise<boolean>
-
-	/**
 	 * Find all contacts that match the list, returning their raw IDs.
 	 */
 	findLocalMatches(contacts: ReadonlyArray<StructuredContact>): Promise<ReadonlyArray<string>>

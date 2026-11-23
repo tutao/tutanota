@@ -50,11 +50,6 @@ interface MobileContactsFacade {
 		contactId: String?,
 	): Unit
 	/**
-	 * Whether contacts can be persisted locally
-	 */
-	suspend fun isLocalStorageAvailable(
-	): Boolean
-	/**
 	 * Find all contacts that match the list, returning their raw IDs.
 	 */
 	suspend fun findLocalMatches(

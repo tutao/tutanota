@@ -90,9 +90,6 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		}
 	}
 
-	// no need to check on Android - this is just for iOS
-	override suspend fun isLocalStorageAvailable(): Boolean = true
-
 	// findLocalMatches and deleteLocalContacts only matter on iOS
 	override suspend fun findLocalMatches(contacts: List<StructuredContact>): List<String> {
 		Log.d(TAG, "findLocalMatches() is a no-op on Android; returning empty list...")

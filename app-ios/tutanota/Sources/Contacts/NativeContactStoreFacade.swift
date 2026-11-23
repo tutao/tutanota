@@ -33,21 +33,6 @@ final class NativeContactStoreFacade: Sendable {
 		}
 	}
 
-	/// Returns whether the local contact container is available
-	func isLocalStorageAvailable() -> Bool {
-		let store = CNContactStore()
-
-		do {
-			let containers = try store.containers(matching: nil)
-
-			// Apple allow just ONE local container, so we can query for the first and unique one
-			return containers.contains(where: { $0.type == CNContainerType.local })
-		} catch {
-			TUTSLog("Failed to fetch containers: \(error)")
-			return false
-		}
-	}
-
 	/// Creates a contact group named for the Tuta app
 	func createCNGroup(username: String) throws -> CNMutableGroup {
 		let localContainer = self.getLocalContainer()
