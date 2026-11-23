@@ -25,6 +25,7 @@ interface MailExportSettingsAttrs {
 
 export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 	private selectedMailbox: MailboxDetail | null = null
+	private preserveFolderStructure: boolean = false
 	private controllerSubscription: Stream<void> | null = null
 
 	oncreate(vnode: Vnode<MailExportSettingsAttrs>) {
@@ -57,6 +58,20 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				disabled: state.type === "exporting",
 				helpLabel: () => emptyLabel,
 			} satisfies DropDownSelectorAttrs<MailboxDetail>),
+			m(DropDownSelector, {
+				label: "exportPreserveFolderStructure_label",
+				items: [
+					{ name: lang.get("yes_label"), value: true },
+					{ name: lang.get("no_label"), value: false },
+				],
+				selectedValue: this.preserveFolderStructure,
+				selectionChangedHandler: (preserve) => {
+					this.preserveFolderStructure = preserve
+				},
+				dropdownWidth: 300,
+				disabled: state.type === "exporting",
+				helpLabel: () => emptyLabel,
+			} satisfies DropDownSelectorAttrs<boolean>),
 			this.renderState(vnode.attrs.mailExportController),
 		]
 	}
@@ -133,7 +148,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					label: "export_action",
 					onclick: () => {
 						if (this.selectedMailbox) {
-							controller.startExport(this.selectedMailbox)
+							controller.startExport(this.selectedMailbox, this.preserveFolderStructure)
 						}
 					},
 				}),
@@ -203,10 +218,11 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				m(Button, {
 					label: "retry_action",
 					click: () => {
-						controller.cancelExport()
-						if (this.selectedMailbox) {
-							controller.startExport(this.selectedMailbox)
-						}
+						controller.cancelExport().then(() => {
+							if (this.selectedMailbox) {
+								controller.startExport(this.selectedMailbox, this.preserveFolderStructure)
+							}
+						})
 					},
 					type: ButtonType.Secondary,
 				}),

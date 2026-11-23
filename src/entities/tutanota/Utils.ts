@@ -378,6 +378,7 @@ export type MailboxExportState =
 			userId: Id
 			mailboxId: Id
 			exportDirectoryPath: string
+			shouldExportFolderStructure: boolean
 			mailBagId: Id
 			mailId: Id
 			exportedMails: number

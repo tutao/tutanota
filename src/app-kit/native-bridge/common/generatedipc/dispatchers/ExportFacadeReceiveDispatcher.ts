@@ -38,14 +38,16 @@ export class ExportFacadeReceiveDispatcher {
 				const mailboxId: string = arg[1]
 				const mailBagId: string = arg[2]
 				const mailId: string = arg[3]
-				return this.facade.startMailboxExport(userId, mailboxId, mailBagId, mailId)
+				const exportFolderStructure: boolean = arg[4]
+				return this.facade.startMailboxExport(userId, mailboxId, mailBagId, mailId, exportFolderStructure)
 			}
 			case "saveMailboxExport": {
 				const bundle: MailBundle = arg[0]
 				const userId: string = arg[1]
 				const mailBagId: string = arg[2]
 				const mailId: string = arg[3]
-				return this.facade.saveMailboxExport(bundle, userId, mailBagId, mailId)
+				const folderPath: ReadonlyArray<string> = arg[4]
+				return this.facade.saveMailboxExport(bundle, userId, mailBagId, mailId, folderPath)
 			}
 			case "saveMailboxExportFailure": {
 				const userId: string = arg[0]
