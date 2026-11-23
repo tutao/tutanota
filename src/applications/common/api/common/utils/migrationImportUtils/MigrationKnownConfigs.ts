@@ -277,12 +277,11 @@ export function getTranslationForMigrationProvider(provider: MailboxMigrationPro
 	}
 }
 
-const GMAIL_TEST_APP_CLIENT_ID = "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com"
+//const GMAIL_TEST_APP_CLIENT_ID = "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com"
 
 export function getServerMigrationConfigForProvider(provider: MailboxMigrationProvider): ServerMigrationConfig | null {
 	switch (provider) {
 		case MailboxMigrationProvider.Gmail:
-			if (!env.dist) migrationKnownConfigs.gmail.oauthConfig.clientId = GMAIL_TEST_APP_CLIENT_ID
 			return migrationKnownConfigs.gmail
 		case MailboxMigrationProvider.Outlook:
 			return migrationKnownConfigs.outlook
@@ -293,7 +292,6 @@ export function getServerMigrationConfigForProvider(provider: MailboxMigrationPr
 
 export function getServerMigrationConfigForDomain(domain: string): ServerMigrationConfig | null {
 	if (migrationKnownConfigs.gmail.domains.includes(domain)) {
-		if (!env.dist) migrationKnownConfigs.gmail.oauthConfig.clientId = GMAIL_TEST_APP_CLIENT_ID
 		return migrationKnownConfigs.gmail
 	}
 
