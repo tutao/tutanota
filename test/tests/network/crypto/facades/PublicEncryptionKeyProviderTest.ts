@@ -476,11 +476,5 @@ function toSystemReturn(publicKeyGetOut: PublicKeyGetOut): SystemKeysReturn {
 		systemAdminPubKyberKey: publicKeyGetOut.pubKyberKey,
 		systemAdminPubEccKey: publicKeyGetOut.pubEccKey,
 		_format: object(),
-		freeGroupKey: object(),
-		freeGroupKeyVersion: object(),
-		premiumGroupKey: object(),
-		premiumGroupKeyVersion: object(),
-		freeGroup: object(),
-		premiumGroup: object(),
 	})
 }

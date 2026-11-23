@@ -1217,15 +1217,8 @@ export function createSystemKeysReturn(values: SystemKeysReturnParams): SystemKe
 export type SystemKeysReturnParams = {
 	systemAdminPubRsaKey: null | Uint8Array<ArrayBuffer>
 	systemAdminPubKeyVersion: NumberString
-	freeGroupKey: Uint8Array<ArrayBuffer>
-	premiumGroupKey: Uint8Array<ArrayBuffer>
 	systemAdminPubEccKey: null | Uint8Array<ArrayBuffer>
 	systemAdminPubKyberKey: null | Uint8Array<ArrayBuffer>
-	freeGroupKeyVersion: NumberString
-	premiumGroupKeyVersion: NumberString
-
-	freeGroup: null | Id
-	premiumGroup: null | Id
 }
 
 export type SystemKeysReturn = {
@@ -1234,20 +1227,12 @@ export type SystemKeysReturn = {
 	_format: NumberString
 	systemAdminPubRsaKey: null | Uint8Array<ArrayBuffer>
 	systemAdminPubKeyVersion: NumberString
-	freeGroupKey: Uint8Array<ArrayBuffer>
-	premiumGroupKey: Uint8Array<ArrayBuffer>
 	systemAdminPubEccKey: null | Uint8Array<ArrayBuffer>
 	systemAdminPubKyberKey: null | Uint8Array<ArrayBuffer>
-	freeGroupKeyVersion: NumberString
-	premiumGroupKeyVersion: NumberString
-
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
 	// == associations
-
-	freeGroup: null | Id
-	premiumGroup: null | Id
 
 	//== some entities have these and some don't
 	_permissions: null

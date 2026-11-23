@@ -938,26 +938,12 @@ pub struct SystemKeysReturn {
 	pub systemAdminPubRsaKey: Option<Vec<u8>>,
 	#[serde(rename = "304")]
 	pub systemAdminPubKeyVersion: i64,
-	#[serde(rename = "305")]
-	#[serde(with = "serde_bytes")]
-	pub freeGroupKey: Vec<u8>,
-	#[serde(rename = "306")]
-	#[serde(with = "serde_bytes")]
-	pub premiumGroupKey: Vec<u8>,
 	#[serde(rename = "2155")]
 	#[serde(with = "serde_bytes")]
 	pub systemAdminPubEccKey: Option<Vec<u8>>,
 	#[serde(rename = "2156")]
 	#[serde(with = "serde_bytes")]
 	pub systemAdminPubKyberKey: Option<Vec<u8>>,
-	#[serde(rename = "2278")]
-	pub freeGroupKeyVersion: i64,
-	#[serde(rename = "2279")]
-	pub premiumGroupKeyVersion: i64,
-	#[serde(rename = "880")]
-	pub freeGroup: Option<GeneratedId>,
-	#[serde(rename = "881")]
-	pub premiumGroup: Option<GeneratedId>,
 }
 
 impl Entity for SystemKeysReturn {

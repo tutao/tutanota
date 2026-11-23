@@ -4457,15 +4457,6 @@
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"655": {
-				"final": false,
-				"name": "userEncAccountGroupKey",
-				"id": 655,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false,
-				"transferredAttributeId": null
-			},
 			"659": {
 				"final": false,
 				"name": "adminEncAccountingInfoSessionKey",
@@ -4508,15 +4499,6 @@
 				"id": 1355,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false,
-				"transferredAttributeId": null
-			},
-			"1421": {
-				"final": false,
-				"name": "accountGroupKeyVersion",
-				"id": 1421,
-				"type": "Number",
-				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
