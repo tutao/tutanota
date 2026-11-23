@@ -139,7 +139,7 @@ export class ProcessInboxHandler {
 
 			processInboxDatum.classifierType = ClientClassifierType.CLIENT_CLASSIFICATION
 		} else {
-			const serverClassifiers = extractServerClassifiers(assertNotNull(mail.serverClassificationData))
+			const serverClassifiers = mail.serverClassificationData != null ? extractServerClassifiers(mail.serverClassificationData) : null
 			console.log(
 				`skipped spam classification for new mail ${mail._id.join("/")}. reason: ${skipPredictionReason} , serverClassifiers: ${serverClassifiers}`,
 			)
