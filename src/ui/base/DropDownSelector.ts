@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { createDropdown } from "./Dropdown.js"
+import { createDropdown, type DropdownChildAttrs } from "./Dropdown.js"
 import type { AllIcons } from "./Icon"
 import { type lazy, noOp } from "../../platform-kit/utils"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel"
@@ -17,6 +17,7 @@ export type SelectorItem<T> = {
 	selectable?: boolean
 	icon?: AllIcons
 	indentationLevel?: number
+	group?: string
 }
 export type SelectorItemList<T> = ReadonlyArray<SelectorItem<T>>
 
@@ -74,18 +75,23 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 	createDropdown(a: DropDownSelectorAttrs<T>): ClickHandler {
 		return createDropdown({
 			lazyButtons: () => {
-				return a.items
-					.filter((item) => item.selectable !== false)
-					.map((item) => {
-						return {
-							label: lang.makeTranslation(item.name, item.name),
-							click: () => {
-								a.selectionChangedHandler?.(item.value)
-								m.redraw()
-							},
-							selected: a.selectedValue === item.value,
-						}
+				const children: DropdownChildAttrs[] = []
+				let currentGroup: string | undefined
+				for (const item of a.items.filter((item) => item.selectable !== false)) {
+					if (item.group != null && item.group !== currentGroup) {
+						children.push({ info: item.group, center: false, bold: true })
+					}
+					currentGroup = item.group
+					children.push({
+						label: lang.makeTranslation(item.name, item.name),
+						click: () => {
+							a.selectionChangedHandler?.(item.value)
+							m.redraw()
+						},
+						selected: a.selectedValue === item.value,
 					})
+				}
+				return children
 			},
 			width: a.dropdownWidth,
 		})

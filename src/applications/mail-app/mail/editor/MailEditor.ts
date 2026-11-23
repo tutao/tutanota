@@ -61,7 +61,7 @@ import { windowFacade } from "../../../common/misc/WindowFacade"
 import { UserError } from "../../../common/api/main/UserError"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
-import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
+import { DropDownSelector, SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import {
 	assertNotNull,
@@ -131,8 +131,8 @@ import {
 	checkAttachmentSize,
 	createNewContact,
 	dialogTitleTranslationKey,
-	getEnabledMailAddressesWithUser,
 	getMailAddressDisplayText,
+	getMailboxName,
 	RecipientField,
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -772,15 +772,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						},
 						m(DropDownSelector, {
 							label: "sender_label",
-							items: getEnabledMailAddressesWithUser(model.mailboxDetails, model.user().userGroupInfo)
-								.sort()
-								.map((mailAddress) => ({
-									name: mailAddress,
-									value: mailAddress,
-								})),
+							items: this.getSenderItems(model),
 							selectedValue: a.model.getSender(),
 							selectedValueDisplay: getMailAddressDisplayText(a.model.getSenderName(), a.model.getSender(), false),
-							selectionChangedHandler: (selection: string) => model.setSender(selection),
+							selectionChangedHandler: (selection: string) => model.selectSender(selection).then(() => m.redraw()),
 							dropdownWidth: 250,
 						}),
 					),
@@ -1121,6 +1116,22 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						oninput: (val) => this.sendMailModel.setPassword(recipient.address, val),
 					})
 				}),
+		)
+	}
+
+	private getSenderItems(model: SendMailModel): SelectorItemList<string> {
+		const senders = model.getSelectableSenders()
+		const mailboxes = new Set(senders.map((s) => s.mailboxDetails))
+		return Array.from(mailboxes).flatMap((mailboxDetails) =>
+			senders
+				.filter((s) => s.mailboxDetails === mailboxDetails)
+				.map((s) => s.address)
+				.sort()
+				.map((address) => ({
+					name: address,
+					value: address,
+					group: mailboxes.size > 1 ? getMailboxName(locator.logins, mailboxDetails) : undefined,
+				})),
 		)
 	}
 
