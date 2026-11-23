@@ -50,6 +50,8 @@ export class EditOutOfOfficeNotificationDialogModel {
 		languageViewModel: LanguageViewModel,
 		readonly serviceExecutor: IServiceExecutor,
 		private readonly customEmailSignatures: readonly EmailSignature[],
+		private readonly mailGroupId: Id,
+		private readonly isUserMailbox: boolean = true,
 	) {
 		this._entityClient = entityClient
 		this._userController = userController
@@ -109,12 +111,10 @@ export class EditOutOfOfficeNotificationDialogModel {
 	_setDefaultMessages() {
 		const templateSubject = this._languageViewModel.get("outOfOfficeDefaultSubject_msg")
 
-		const templateMessage = appendEmailSignature(
-			this._languageViewModel.getTranslationText("outOfOfficeDefault_msg"),
-			this._userController.props,
-			this.customEmailSignatures,
-			EmailSignatureContext.NewMail,
-		)
+		const defaultMessage = this._languageViewModel.getTranslationText("outOfOfficeDefault_msg")
+		const templateMessage = this.isUserMailbox
+			? appendEmailSignature(defaultMessage, this._userController.props, this.customEmailSignatures, EmailSignatureContext.NewMail)
+			: defaultMessage
 		this.organizationSubject(templateSubject)
 		this.defaultSubject(templateSubject)
 		this.defaultMessage(templateMessage)
@@ -163,7 +163,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 			notificationMessages.push(organizationNotification)
 		}
 
-		this.outOfOfficeNotification._ownerGroup = this._userController.getUserMailGroupMembership().group
+		this.outOfOfficeNotification._ownerGroup = this.mailGroupId
 		this.outOfOfficeNotification.enabled = this.enabled()
 		this.outOfOfficeNotification.startDate = startDate
 		this.outOfOfficeNotification.endDate = endDate
