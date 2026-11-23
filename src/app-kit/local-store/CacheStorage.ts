@@ -152,4 +152,9 @@ export interface CacheStorage extends ExposedCacheStorage {
 	isInitialized(): boolean
 
 	setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void>
+
+	/**
+	 * @returns The underlying cache, bypassing any intermediate fast-cache if there is one.
+	 */
+	getDelegate(): CacheStorage
 }

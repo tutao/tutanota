@@ -68,10 +68,19 @@ export interface CustomCacheHandler<T extends PersistentEntity> {
 
 	/**
 	 * Called when an entity is about to be evicted from the cache.
+	 * BEWARE: This will NOT be invoked on a delete multiple when {@link onBeforeMultipleCacheDeletion} is available.
 	 *
 	 * @param id ID of the entity to be evicted
 	 */
 	onBeforeCacheDeletion?: (id: T["_id"]) => Promise<void>
+
+	/**
+	 * Called when multiple entities are about to be evicted from the cache.
+	 * BEWARE: This is only used by OfflineStorage (EphemeralCacheStorage uses {@link onBeforeCacheDeletion}).
+	 *
+	 * @param ids IDs of the entities to be evicted
+	 */
+	onBeforeMultipleCacheDeletion?: (ids: T["_id"][]) => Promise<void>
 
 	/**
 	 * Called after receiving a create event for an entity.

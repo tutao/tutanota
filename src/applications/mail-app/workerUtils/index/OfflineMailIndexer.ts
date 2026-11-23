@@ -14,6 +14,7 @@ import {
 	isNotNull,
 	lastThrow,
 	LazyLoaded,
+	neverNull,
 	promiseMap,
 	splitInChunks,
 } from "@tutao/utils"
@@ -56,14 +57,14 @@ import {
 import { User } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
+import { ConnectionError, NotAuthorizedError } from "@tutao/rest-client/error"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isDraft, isMailWithoutDetails } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import type { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -97,7 +98,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly instancePipeline: InstancePipeline,
-		private readonly cacheStorage: CacheStorage,
+		private readonly directOfflineStorageProvider: () => OfflineStorage,
 		private readonly archiveDownloader: ArchiveDownloaderFacade,
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
@@ -107,6 +108,10 @@ export class OfflineMailIndexer implements MailIndexer {
 	private currentlyIndexingPromise: Promise<void> | null = null
 	private indexTasks: (() => Promise<unknown>)[] = []
 	private abortController: AbortController = new AbortController()
+
+	get offlineStorage(): OfflineStorage {
+		return this.directOfflineStorageProvider()
+	}
 
 	get currentIndexTimestamp(): number {
 		return this.fullyIndexed ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
@@ -158,24 +163,24 @@ export class OfflineMailIndexer implements MailIndexer {
 		}
 	}
 
-	async beforeMailDeleted(mailId: IdTuple): Promise<void> {
-		try {
-			const mail = await this.entityClient.load(MailTypeRef, mailId)
-			if (mail.mailDetails != null) {
-				// Drop deleted MailDetailsBlob so that archive download can be resumed (so Repr-Digest matches).
-				//
-				// MailDetailsBlob will not be dropped if its Mail isn't cached. We can ensure all mails are cached by
-				// preloading mails before starting archive download, but that would impact indexing time, so we don't.
-				const [archiveId, blobId] = mail.mailDetails
-				await this.offlineStoragePersistence.deleteEncryptedBlob(MailDetailsBlobTypeRef, archiveId, blobId)
-			}
-		} catch (e) {
-			if (!(e instanceof NotFoundError)) {
-				throw e
+	async beforeMultipleMailsDeleted(mailIds: IdTuple[]): Promise<void> {
+		for (const [listId, elementIds] of groupByAndMap(mailIds, listIdPart, elementIdPart)) {
+			await this.offlineStoragePersistence.deleteMultipleMailDatas(listId, elementIds)
+
+			const mailDetails = (await this.offlineStorage.provideMultiple(MailTypeRef, listId, elementIds))
+				.filter((mail) => isNotNull(mail.mailDetails))
+				.map((mail) => neverNull(mail.mailDetails))
+
+			if (isNotEmpty(mailDetails)) {
+				for (const [archiveId, blobIds] of groupByAndMap(mailDetails, listIdPart, elementIdPart)) {
+					// Drop deleted MailDetailsBlobs so that archive download can be resumed (so Repr-Digest matches).
+					//
+					// MailDetailsBlob will not be dropped if its Mail isn't cached. We can ensure all mails are cached by
+					// preloading mails before starting archive download, but that would impact indexing time, so we don't.
+					await this.offlineStoragePersistence.deleteMultipleEncryptedBlobs(MailDetailsBlobTypeRef, archiveId, blobIds)
+				}
 			}
 		}
-
-		await this.offlineStoragePersistence.deleteMailData(mailId)
 	}
 
 	async extendMailIndex(user: User): Promise<void> {
@@ -460,7 +465,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			const archives = groupByAndMap(mailDetailsBlobIds, listIdPart, elementIdPart)
 			const mailDetailsBlobs: Map<Id, MailDetailsBlob> = new Map()
 			for (const [list, blobIds] of archives.entries()) {
-				const localBlobs = await this.cacheStorage.provideMultiple(MailDetailsBlobTypeRef, list, blobIds)
+				const localBlobs = await this.offlineStorage.provideMultiple(MailDetailsBlobTypeRef, list, blobIds)
 				for (const b of localBlobs) {
 					mailDetailsBlobs.set(getElementId(b), b)
 				}
@@ -499,7 +504,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			const mailDetailsBlobs = mailsToStore.map(({ incomingMailDetailsBlob }) => incomingMailDetailsBlob).filter(isNotNull)
 
 			if (!isEmpty(mailDetailsBlobs)) {
-				await this.cacheStorage.putMultiple(MailDetailsBlobTypeRef, mailDetailsBlobs)
+				await this.offlineStorage.putMultiple(MailDetailsBlobTypeRef, mailDetailsBlobs)
 			}
 
 			await this.offlineStoragePersistence.storeMailData(mailsToStore)

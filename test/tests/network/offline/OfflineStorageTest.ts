@@ -313,28 +313,8 @@ o.spec("OfflineStorageDbTest", function () {
 				verify(userCacheHandler.onBeforeCacheUpdate?.(user))
 			})
 
-			o.test("deleteIfExists calls the cache handler", async function () {
-				const user = createTestEntity(
-					UserTypeRef,
-					{
-						_id: idToElementId(userId),
-						_ownerGroup: "ownerGroup",
-					},
-					{ populateAggregates: true },
-				)
-				const storableUser = await toStorableInstance(user)
-
-				const userCacheHandler: CustomCacheHandler<User> = object()
-				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
-
-				await storage.put(UserTypeRef, storableUser)
-
-				await storage.deleteIfExists(UserTypeRef, null, userId)
-				verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
-			})
-
-			o.spec("deleteAllOfType", function () {
-				o.test("calls the cache handler for element types", async function () {
+			o.spec("deleteIfExists calls the cache handler", function () {
+				o.test("handler with onBeforeMultipleCacheDeletion", async function () {
 					const user = createTestEntity(
 						UserTypeRef,
 						{
@@ -348,77 +328,222 @@ o.spec("OfflineStorageDbTest", function () {
 					const userCacheHandler: CustomCacheHandler<User> = object()
 					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
 
-					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
-
 					await storage.put(UserTypeRef, storableUser)
 
-					await storage.deleteAllOfType(UserTypeRef)
-					verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
+					await storage.deleteIfExists(UserTypeRef, null, userId)
+					verify(userCacheHandler.onBeforeMultipleCacheDeletion?.([idToElementId(userId)]))
+					verify(userCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
 				})
 
-				o.spec("calls the cache handler for list element types", function () {
-					o.test("Mail ListElementType", async function () {
-						const id: IdTuple = ["listId", "id1"]
-						const entityToStore = createTestEntity(
-							MailTypeRef,
-							{
-								_id: id,
-								_ownerGroup: "ownerGroup",
-							},
-							{ populateAggregates: true },
-						)
-						const storableMail = await toStorableInstance(entityToStore)
-
-						const customCacheHandler: CustomCacheHandler<Mail> = object()
-						when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
-
-						await storage.put(MailTypeRef, storableMail)
-
-						await storage.deleteAllOfType(MailTypeRef)
-						verify(customCacheHandler.onBeforeCacheDeletion?.(id))
-					})
-
-					o.test("Contact ListElementType", async function () {
-						const id: IdTuple = ["listId", "id1"]
-						const entityToStore = createTestEntity(
-							ContactTypeRef,
-							{
-								_id: id,
-								_ownerGroup: "ownerGroup",
-							},
-							{ populateAggregates: true },
-						)
-						const storableContact = await toStorableInstance(entityToStore)
-
-						const customCacheHandler: CustomCacheHandler<Contact> = object()
-						when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
-
-						await storage.put(ContactTypeRef, storableContact)
-
-						await storage.deleteAllOfType(ContactTypeRef)
-						verify(customCacheHandler.onBeforeCacheDeletion?.(id))
-					})
-				})
-
-				o.test("calls the cache handler for blob element types", async function () {
-					const id: IdTuple = ["listId", "id1"]
-					const entityToStore = createTestEntity(
-						MailDetailsBlobTypeRef,
+				o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+					const user = createTestEntity(
+						UserTypeRef,
 						{
-							_id: id,
+							_id: idToElementId(userId),
 							_ownerGroup: "ownerGroup",
 						},
 						{ populateAggregates: true },
 					)
-					const storableDetails = await toStorableInstance(entityToStore)
+					const storableUser = await toStorableInstance(user)
 
-					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
-					when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+					const userCacheHandler: CustomCacheHandler<User> = object()
+					userCacheHandler.onBeforeMultipleCacheDeletion = undefined
+					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
 
-					await storage.put(MailDetailsBlobTypeRef, storableDetails)
+					await storage.put(UserTypeRef, storableUser)
 
-					await storage.deleteAllOfType(MailDetailsBlobTypeRef)
-					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+					await storage.deleteIfExists(UserTypeRef, null, userId)
+					verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
+				})
+			})
+
+			o.spec("deleteAllOfType", function () {
+				o.spec("calls the cache handler for element types", function () {
+					o.test("handler with onBeforeMultipleCacheDeletion", async function () {
+						const user = createTestEntity(
+							UserTypeRef,
+							{
+								_id: idToElementId(userId),
+								_ownerGroup: "ownerGroup",
+							},
+							{ populateAggregates: true },
+						)
+						const storableUser = await toStorableInstance(user)
+
+						const userCacheHandler: CustomCacheHandler<User> = object()
+						when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+						await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
+
+						await storage.put(UserTypeRef, storableUser)
+
+						await storage.deleteAllOfType(UserTypeRef)
+						verify(userCacheHandler.onBeforeMultipleCacheDeletion?.([idToElementId(userId)]))
+						verify(userCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+					})
+
+					o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+						const user = createTestEntity(
+							UserTypeRef,
+							{
+								_id: idToElementId(userId),
+								_ownerGroup: "ownerGroup",
+							},
+							{ populateAggregates: true },
+						)
+						const storableUser = await toStorableInstance(user)
+
+						const userCacheHandler: CustomCacheHandler<User> = object()
+						userCacheHandler.onBeforeMultipleCacheDeletion = undefined
+						when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+						await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
+
+						await storage.put(UserTypeRef, storableUser)
+
+						await storage.deleteAllOfType(UserTypeRef)
+						verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
+					})
+				})
+
+				o.spec("calls the cache handler for list element types", function () {
+					o.spec("Mail ListElementType", function () {
+						o.test("handler with onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								MailTypeRef,
+								{
+									_id: id,
+									_ownerGroup: "ownerGroup",
+								},
+								{ populateAggregates: true },
+							)
+							const storableMail = await toStorableInstance(entityToStore)
+
+							const customCacheHandler: CustomCacheHandler<Mail> = object()
+							when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+
+							await storage.put(MailTypeRef, storableMail)
+
+							await storage.deleteAllOfType(MailTypeRef)
+							verify(customCacheHandler.onBeforeMultipleCacheDeletion?.([id]))
+							verify(customCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+						})
+
+						o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								MailTypeRef,
+								{
+									_id: id,
+									_ownerGroup: "ownerGroup",
+								},
+								{ populateAggregates: true },
+							)
+							const storableMail = await toStorableInstance(entityToStore)
+
+							const customCacheHandler: CustomCacheHandler<Mail> = object()
+							customCacheHandler.onBeforeMultipleCacheDeletion = undefined
+							when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+
+							await storage.put(MailTypeRef, storableMail)
+
+							await storage.deleteAllOfType(MailTypeRef)
+							verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+						})
+					})
+
+					o.spec("Contact ListElementType", function () {
+						o.test("handler with onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								ContactTypeRef,
+								{
+									_id: id,
+									_ownerGroup: "ownerGroup",
+								},
+								{ populateAggregates: true },
+							)
+							const storableContact = await toStorableInstance(entityToStore)
+
+							const customCacheHandler: CustomCacheHandler<Contact> = object()
+							when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
+
+							await storage.put(ContactTypeRef, storableContact)
+
+							await storage.deleteAllOfType(ContactTypeRef)
+							verify(customCacheHandler.onBeforeMultipleCacheDeletion?.([id]))
+							verify(customCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+						})
+
+						o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								ContactTypeRef,
+								{
+									_id: id,
+									_ownerGroup: "ownerGroup",
+								},
+								{ populateAggregates: true },
+							)
+							const storableContact = await toStorableInstance(entityToStore)
+
+							const customCacheHandler: CustomCacheHandler<Contact> = object()
+							customCacheHandler.onBeforeMultipleCacheDeletion = undefined
+							when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
+
+							await storage.put(ContactTypeRef, storableContact)
+
+							await storage.deleteAllOfType(ContactTypeRef)
+							verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+						})
+					})
+				})
+
+				o.spec("calls the cache handler for blob element types", function () {
+					o.test("handler with onBeforeMultipleCacheDeletion", async function () {
+						const id: IdTuple = ["listId", "id1"]
+						const entityToStore = createTestEntity(
+							MailDetailsBlobTypeRef,
+							{
+								_id: id,
+								_ownerGroup: "ownerGroup",
+							},
+							{ populateAggregates: true },
+						)
+						const storableDetails = await toStorableInstance(entityToStore)
+
+						const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+						when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+						await storage.put(MailDetailsBlobTypeRef, storableDetails)
+
+						await storage.deleteAllOfType(MailDetailsBlobTypeRef)
+						verify(customCacheHandler.onBeforeMultipleCacheDeletion?.([id]))
+						verify(customCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+					})
+
+					o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+						const id: IdTuple = ["listId", "id1"]
+						const entityToStore = createTestEntity(
+							MailDetailsBlobTypeRef,
+							{
+								_id: id,
+								_ownerGroup: "ownerGroup",
+							},
+							{ populateAggregates: true },
+						)
+						const storableDetails = await toStorableInstance(entityToStore)
+
+						const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+						customCacheHandler.onBeforeMultipleCacheDeletion = undefined
+						when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+						await storage.put(MailDetailsBlobTypeRef, storableDetails)
+
+						await storage.deleteAllOfType(MailDetailsBlobTypeRef)
+						verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+					})
 				})
 			})
 
@@ -426,111 +551,256 @@ o.spec("OfflineStorageDbTest", function () {
 				const userId = "id1"
 				const groupId = "groupId"
 
-				o.test("calls the cache handler for element types", async function () {
-					const user = createTestEntity(
-						UserTypeRef,
-						{
-							_id: idToElementId(userId),
-							_ownerGroup: groupId,
-						},
-						{ populateAggregates: true },
-					)
-					const storableUser = await toStorableInstance(user)
+				o.spec("calls the cache handler for element types", function () {
+					o.test("handler with onBeforeMultipleCacheDeletion", async function () {
+						const user = createTestEntity(
+							UserTypeRef,
+							{
+								_id: idToElementId(userId),
+								_ownerGroup: groupId,
+							},
+							{ populateAggregates: true },
+						)
+						const storableUser = await toStorableInstance(user)
 
-					const userCacheHandler: CustomCacheHandler<User> = object()
-					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+						const userCacheHandler: CustomCacheHandler<User> = object()
+						when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
 
-					await storage.put(UserTypeRef, storableUser)
+						await storage.put(UserTypeRef, storableUser)
 
-					await storage.deleteAllOwnedBy(groupId)
-					verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
+						await storage.deleteAllOwnedBy(groupId)
+						verify(userCacheHandler.onBeforeMultipleCacheDeletion?.([idToElementId(userId)]))
+						verify(userCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+					})
+
+					o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+						const user = createTestEntity(
+							UserTypeRef,
+							{
+								_id: idToElementId(userId),
+								_ownerGroup: groupId,
+							},
+							{ populateAggregates: true },
+						)
+						const storableUser = await toStorableInstance(user)
+
+						const userCacheHandler: CustomCacheHandler<User> = object()
+						userCacheHandler.onBeforeMultipleCacheDeletion = undefined
+						when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+						await storage.put(UserTypeRef, storableUser)
+
+						await storage.deleteAllOwnedBy(groupId)
+						verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
+					})
 				})
 
 				o.spec("calls the cache handler for list element types", function () {
-					o.test("Mail ListElementType", async function () {
-						const id: IdTuple = ["listId", "id1"]
-						const entityToStore = createTestEntity(
-							MailTypeRef,
-							{
-								_id: id,
-								_ownerGroup: groupId,
-							},
-							{ populateAggregates: true },
-						)
-						const storableMail = await toStorableInstance(entityToStore)
+					o.spec("Mail ListElementType", function () {
+						o.test("handler with onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								MailTypeRef,
+								{
+									_id: id,
+									_ownerGroup: groupId,
+								},
+								{ populateAggregates: true },
+							)
+							const storableMail = await toStorableInstance(entityToStore)
 
-						const customCacheHandler: CustomCacheHandler<Mail> = object()
-						when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+							const customCacheHandler: CustomCacheHandler<Mail> = object()
+							when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
 
-						await storage.put(MailTypeRef, storableMail)
+							await storage.put(MailTypeRef, storableMail)
 
-						await storage.deleteAllOwnedBy(groupId)
-						verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+							await storage.deleteAllOwnedBy(groupId)
+							verify(customCacheHandler.onBeforeMultipleCacheDeletion?.([id]))
+							verify(customCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+						})
+
+						o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								MailTypeRef,
+								{
+									_id: id,
+									_ownerGroup: groupId,
+								},
+								{ populateAggregates: true },
+							)
+							const storableMail = await toStorableInstance(entityToStore)
+
+							const customCacheHandler: CustomCacheHandler<Mail> = object()
+							customCacheHandler.onBeforeMultipleCacheDeletion = undefined
+							when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+
+							await storage.put(MailTypeRef, storableMail)
+
+							await storage.deleteAllOwnedBy(groupId)
+							verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+						})
 					})
 
-					o.test("Contact ListElementType", async function () {
+					o.spec("Contact ListElementType", function () {
+						o.test("handler with onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								ContactTypeRef,
+								{
+									_id: id,
+									_ownerGroup: groupId,
+								},
+								{ populateAggregates: true },
+							)
+							const storableContact = await toStorableInstance(entityToStore)
+
+							const customCacheHandler: CustomCacheHandler<Contact> = object()
+							when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
+
+							await storage.put(ContactTypeRef, storableContact)
+
+							await storage.deleteAllOwnedBy(groupId)
+							verify(customCacheHandler.onBeforeMultipleCacheDeletion?.([id]))
+							verify(customCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+						})
+
+						o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+							const id: IdTuple = ["listId", "id1"]
+							const entityToStore = createTestEntity(
+								ContactTypeRef,
+								{
+									_id: id,
+									_ownerGroup: groupId,
+								},
+								{ populateAggregates: true },
+							)
+							const storableContact = await toStorableInstance(entityToStore)
+
+							const customCacheHandler: CustomCacheHandler<Contact> = object()
+							customCacheHandler.onBeforeMultipleCacheDeletion = undefined
+							when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
+
+							await storage.put(ContactTypeRef, storableContact)
+
+							await storage.deleteAllOwnedBy(groupId)
+							verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+						})
+					})
+				})
+
+				o.spec("calls the cache handler for blob element types", function () {
+					o.test("handler with onBeforeMultipleCacheDeletion", async function () {
 						const id: IdTuple = ["listId", "id1"]
 						const entityToStore = createTestEntity(
-							ContactTypeRef,
+							MailDetailsBlobTypeRef,
 							{
 								_id: id,
 								_ownerGroup: groupId,
 							},
 							{ populateAggregates: true },
 						)
-						const storableContact = await toStorableInstance(entityToStore)
+						const storableDetailsBlob = await toStorableInstance(entityToStore)
 
-						const customCacheHandler: CustomCacheHandler<Contact> = object()
-						when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
+						const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+						when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
 
-						await storage.put(ContactTypeRef, storableContact)
+						await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
+
+						await storage.deleteAllOwnedBy(groupId)
+						verify(customCacheHandler.onBeforeMultipleCacheDeletion?.([id]))
+						verify(customCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
+					})
+
+					o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+						const id: IdTuple = ["listId", "id1"]
+						const entityToStore = createTestEntity(
+							MailDetailsBlobTypeRef,
+							{
+								_id: id,
+								_ownerGroup: groupId,
+							},
+							{ populateAggregates: true },
+						)
+						const storableDetailsBlob = await toStorableInstance(entityToStore)
+
+						const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+						customCacheHandler.onBeforeMultipleCacheDeletion = undefined
+						when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+						await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
 
 						await storage.deleteAllOwnedBy(groupId)
 						verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 					})
 				})
+			})
 
-				o.test("calls the cache handler for blob element types", async function () {
+			o.spec("deleteIn calls the cache handler", function () {
+				o.test("handler with onBeforeMultipleCacheDeletion", async function () {
 					const id: IdTuple = ["listId", "id1"]
 					const entityToStore = createTestEntity(
 						MailDetailsBlobTypeRef,
 						{
 							_id: id,
-							_ownerGroup: groupId,
+							_ownerGroup: "ownerGroup",
+						},
+						{ populateAggregates: true },
+					)
+					const id2: IdTuple = ["listId", "id2"]
+					const entityToStore2 = createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: id2,
+							_ownerGroup: "ownerGroup",
 						},
 						{ populateAggregates: true },
 					)
 					const storableDetailsBlob = await toStorableInstance(entityToStore)
+					const storableDetailsBlob2 = await toStorableInstance(entityToStore2)
 
 					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
 					when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
 
-					await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
+					await storage.putMultiple(MailDetailsBlobTypeRef, [storableDetailsBlob, storableDetailsBlob2])
 
-					await storage.deleteAllOwnedBy(groupId)
-					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+					await storage.deleteIn(MailDetailsBlobTypeRef, "listId", ["id1", "id2"])
+					verify(customCacheHandler.onBeforeMultipleCacheDeletion?.([id, id2]))
+					verify(customCacheHandler.onBeforeCacheDeletion?.(matchers.anything()), { times: 0 })
 				})
-			})
 
-			o.test("deleteIn calls the cache handler", async function () {
-				const id: IdTuple = ["listId", "id1"]
-				const entityToStore = createTestEntity(
-					MailDetailsBlobTypeRef,
-					{
-						_id: id,
-						_ownerGroup: "ownerGroup",
-					},
-					{ populateAggregates: true },
-				)
-				const storableDetailsBlob = await toStorableInstance(entityToStore)
+				o.test("handler without onBeforeMultipleCacheDeletion", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: id,
+							_ownerGroup: "ownerGroup",
+						},
+						{ populateAggregates: true },
+					)
+					const id2: IdTuple = ["listId", "id2"]
+					const entityToStore2 = createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: id2,
+							_ownerGroup: "ownerGroup",
+						},
+						{ populateAggregates: true },
+					)
+					const storableDetailsBlob = await toStorableInstance(entityToStore)
+					const storableDetailsBlob2 = await toStorableInstance(entityToStore2)
 
-				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
-				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+					customCacheHandler.onBeforeMultipleCacheDeletion = undefined
+					when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
 
-				await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
+					await storage.putMultiple(MailDetailsBlobTypeRef, [storableDetailsBlob, storableDetailsBlob2])
 
-				await storage.deleteIn(MailDetailsBlobTypeRef, "listId", ["id1"])
-				verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+					await storage.deleteIn(MailDetailsBlobTypeRef, "listId", ["id1", "id2"])
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id2))
+				})
 			})
 		})
 

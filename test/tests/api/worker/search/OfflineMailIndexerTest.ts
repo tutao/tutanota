@@ -53,14 +53,13 @@ import { assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType, MailSetKind } from "../../../../../src/entities/tutanota/Utils"
-import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
+import { Aes256Key, AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
-import { Aes256Key } from "../../../../../src/platform-kit/crypto"
 import { ArchiveMetadataTypeRef } from "@tutao/entities/storage"
+import { OfflineStorage } from "../../../../../src/app-kit/local-store/OfflineStorage"
 
 const TEST_INDEX_CHUNK_SIZE = 50
 o.spec("OfflineMailIndexer", () => {
@@ -105,7 +104,7 @@ o.spec("OfflineMailIndexer", () => {
 	let mail: Mail
 	let mailSetEntry: MailSetEntry
 	let mailDetailsBlobModel: ServerTypeModel
-	let cacheStorage: CacheStorage
+	let offlineStorage: OfflineStorage
 	let archiveDownloader: ArchiveDownloaderFacade
 	let storedBlobs: Map<Id, IncomingServerJson>
 
@@ -123,7 +122,7 @@ o.spec("OfflineMailIndexer", () => {
 		mailFacade = object()
 		crypto = object()
 		infoMessageHandler = object()
-		cacheStorage = object()
+		offlineStorage = object()
 		archiveDownloader = object()
 		newMailDownloader = func<MailIndexerNewMailDownloader>()
 		mailDetailsBlobModel = await typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
@@ -138,7 +137,7 @@ o.spec("OfflineMailIndexer", () => {
 			infoMessageHandler,
 			newMailDownloader,
 			realInstancePipeline,
-			cacheStorage,
+			() => offlineStorage,
 			archiveDownloader,
 			TEST_INDEX_CHUNK_SIZE,
 		)
@@ -220,29 +219,122 @@ o.spec("OfflineMailIndexer", () => {
 		verify(persistence.storeMailData([mailData]))
 	})
 
-	o.spec("beforeMailDeleted", () => {
-		o.test("non-cached mail", async () => {
-			await mailIndexer.beforeMailDeleted(mail._id)
-			verify(persistence.deleteMailData(mail._id))
-			verify(persistence.deleteEncryptedBlob(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+	o.spec("beforeMultipleMailsDeleted", () => {
+		o.test("single non-cached mail", async () => {
+			const [mailListId, mailElementId] = mail._id
+			when(offlineStorage.provideMultiple(MailTypeRef, mailListId, [mailElementId])).thenResolve([])
+
+			await mailIndexer.beforeMultipleMailsDeleted([mail._id])
+
+			verify(offlineStorage.provideMultiple(MailTypeRef, mailListId, [mailElementId]))
+			verify(persistence.deleteMultipleMailDatas(mailListId, [mailElementId]))
+			verify(persistence.deleteMultipleEncryptedBlobs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
-		o.test("cached draft", async () => {
-			addTestMail()
+		o.test("single cached draft", async () => {
+			const [mailListId, mailElementId] = mail._id
 			mail.mailDetailsDraft = ["whooooa", "i'm NOT a blob :D"]
-			await mailIndexer.beforeMailDeleted(mail._id)
-			verify(persistence.deleteMailData(mail._id))
-			verify(persistence.deleteEncryptedBlob(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			when(offlineStorage.provideMultiple(MailTypeRef, mailListId, [mailElementId])).thenResolve([mail])
+
+			await mailIndexer.beforeMultipleMailsDeleted([mail._id])
+
+			verify(offlineStorage.provideMultiple(MailTypeRef, mailListId, [mailElementId]))
+			verify(persistence.deleteMultipleMailDatas(mailListId, [mailElementId]))
+			verify(persistence.deleteMultipleEncryptedBlobs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
-		o.test("cached non-draft", async () => {
-			addTestMail()
+		o.test("single cached non-draft", async () => {
+			const [mailListId, mailElementId] = mail._id
 			const archiveId = "whooooa"
 			const blobId = "i'm a blob :D"
 			mail.mailDetails = [archiveId, blobId]
-			await mailIndexer.beforeMailDeleted(mail._id)
-			verify(persistence.deleteMailData(mail._id))
-			verify(persistence.deleteEncryptedBlob(MailDetailsBlobTypeRef, archiveId, blobId))
+			when(offlineStorage.provideMultiple(MailTypeRef, mailListId, [mailElementId])).thenResolve([mail])
+
+			await mailIndexer.beforeMultipleMailsDeleted([mail._id])
+
+			verify(offlineStorage.provideMultiple(MailTypeRef, mailListId, [mailElementId]))
+			verify(persistence.deleteMultipleMailDatas(mailListId, [mailElementId]))
+			verify(persistence.deleteMultipleEncryptedBlobs(MailDetailsBlobTypeRef, archiveId, [blobId]))
+		})
+
+		o.test("multiple mails", async () => {
+			const otherMailbagListId = "---------a-a"
+			const archiveId = "whooooa"
+			const otherArchiveId = "aaaarchive"
+
+			const mails: Mail[] = new Array(3).fill(null).map((_, i) =>
+				createTestEntity(
+					MailTypeRef,
+					{
+						_id: [mailBagMailListId, `---------zz${i}`],
+						mailDetails: [archiveId, `blob n-${i}`],
+					},
+					{ populateAggregates: true },
+				),
+			)
+
+			const otherMails: Mail[] = new Array(3).fill(null).map((_, i) =>
+				createTestEntity(
+					MailTypeRef,
+					{
+						_id: [otherMailbagListId, `---------zz${i}`],
+						mailDetails: [archiveId, `blob n-${i}`],
+					},
+					{ populateAggregates: true },
+				),
+			)
+
+			const otherArchiveMails: Mail[] = new Array(3).fill(null).map((_, i) =>
+				createTestEntity(
+					MailTypeRef,
+					{
+						_id: [mailBagMailListId, `---------zz${i}`],
+						mailDetails: [otherArchiveId, `blob n-${i}`],
+					},
+					{ populateAggregates: true },
+				),
+			)
+
+			const drafts: Mail[] = new Array(3).fill(null).map((_, i) =>
+				createTestEntity(
+					MailTypeRef,
+					{
+						_id: [mailBagMailListId, `---------zz${i}`],
+						mailDetailsDraft: ["whooooa", `NOT a blob n-${i}`],
+					},
+					{ populateAggregates: true },
+				),
+			)
+
+			const mailsIds = mails.map((mail) => mail._id)
+			const otherMailsIds = otherMails.map((mail) => mail._id)
+			const otherArchiveMailsIds = otherArchiveMails.map((mail) => mail._id)
+			const draftsIds = drafts.map((mail) => mail._id)
+
+			const mailsElementIds = mailsIds.map(elementIdPart)
+			const otherMailsElementIds = otherMailsIds.map(elementIdPart)
+			const otherArchiveMailsElementIds = otherArchiveMailsIds.map(elementIdPart)
+			const draftsElementIds = draftsIds.map(elementIdPart)
+
+			const mailDetailsBlobIds = mails.map((mail) => elementIdPart(assertNotNull(mail.mailDetails)))
+			const otherMailDetailsBlobIds = otherMails.map((mail) => elementIdPart(assertNotNull(mail.mailDetails)))
+			const otherArchiveMailDetailsBlobIds = otherArchiveMails.map((mail) => elementIdPart(assertNotNull(mail.mailDetails)))
+
+			when(
+				offlineStorage.provideMultiple(MailTypeRef, mailBagMailListId, [...mailsElementIds, ...otherArchiveMailsElementIds, ...draftsElementIds]),
+			).thenResolve([...mails, ...otherArchiveMails, ...drafts])
+			when(offlineStorage.provideMultiple(MailTypeRef, otherMailbagListId, otherMailsElementIds)).thenResolve(otherMails)
+
+			await mailIndexer.beforeMultipleMailsDeleted([...mailsIds, ...otherMailsIds, ...otherArchiveMailsIds, ...draftsIds])
+
+			verify(persistence.deleteMultipleMailDatas(mailBagMailListId, [...mailsElementIds, ...otherArchiveMailsElementIds, ...draftsElementIds]))
+			verify(persistence.deleteMultipleMailDatas(otherMailbagListId, otherMailsElementIds))
+			verify(persistence.deleteMultipleMailDatas(matchers.anything(), matchers.anything()), { times: 2 })
+
+			verify(persistence.deleteMultipleEncryptedBlobs(MailDetailsBlobTypeRef, archiveId, mailDetailsBlobIds))
+			verify(persistence.deleteMultipleEncryptedBlobs(MailDetailsBlobTypeRef, archiveId, otherMailDetailsBlobIds))
+			verify(persistence.deleteMultipleEncryptedBlobs(MailDetailsBlobTypeRef, otherArchiveId, otherArchiveMailDetailsBlobIds))
+			verify(persistence.deleteMultipleEncryptedBlobs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 3 })
 		})
 	})
 
@@ -279,7 +371,7 @@ o.spec("OfflineMailIndexer", () => {
 				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			},
 		])
-		when(cacheStorage.provideMultiple(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), [elementIdPart(mail.mailDetails)])).thenResolve([])
+		when(offlineStorage.provideMultiple(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), [elementIdPart(mail.mailDetails)])).thenResolve([])
 
 		user.memberships = [
 			createTestEntity(GroupMembershipTypeRef, {
@@ -296,7 +388,7 @@ o.spec("OfflineMailIndexer", () => {
 
 		const storedMails: Array<MailWithDetailsAndAttachments> = storedMailData.values![0]
 		o.check(storedMails.length).equals(1)
-		verify(cacheStorage.putMultiple(MailDetailsBlobTypeRef, [storedMails[0]["incomingMailDetailsBlob"]]))
+		verify(offlineStorage.putMultiple(MailDetailsBlobTypeRef, [storedMails[0]["incomingMailDetailsBlob"]]))
 		o.check(removeOriginals(storedMails[0].mail)).deepEquals(mail)
 		o.check(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 		o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
@@ -317,7 +409,7 @@ o.spec("OfflineMailIndexer", () => {
 			infoMessageHandler,
 			newMailDownloader,
 			realInstancePipeline,
-			cacheStorage,
+			() => offlineStorage,
 			archiveDownloader,
 			TEST_INDEX_CHUNK_SIZE,
 		)
@@ -431,7 +523,7 @@ o.spec("OfflineMailIndexer", () => {
 				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			},
 		])
-		when(cacheStorage.provideMultiple(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), [elementIdPart(mail.mailDetails)])).thenResolve([mailDetails])
+		when(offlineStorage.provideMultiple(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), [elementIdPart(mail.mailDetails)])).thenResolve([mailDetails])
 
 		user.memberships = [
 			createTestEntity(GroupMembershipTypeRef, {
@@ -465,7 +557,7 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(removeOriginals(storedMails[0].mail)).deepEquals(mail)
 		o.check(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 		o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
-		verify(cacheStorage.putMultiple(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(offlineStorage.putMultiple(matchers.anything(), matchers.anything()), { times: 0 })
 		verify(
 			blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, {
 				serverHostname: "blobtown.tuta.com",
@@ -537,7 +629,7 @@ o.spec("OfflineMailIndexer", () => {
 		when(mailFacade.loadAttachments(matchers.anything())).thenDo((mailToFind: Mail) => {
 			return Promise.resolve(assertNotNull(mailsMap.get(getElementId(mailToFind)), `no ${getElementId(mailToFind)}`).attachments)
 		})
-		when(cacheStorage.provideMultiple(MailDetailsBlobTypeRef, matchers.anything(), matchers.anything())).thenResolve([])
+		when(offlineStorage.provideMultiple(MailDetailsBlobTypeRef, matchers.anything(), matchers.anything())).thenResolve([])
 
 		const sk = symmetricCipherUtils.aes256RandomKey()
 		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
@@ -590,7 +682,7 @@ o.spec("OfflineMailIndexer", () => {
 
 		// and were all blobs saved?
 		const blobCaptor = matchers.captor()
-		verify(cacheStorage.putMultiple(MailDetailsBlobTypeRef, blobCaptor.capture()))
+		verify(offlineStorage.putMultiple(MailDetailsBlobTypeRef, blobCaptor.capture()))
 		o.check(blobCaptor.values?.flat().every((a) => allBlobs.has(a))).equals(true)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))

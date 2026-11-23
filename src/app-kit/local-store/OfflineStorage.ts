@@ -49,7 +49,7 @@ import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { EnvProvider, OutOfSyncError } from "@tutao/app-env"
-import { sql, SqlFragment } from "./Sql.js"
+import { MAX_SAFE_SQL_VARS, paramList, sql, SqlFragment } from "./Sql.js"
 import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 import { FormattedQuery, TaggedSqlValue } from "./Types"
@@ -60,12 +60,6 @@ import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorage
 import { OfflineEntity, OfflineMapper } from "../../platform-kit/instance-pipeline/OfflineMapper"
 
 import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-
-/**
- * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
- * it may change if the sqlite version is updated.
- * */
-const MAX_SAFE_SQL_VARS = 32766
 
 type StorableInstance = {
 	typeString: string
@@ -212,6 +206,10 @@ export class OfflineStorage implements CacheStorage {
 	) {
 		assert((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.isTest(), "Offline storage is not available.")
 		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
+	}
+
+	getDelegate(): CacheStorage {
+		return this
 	}
 
 	isInitialized(): boolean {
@@ -902,9 +900,13 @@ export class OfflineStorage implements CacheStorage {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
-		if (handler && handler.onBeforeCacheDeletion) {
-			for (const id of ids) {
-				await handler.onBeforeCacheDeletion(id)
+		if (handler) {
+			if (handler.onBeforeMultipleCacheDeletion) {
+				await handler.onBeforeMultipleCacheDeletion(ids)
+			} else if (handler.onBeforeCacheDeletion) {
+				for (const id of ids) {
+					await handler.onBeforeCacheDeletion(id)
+				}
 			}
 		}
 		switch (typeModel.type) {
@@ -1071,18 +1073,6 @@ export class OfflineStorage implements CacheStorage {
 		}
 		return result
 	}
-}
-
-/*
- * used to automatically create the right amount of SQL variables for selecting ids from a dynamic list.
- * must be used within sql`<query>` template string to inline the logic into the query.
- *
- * It is very important that params is kept to a size such that the total amount of SQL variables is
- * less than MAX_SAFE_SQL_VARS.
- */
-function paramList(params: SqlValue[]): SqlFragment {
-	const qs = params.map(() => "?").join(",")
-	return new SqlFragment(`(${qs})`, params)
 }
 
 /**

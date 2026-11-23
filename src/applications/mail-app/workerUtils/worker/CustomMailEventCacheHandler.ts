@@ -20,7 +20,12 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 
 	async onBeforeCacheDeletion(id: IdTuple): Promise<void> {
 		const indexer = await this.indexer()
-		return indexer.beforeMailDeleted(id)
+		return indexer.beforeMultipleMailsDeleted([id])
+	}
+
+	async onBeforeMultipleCacheDeletion(ids: IdTuple[]): Promise<void> {
+		const indexer = await this.indexer()
+		return indexer.beforeMultipleMailsDeleted(ids)
 	}
 
 	async onCreateEntityUpdate(id: IdTuple) {

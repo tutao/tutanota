@@ -37,7 +37,6 @@ import { FileImportStatus, MailboxMigrationFolderSyncStatus, MailImportType, Mai
 import { isFolder } from "../../mail/MailUtils"
 import { User } from "@tutao/entities/sys"
 import {
-	File,
 	ImportedFileMailTypeRef,
 	ImportedMigrationMailTypeRef,
 	ImportFileMailStateTypeRef,
@@ -573,9 +572,10 @@ export class WebMailIndexer implements MailIndexer {
 			}
 		}
 	}
-
-	async beforeMailDeleted(mailId: IdTuple) {
-		await this.backend.onBeforeMailDeleted(mailId)
+	async beforeMultipleMailsDeleted(mailIds: IdTuple[]) {
+		for (const mailId of mailIds) {
+			await this.backend.onBeforeMailDeleted(mailId)
+		}
 	}
 
 	async afterMailDeleted(mailId: IdTuple) {

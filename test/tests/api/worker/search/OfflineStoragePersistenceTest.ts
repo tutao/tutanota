@@ -133,7 +133,7 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(await persistence.getIndexedGroups()).deepEquals([mailGroupData, contactGroupData])
 	})
 
-	o.test("deleteEncryptedBlob", async () => {
+	o.test("deleteMultipleEncryptedBlobs", async () => {
 		const archiveId = "wwoww"
 		const data = new Uint8Array([5, 6, 7, 8])
 		const modelVersion = 123
@@ -145,7 +145,10 @@ o.spec("OfflineStoragePersistence", () => {
 			OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES 
 			('blob-1', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
 			('blob-2', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
-			('blob-2', ${archiveId}, ${data}, ${fileType}, ${modelVersion})`
+			('blob-3', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
+			('blob-4', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
+			('blob-2', ${archiveId}, ${data}, ${fileType}, ${modelVersion}),
+			('blob-3', ${archiveId}, ${data}, ${fileType}, ${modelVersion})`
 			await sqlCipherFacade.run(query, params)
 		}
 		{
@@ -154,17 +157,22 @@ o.spec("OfflineStoragePersistence", () => {
 			o.check(rows.map((row) => untagSqlObject(row))).deepEquals([
 				{ type: mailDetailsType, blobId: "blob-1" },
 				{ type: mailDetailsType, blobId: "blob-2" },
+				{ type: mailDetailsType, blobId: "blob-3" },
+				{ type: mailDetailsType, blobId: "blob-4" },
 				{ type: fileType, blobId: "blob-2" },
+				{ type: fileType, blobId: "blob-3" },
 			])
 		}
 
-		await persistence.deleteEncryptedBlob(MailDetailsBlobTypeRef, archiveId, "blob-2")
+		await persistence.deleteMultipleEncryptedBlobs(MailDetailsBlobTypeRef, archiveId, ["blob-2", "blob-3"])
 
 		const { query, params } = sql`SELECT blobId, type FROM encrypted_blobs`
 		const rows = await sqlCipherFacade.all(query, params)
 		o.check(rows.map((row) => untagSqlObject(row))).deepEquals([
 			{ type: mailDetailsType, blobId: "blob-1" },
+			{ type: mailDetailsType, blobId: "blob-4" },
 			{ type: fileType, blobId: "blob-2" },
+			{ type: fileType, blobId: "blob-3" },
 		])
 	})
 
@@ -454,7 +462,7 @@ o.spec("OfflineStoragePersistence", () => {
 		await assertNotFound("very squishyy email")
 	})
 
-	o.test("deleteMailData", async () => {
+	o.test("deleteMultipleMailDatas", async () => {
 		const data = {
 			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-z"],
@@ -479,18 +487,41 @@ o.spec("OfflineStoragePersistence", () => {
 			}),
 			attachments: [],
 		}
+		const data2 = {
+			mail: createTestEntity(MailTypeRef, {
+				_id: ["I am a list", "y-y-y-y-y-y-y-y-y"],
+				_ownerGroup: "I am a group",
+				subject: "not so very important email",
+				sender: createTestEntity(MailAddressTypeRef, {
+					name: "I am a sender",
+					address: "testtesttest@test.test",
+				}),
+				receivedDate: new Date(1234),
+				sets: [["mySets", "myFavoriteSet"]],
+			}),
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
+					compressedText: "I am squishy smol's friend!",
+				}),
+				recipients: createTestEntity(RecipientsTypeRef, {
+					toRecipients: [],
+					ccRecipients: [],
+					bccRecipients: [],
+				}),
+			}),
+			attachments: [],
+		}
 		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, data.mail)
+		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, data2.mail)
 
 		const mailIndexInsert = sql`INSERT INTO mail_index(rowid, subject, body)
-                                    VALUES (${1},
-                                            ${data.mail.subject},
-                                            ${data.mailDetails.body.compressedText})`
+                                    VALUES (${1}, ${data.mail.subject}, ${data.mailDetails.body.compressedText}),
+										   (${2}, ${data2.mail.subject}, ${data2.mailDetails.body.compressedText})`
 		await sqlCipherFacade.run(mailIndexInsert.query, mailIndexInsert.params)
 
 		const contentIndexInsert = sql`INSERT INTO content_mail_index(rowid, receivedDate, sets)
-                                       VALUES (${1},
-                                               ${data.mail.receivedDate.getTime()},
-                                               ${data.mail.sets[0].join("/")})`
+                                       VALUES (${1}, ${data.mail.receivedDate.getTime()}, ${data.mail.sets[0].join("/")}),
+											  (${2}, ${data2.mail.receivedDate.getTime()}, ${data2.mail.sets[0].join("/")})`
 		await sqlCipherFacade.run(contentIndexInsert.query, contentIndexInsert.params)
 
 		const contentTableSearch = `SELECT rowid
@@ -499,9 +530,9 @@ o.spec("OfflineStoragePersistence", () => {
                              FROM mail_index
                              WHERE mail_index = 'i am squishy'`
 
-		o.check(await sqlCipherFacade.get(indexSearch, [])).notEquals(null)
-		o.check(await sqlCipherFacade.get(contentTableSearch, [])).notEquals(null)
-		await persistence.deleteMailData(data.mail._id)
+		o.check((await sqlCipherFacade.all(indexSearch, [])).length).equals(2)
+		o.check((await sqlCipherFacade.all(contentTableSearch, [])).length).equals(2)
+		await persistence.deleteMultipleMailDatas(getListId(data.mail), [getElementId(data.mail), getElementId(data2.mail)])
 		o.check(await sqlCipherFacade.get(indexSearch, [])).equals(null)
 		o.check(await sqlCipherFacade.get(contentTableSearch, [])).equals(null)
 	})
