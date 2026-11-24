@@ -18,6 +18,7 @@ import {
 	getUsedCompanyEmailSignatureFields,
 } from "../mail/signature/CompanyEmailSignature"
 import { px } from "../../../ui/size"
+import { getSignaturePreviewHtml } from "../mail/signature/Signature"
 
 const FIELDS: ReadonlyArray<{ placeholder: CompanyEmailSignaturePlaceholder; label: TranslationKey; kind?: "phone" | "multiline" | "link" }> = [
 	{ placeholder: "name", label: "name_label" },
@@ -65,7 +66,11 @@ export function showEditCompanyEmailSignatureDialog(companyEmailSignature: Compa
 							maxHeight: px(300),
 						},
 					},
-					m.trust(createCompanyEmailSignatureHtml(companyEmailSignature.signatureTemplate, values satisfies CompanyEmailSignatureData) ?? ""),
+					m.trust(
+						getSignaturePreviewHtml(
+							createCompanyEmailSignatureHtml(companyEmailSignature.signatureTemplate, values satisfies CompanyEmailSignatureData) ?? "",
+						),
+					),
 				),
 				m(
 					".flex-end.wrap.mt-24.gap-16",
