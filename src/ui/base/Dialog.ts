@@ -40,6 +40,8 @@ export const enum DialogType {
 	EditMedium = "EditMedium",
 	EditLarger = "EditLarger",
 	EditLarge = "EditLarge",
+	/** wide, centered window with the nav background and a fixed share of the viewport height, used by the mail editor on larger screens */
+	MailEditor = "MailEditor",
 	SetupWizard = "SetupWizard",
 }
 
@@ -285,6 +287,8 @@ export class Dialog implements ModalComponent {
 			dialogStyle += ".dialog-width-m.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l.border-radius-bottom-8"
+		} else if (dialogType === DialogType.MailEditor) {
+			dialogStyle = ".dialog.rel.flex-grow.border-radius-top-8.dialog-width-xl.dialog-height-mail-editor.border-radius-bottom-8.nav-bg"
 		} else if (dialogType === DialogType.SetupWizard) {
 			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-xl.border-radius-bottom-8.nav-bg"
 		}
@@ -1181,8 +1185,13 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static editDialog<T extends object>(headerBarAttrs: DialogHeaderBarAttrs, child: Class<Component<T>>, childAttrs: T): Dialog {
-		return new Dialog(DialogType.EditLarge, {
+	static editDialog<T extends object>(
+		headerBarAttrs: DialogHeaderBarAttrs,
+		child: Class<Component<T>>,
+		childAttrs: T,
+		dialogType: DialogType.EditLarge | DialogType.MailEditor = DialogType.EditLarge,
+	): Dialog {
+		return new Dialog(dialogType, {
 			view: () =>
 				m("", [
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */

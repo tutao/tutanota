@@ -1888,6 +1888,10 @@ export class MainStyles {
 				".dialog": {
 					"min-width": px(200),
 				},
+				".dialog-height-mail-editor": {
+					height: "calc(100vh - 96px)",
+					"max-height": px(960),
+				},
 				".dialog-width-xl": {
 					"max-width": px(1000),
 				},

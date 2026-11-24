@@ -31,7 +31,7 @@ import {
 	SendAtStatus,
 	SendMailModel,
 } from "../../../common/mailFunctionality/SendMailModel.js"
-import { Dialog } from "../../../../ui/base/Dialog"
+import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { InfoLink, lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
@@ -1680,7 +1680,8 @@ async function createMailEditorDialog(
 		autosaveRemote()
 	}
 
-	dialog = Dialog.editDialog(headerBarAttrs, MailEditor, mailEditorAttrs)
+	// on small screens the editor keeps using the full screen
+	dialog = Dialog.editDialog(headerBarAttrs, MailEditor, mailEditorAttrs, Styles.get().isSingleColumnLayout() ? DialogType.EditLarge : DialogType.MailEditor)
 	dialog.setCloseHandler(() => minimize())
 
 	for (let shortcut of shortcuts) {
