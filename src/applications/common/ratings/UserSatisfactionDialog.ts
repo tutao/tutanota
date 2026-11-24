@@ -29,10 +29,15 @@ import { createUserSettingsGroupRoot, SupportCategory, SupportTopic } from "@tut
 import { getCurrentDate } from "../../mail-app/mail/MailUtils"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { ImageWithOptionsDialog } from "../../../ui/dialogs/ImageWithOptionsDialog.js"
+import { px } from "../../../ui/size.js"
 
-export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "rateUs" | "supportTuta" | "suggestion" | "contactSupport"
+export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "rateUs" | "thankYou" | "supportTuta" | "suggestion" | "contactSupport"
 
-export async function showUserSatisfactionDialog(triggerType: TriggerType): Promise<void> {
+export async function showUserSatisfactionDialog(
+	triggerType: TriggerType,
+	initialPage: "evaluation" | "suggestion" = triggerType === "ManualFeedback" ? "suggestion" : "evaluation",
+): Promise<void> {
 	const { ContactSupportPage } = await import("../support/pages/ContactSupportPage.js")
 	if (triggerType !== "ManualFeedback" && locator.logins.getUserController().userSettingsGroupRoot.satisfactionDialogDisabled) {
 		return
@@ -56,7 +61,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 	}
 
 	const dialog = new MultiPageDialog<UserSatisfactionDialogPage>(
-		triggerType !== "ManualFeedback" ? "evaluation" : "suggestion",
+		initialPage,
 		(dialog, navigateToPage, goBack) => ({
 			evaluation: {
 				content: m(EvaluationPage, {
@@ -98,6 +103,18 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 			rateUs: {
 				content: m(RateUsPage, { triggerType, dialog }),
 			},
+			thankYou: {
+				content: m(ImageWithOptionsDialog, {
+					image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/rate-us.svg`,
+					imageStyle: { maxWidth: px(320) },
+					titleText: "ratingGooglePlay_title",
+					messageText: "ratingFeedbackSent_msg",
+					mainActionText: "close_alt",
+					mainActionClick: () => dialog.close(),
+					subActionText: null,
+					subActionClick: noOp,
+				}),
+			},
 			dissatisfaction: {
 				content: m(DissatisfactionPage, {
 					dialog,
@@ -122,25 +139,18 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 				title: "Feedback",
 				content: m(SuggestionPage, { dialog, triggerType }),
 				leftAction:
-					triggerType !== "ManualFeedback"
+					initialPage === "evaluation"
 						? {
 								label: "back_action",
 								type: ButtonType.Secondary,
 								click: () => goBack(),
 							}
 						: undefined,
-				rightAction:
-					triggerType !== "ManualFeedback"
-						? {
-								label: "notNow_label",
-								type: ButtonType.Secondary,
-								click: () => dialog.close(),
-							}
-						: {
-								label: "close_alt",
-								type: ButtonType.Secondary,
-								click: () => dialog.close(),
-							},
+				rightAction: {
+					label: initialPage === "evaluation" ? "notNow_label" : "close_alt",
+					type: ButtonType.Secondary,
+					click: () => dialog.close(),
+				},
 			},
 			contactSupport: {
 				content: m(ContactSupportPage, {

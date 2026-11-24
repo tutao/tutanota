@@ -40,11 +40,14 @@ export class EvaluationPage implements Component<EvaluationPageAttrs> {
 			lastRatingPromptedDate != null && DateTime.fromJSDate(getCurrentDate()).diff(DateTime.fromJSDate(lastRatingPromptedDate), ["years"]).years <= 1
 
 		if (!hasRated) {
-			if (EnvProvider.get().isIOSApp()) {
+			const env = EnvProvider.get()
+			if (env.isIOSApp()) {
 				// We cannot get the result of the user rating on iOS, so we have to set the date here.
 				deviceConfig.setLastRatingPromptedDate(getCurrentDate())
 				dialog.close()
 				void locator.systemFacade.requestInAppRating()
+			} else if (env.isBrowser() && Math.random() >= 0.5) {
+				navigate("thankYou")
 			} else {
 				navigate("rateUs")
 			}

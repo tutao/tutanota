@@ -137,7 +137,16 @@ export async function shouldShowSatisfactionDialog(isApp: boolean, now = getCurr
 
 export function scheduleSatisfactionDialog() {
 	isSatisfactionDialogScheduled = true
-	showSnackBar({ message: "scheduled_label", button: { label: "rateUs_action", click: () => showUserSatisfactionDialog("ManualFeedback") } })
+	showSnackBar({
+		message: "scheduled_label",
+		button: {
+			label: "rateUs_action",
+			click: () => {
+				isSatisfactionDialogScheduled = false
+				return showUserSatisfactionDialog("ManualFeedback", "evaluation")
+			},
+		},
+	})
 }
 
 /*
