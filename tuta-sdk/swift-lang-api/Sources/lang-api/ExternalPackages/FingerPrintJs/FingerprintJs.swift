@@ -22,7 +22,7 @@ public enum BotKind: String, Sendable, StringBasedEnum {
   case Unknown = "unknown"
 }
 
-public struct BotdResult {
+public struct BotdResult: Sendable {
   public let bot: Bool
   public let botKind: Nullable<BotKind>
 
