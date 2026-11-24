@@ -1445,6 +1445,7 @@ export type TranslationKeyType =
 	| "formatTextJustify_msg"
 	| "formatTextItalic_msg"
 	| "formatTextFontSize_msg"
+	| "formatTextColor_msg"
 	| "formatTextCenter_msg"
 	| "formatTextBold_msg"
 	| "formatTextAlignment_msg"

@@ -12,6 +12,8 @@ import { BrowserType } from "../../platform-kit/app-env/boot/ClientConstants"
 import { ToggleButton } from "./buttons/ToggleButton.js"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
+import { Dialog } from "./Dialog.js"
+import { ColorPickerView } from "./colorPicker/ColorPickerView.js"
 
 export interface RichTextToolbarAttrs {
 	editor: Editor
@@ -64,6 +66,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 					this.renderCustomButtons(attrs),
 					this.renderAlignDropDown(attrs),
 					this.renderSizeButtons(attrs),
+					this.renderColorButton(attrs),
 					this.renderRemoveFormattingButton(attrs),
 				),
 			],
@@ -203,6 +206,33 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 							}
 						}),
 				})(e, dom)
+			},
+		})
+	}
+
+	private renderColorButton({ editor }: RichTextToolbarAttrs): Children {
+		return m(IconButton, {
+			label: "formatTextColor_msg",
+			icon: Icons.ColorpaletteOutline,
+			size: ButtonSize.Compact,
+			click: (e) => {
+				e.stopPropagation()
+				let color = ""
+				Dialog.showActionDialog({
+					title: "formatTextColor_msg",
+					child: () =>
+						m(ColorPickerView, {
+							value: color,
+							onselect: (newColor) => {
+								color = newColor
+							},
+						}),
+					okAction: (dialog) => {
+						dialog.close()
+						editor.squire!.setTextColor(color)
+						setTimeout(() => editor.squire!.focus(), 100)
+					},
+				})
 			},
 		})
 	}

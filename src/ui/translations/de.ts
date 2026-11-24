@@ -838,6 +838,7 @@ export default {
 		"formatTextAlignment_msg": "Ausrichtung",
 		"formatTextBold_msg": "Ausgewählten Text fett setzen.",
 		"formatTextCenter_msg": "Mittig",
+		"formatTextColor_msg": "Textfarbe",
 		"formatTextFontSize_msg": "Schriftgröße",
 		"formatTextItalic_msg": "Ausgewählten Text kursiv setzen.",
 		"formatTextJustify_msg": "Blocksatz",
