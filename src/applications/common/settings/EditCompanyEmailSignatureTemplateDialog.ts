@@ -6,7 +6,14 @@ import { UpgradePromptType } from "@tutao/app-env"
 import { showNotAvailableForFreeDialog } from "../misc/SubscriptionDialogs.js"
 import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { HtmlEditor } from "../../../ui/editor/HtmlEditor.js"
-import { SegmentControl } from "../../../ui/base/SegmentControl.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { PlaceholderChip, PlaceholderChips } from "./PlaceholderChips.js"
+import { Card } from "../../../ui/base/Card.js"
+import { Icon, IconSize } from "../../../ui/base/Icon.js"
+import { theme } from "../../../ui/theme.js"
+import { px, size } from "../../../ui/size.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { TextSegmentControl } from "../../../ui/base/TextSegmentControl.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { ofClass } from "@tutao/utils"
@@ -43,11 +50,13 @@ export async function showCompanyEmailSignatureTemplateDialog(existingTemplate: 
 		})
 
 	const editSegment = {
-		name: lang.getTranslationText("edit_action"),
+		icon: Icons.PenOutline,
+		label: "edit_action" as const,
 		value: "edit",
 	}
 	const previewSegment = {
-		name: lang.getTranslationText("preview_label"),
+		icon: Icons.EyeOutline,
+		label: "preview_label" as const,
 		value: "preview",
 	}
 	const selectedTab = stream(editSegment.value)
@@ -79,48 +88,86 @@ export async function showCompanyEmailSignatureTemplateDialog(existingTemplate: 
 		custom2: companyEmailSignature?.custom2 ?? lang.getTranslationText("customField2_label"),
 	}
 
-	const editTabContent = () => [m(".small.mb-8.mt-8", m.trust(lang.getTranslationText("companySignatureInfo_msg"))), m(editor)]
+	const placeholderChips: PlaceholderChip[] = [
+		{ placeholder: "{name}", label: "name_label" },
+		{ placeholder: "{role}", label: "role_placeholder" },
+		{ placeholder: "{department}", label: "department_placeholder" },
+		{ placeholder: "{address}", label: "address_label" },
+		{ placeholder: "{email}", label: "mailAddress_label" },
+		{ placeholder: "{phoneNumber}", label: "phone_label" },
+		{ placeholder: "{mobileNumber}", label: "mobile_label" },
+		{ placeholder: "{custom1}", label: "customField1_label" },
+		{ placeholder: "{custom2}", label: "customField2_label" },
+	]
+
+	const editTabContent = () => [
+		m(Card, { classes: ["mt-16 center"], style: { padding: px(size.spacing_16) } }, [
+			m(Icon, { icon: Icons.PenFilled, size: IconSize.PX32, style: { fill: theme.on_surface_variant } }),
+			m(".smaller.mt-16", m.trust(lang.getTranslationText("companySignatureInfo_msg"))),
+		]),
+		m(
+			".mt-16",
+			m(PlaceholderChips, {
+				chips: placeholderChips,
+				contentWithPlaceholder: editor.getValue(),
+				onInsert: (placeholder) => editor.insertAtCursor(placeholder),
+				onRemove: (placeholder) => editor.removeText(placeholder),
+			}),
+		),
+		m(".mt-16", m(editor)),
+	]
 	const previewTabContent = () => [
 		m(".small.mt-16.mb-16", lang.getTranslationText("preview_label")),
 		m.trust(createCompanyEmailSignatureHtml(savedHtml, previewData) ?? ""),
 	]
 
-	Dialog.showActionDialog({
+	const save = async (dialog: Dialog) => {
+		const newTemplate = htmlSanitizer.sanitizeHTML(selectedTab() === editSegment.value ? editor.getValue() : savedHtml, {
+			blockExternalContent: false,
+		}).html
+		if (newTemplate.trim() === "") {
+			return Dialog.message("emptyString_msg")
+		}
+
+		const oldTemplate = existingTemplate?.signatureTemplate
+		const userManagementFacade = locator.userManagementFacade
+		try {
+			await showProgressDialog(
+				"pleaseWait_msg",
+				existingTemplate
+					? userManagementFacade.updateCompanyEmailSignatureTemplate(existingTemplate, newTemplate)
+					: userManagementFacade.createCompanyEmailSignatureTemplate(newTemplate),
+			)
+			dialog.close()
+		} catch (e) {
+			if (existingTemplate && oldTemplate != null) {
+				existingTemplate.signatureTemplate = oldTemplate
+			}
+			await ofClass(PayloadTooLargeError, () => Dialog.message("requestTooLarge_msg"))(e)
+		}
+	}
+
+	const dialog = Dialog.showActionDialog({
 		type: DialogType.Popup_L,
 		title: "companySignature_label",
 		child: () => [
-			m(SegmentControl, {
+			m(TextSegmentControl, {
 				items: [editSegment, previewSegment],
 				selectedValue: selectedTab(),
 				onValueSelected: selectedTab,
 			}),
 			selectedTab() === editSegment.value ? editTabContent() : previewTabContent(),
+			m(
+				".flex-end.wrap.mt-24.gap-16",
+				m(PrimaryButton, {
+					width: "flex",
+					label: "save_action",
+					onclick: () => save(dialog),
+					disabled: (selectedTab() === editSegment.value ? editor.getValue() : savedHtml).trim() === "",
+				}),
+			),
 		],
-		okAction: async (dialog: Dialog) => {
-			const newTemplate = htmlSanitizer.sanitizeHTML(selectedTab() === editSegment.value ? editor.getValue() : savedHtml, {
-				blockExternalContent: false,
-			}).html
-			if (newTemplate.trim() === "") {
-				return Dialog.message("emptyString_msg")
-			}
-
-			const oldTemplate = existingTemplate?.signatureTemplate
-			const userManagementFacade = locator.userManagementFacade
-			try {
-				await showProgressDialog(
-					"pleaseWait_msg",
-					existingTemplate
-						? userManagementFacade.updateCompanyEmailSignatureTemplate(existingTemplate, newTemplate)
-						: userManagementFacade.createCompanyEmailSignatureTemplate(newTemplate),
-				)
-				dialog.close()
-			} catch (e) {
-				if (existingTemplate && oldTemplate != null) {
-					existingTemplate.signatureTemplate = oldTemplate
-				}
-				await ofClass(PayloadTooLargeError, () => Dialog.message("requestTooLarge_msg"))(e)
-			}
-		},
+		okAction: null,
 	})
 }
 

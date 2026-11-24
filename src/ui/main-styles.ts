@@ -2252,6 +2252,12 @@ export class MainStyles {
 					cursor: "pointer",
 					background: "transparent",
 				},
+				".text-segment-control-item": {
+					width: "auto",
+					"min-width": px(component_size.icon_segment_control_button_width),
+					"padding-left": px(size.spacing_16),
+					"padding-right": px(size.spacing_16),
+				},
 				".icon-segment-control-item[active]": {
 					background: theme.secondary_container,
 					color: theme.on_secondary_container,

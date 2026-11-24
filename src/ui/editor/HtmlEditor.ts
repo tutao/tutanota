@@ -5,7 +5,7 @@ import type { MaybeTranslation, TranslationKey } from "../utils/LanguageViewMode
 import { lang } from "../utils/LanguageViewModel"
 import { px } from "../size"
 import { assertNotNull } from "../../platform-kit/utils"
-import { DropDownSelector } from "../base/DropDownSelector.js"
+import { DropDownSelectorNew } from "../base/DropDownSelectorNew.js"
 import { RichTextToolbar, RichTextToolbarAttrs } from "../base/RichTextToolbar.js"
 import { HtmlSanitizerInterface } from "../utils/HtmlSanitizerInterface"
 
@@ -82,7 +82,7 @@ export class HtmlEditor implements Component {
 
 		return m(".html-editor" + (this.mode === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), { class: this.editor.isEnabled() ? "" : "disabled" }, [
 			modeSwitcherLabel != null
-				? m(DropDownSelector, {
+				? m(DropDownSelectorNew, {
 						label: modeSwitcherLabel,
 						items: [
 							{ name: lang.get("richText_label"), value: HtmlEditorMode.WYSIWYG },
@@ -147,6 +147,9 @@ export class HtmlEditor implements Component {
 												"font-family": this.htmlMonospace ? "monospace" : "inherit",
 												"min-height": this.minHeight ? px(this.minHeight) : "initial",
 											}),
+									// source code should not wrap, scroll horizontally instead
+									"white-space": "pre",
+									overflow: "auto",
 									...(this.isDisplayOnly && {
 										"pointer-events": "none",
 									}),
@@ -157,6 +160,33 @@ export class HtmlEditor implements Component {
 						),
 			]),
 		])
+	}
+
+	insertAtCursor(text: string): this {
+		if (this.mode === HtmlEditorMode.WYSIWYG) {
+			if (!this.active) {
+				this.editor.domElement?.focus()
+			}
+			this.editor.insertHTML(text)
+		} else if (this.domTextArea) {
+			const textArea = this.domTextArea
+			textArea.focus()
+			textArea.setRangeText(text, textArea.selectionStart, textArea.selectionEnd, "end")
+			this.value(textArea.value)
+		}
+		return this
+	}
+
+	removeText(text: string): this {
+		if (this.mode === HtmlEditorMode.WYSIWYG) {
+			const html = this.editor.getHTML().split(text).join("")
+			this.editor.initialized.promise.then(() => this.editor.setHTML(html))
+			this.value(html)
+		} else if (this.domTextArea) {
+			this.domTextArea.value = this.domTextArea.value.split(text).join("")
+			this.value(this.domTextArea.value)
+		}
+		return this
 	}
 
 	private initializeEditorListeners() {
