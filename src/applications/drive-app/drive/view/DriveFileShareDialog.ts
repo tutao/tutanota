@@ -87,150 +87,162 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 			}
 
 			view(): Children {
-				return m(".flex.col", {}, [
+				return m(".flex.col.height-100p", {}, [
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => dialog.close(), type: ButtonType.Secondary }],
 						middle: "share_action",
 					}),
-					m(".flex.col.mlr-16.mt-16.mb-16", [
-						m(".flex.gap-12", [
-							m(Icon, {
-								icon: Icons.PersonAddFilled,
-								size: IconSize.PX24,
-								style: {
-									fill: theme.on_surface_variant,
-								},
-							}),
-							m(".b.uppercase.text-ellipsis", { "data-testid": "test:fileShareDetailsLabel" }, file.name),
-						]),
-						m(".flex.col.gap-16", [
-							m(".flex.gap-8.items-center", [
-								m(TextField, {
-									label: lang.getTranslation("shareALink_label"),
-									value: shareInfo.publicLink,
-									onfocus: (_, input) => {
-										input.select()
+					m(".flex.col.mlr-16.mt-16.mb-16.gap-16.overflow-y-scroll", [
+						m(".flex.col.overflow-y-scroll", [
+							m(".flex.gap-12", [
+								m(Icon, {
+									icon: Icons.PersonAddFilled,
+									size: IconSize.PX24,
+									style: {
+										fill: theme.on_surface_variant,
 									},
 								}),
-								m(IconButton, {
-									// compensate for label spacing on text field
-									style: { marginTop: px(size.spacing_12) },
-									icon: Icons.CopyOutline,
-									label: "copy_action",
-									click: async () => {
-										await copyToClipboard(shareInfo.publicLink)
-										showInfoSnackbar("copied_msg")
-									},
-								}),
+								m(".b.uppercase.text-ellipsis", { "data-testid": "test:fileShareDetailsLabel" }, file.name),
 							]),
-							m(
-								".flex.col.gap-8",
-								m(
-									Switch,
-									{
-										checked: this.doPassword,
-										ariaLabel: lang.getTranslationText("secureWithPassword_label"),
-										onclick: (toggled) => {
-											this.doPassword = toggled
+							m(".flex.col.gap-16", [
+								m(".flex.gap-8.items-center", [
+									m(TextField, {
+										label: lang.getTranslation("shareALink_label"),
+										value: shareInfo.publicLink,
+										onfocus: (_, input) => {
+											input.select()
 										},
-										togglePillPosition: "left",
-									},
-									lang.getTranslationText("secureWithPassword_label"),
+									}),
+									m(IconButton, {
+										// compensate for label spacing on text field
+										style: { marginTop: px(size.spacing_12) },
+										icon: Icons.CopyOutline,
+										label: "copy_action",
+										click: async () => {
+											await copyToClipboard(shareInfo.publicLink)
+											showInfoSnackbar("copied_msg")
+										},
+									}),
+								]),
+								m(
+									".flex.col.gap-8",
+									m(
+										Switch,
+										{
+											checked: this.doPassword,
+											ariaLabel: lang.getTranslationText("secureWithPassword_label"),
+											onclick: (toggled) => {
+												this.doPassword = toggled
+											},
+											togglePillPosition: "left",
+										},
+										lang.getTranslationText("secureWithPassword_label"),
+									),
+									m(PasswordFieldNew, {
+										class: this.resolveInputFieldClasses(this.doPassword).join(" "),
+										value: this.passwordValue,
+										disabled: !this.doPassword,
+										oninput: (passwordValue) => (this.passwordValue = passwordValue),
+									}),
 								),
-								m(PasswordFieldNew, {
-									class: this.resolveInputFieldClasses(this.doPassword).join(" "),
-									value: this.passwordValue,
-									disabled: !this.doPassword,
-									oninput: (passwordValue) => (this.passwordValue = passwordValue),
-								}),
-							),
 
-							m(
-								".flex.col.gap-8",
 								m(
-									Switch,
-									{
-										checked: this.doExpiry,
-										ariaLabel: lang.getTranslationText("setExpirationDate_label"),
-										onclick: (toggled) => (this.doExpiry = toggled),
-										togglePillPosition: "left",
-									},
-									lang.getTranslationText("setExpirationDate_label"),
-								),
-								m(LazyComponent<DatePickerAttrs, DatePicker>, {
-									loader: async () => (await import("../../../calendar-app/calendar/gui/pickers/DatePicker")).DatePicker,
-									attrs: {
-										classes: this.resolveInputFieldClasses(this.doExpiry),
-										date: this.expirationDate,
-										label: lang.getTranslation("selectExpiryDate_label"),
-										onDateSelected: (selectedDate) => {
-											this.expirationDate = normalizeShareExpirationDate(selectedDate)
+									".flex.col.gap-8",
+									m(
+										Switch,
+										{
+											checked: this.doExpiry,
+											ariaLabel: lang.getTranslationText("setExpirationDate_label"),
+											onclick: (toggled) => (this.doExpiry = toggled),
+											togglePillPosition: "left",
 										},
-										startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot),
-										disabled: !this.doExpiry,
-										// so that we don't get NBSP with floating label above if there's no date
-										nullSelectionText: lang.makeTranslation("", ""),
-										renderCustomTextField: ({ disabled, focused, onblur, oncreateTextField, onfocus, oninput, onkeydown, value, label }) =>
-											m(TextField, {
-												class: "",
+										lang.getTranslationText("setExpirationDate_label"),
+									),
+									m(LazyComponent<DatePickerAttrs, DatePicker>, {
+										loader: async () => (await import("../../../calendar-app/calendar/gui/pickers/DatePicker")).DatePicker,
+										attrs: {
+											classes: this.resolveInputFieldClasses(this.doExpiry),
+											date: this.expirationDate,
+											label: lang.getTranslation("selectExpiryDate_label"),
+											onDateSelected: (selectedDate) => {
+												this.expirationDate = normalizeShareExpirationDate(selectedDate)
+											},
+											startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot),
+											disabled: !this.doExpiry,
+											// so that we don't get NBSP with floating label above if there's no date
+											nullSelectionText: lang.makeTranslation("", ""),
+											renderCustomTextField: ({
 												disabled,
+												focused,
 												onblur,
-												oninput() {
-													oninput({} as InputEvent)
-												},
-												onfocus() {
-													onfocus({} as FocusEvent)
-												},
-												keyHandler: (key) => {
-													onkeydown(keyboardEventFrom(key))
-													return true
-												},
+												oncreateTextField,
+												onfocus,
+												oninput,
+												onkeydown,
 												value,
 												label,
-												onDomInputCreated: (_, vnode) => {
-													oncreateTextField(vnode)
-												},
-												leadingIcon: {
-													icon: Icons.CalendarFilled,
-													color: theme.on_surface_variant,
-												},
-											}),
-									},
-								}),
-							),
-							m(".flex.row.gap-16.justify-between.flex-grow", [
-								m(SecondaryButton, {
-									width: "flex",
-									label: lang.getTranslation("deleteLink_action"),
-									onclick: async () => {
-										dialog.close()
-										await showProgressDialog("progressDeleting_msg", driveFileSharingFacade.deleteShareLink(file))
-										const message = lang.getTranslation("shareDeleted_msg", { "{fileName}": file.name })
-										showSnackBar({ message })
-									},
-								}),
-								m(PrimaryButton, {
-									class: "align-self-end",
-									width: "flex",
-									label: lang.getTranslation("updateLink_action"),
-									onclick: () => {
-										if (this.doPassword && this.passwordValue.trim() === "") {
-											throw new UserError(lang.getTranslation("invalidPassword_msg"))
-										}
-										if (this.doExpiry && isNull(this.expirationDate)) {
-											throw new UserError(lang.getTranslation("expirationDateEmpty_msg"))
-										}
-										if (this.doExpiry && assertNotNull(this.expirationDate).getTime() < new Date().getTime()) {
-											throw new UserError(lang.getTranslation("expirationDateInPast_msg"))
-										}
-
-										showProgressDialog(
-											lang.getTranslation("updatingShare_msg"),
-											this.updateShareAndReload(this.doPassword ? this.passwordValue : null, this.doExpiry ? this.expirationDate : null),
-										)
-									},
-								}),
+											}) =>
+												m(TextField, {
+													class: "",
+													disabled,
+													onblur,
+													oninput() {
+														oninput({} as InputEvent)
+													},
+													onfocus() {
+														onfocus({} as FocusEvent)
+													},
+													keyHandler: (key) => {
+														onkeydown(keyboardEventFrom(key))
+														return true
+													},
+													value,
+													label,
+													onDomInputCreated: (_, vnode) => {
+														oncreateTextField(vnode)
+													},
+													leadingIcon: {
+														icon: Icons.CalendarFilled,
+														color: theme.on_surface_variant,
+													},
+												}),
+										},
+									}),
+								),
 							]),
+						]),
+						m(".flex.row.gap-16.justify-between.flex-grow", [
+							m(SecondaryButton, {
+								width: "flex",
+								label: lang.getTranslation("deleteLink_action"),
+								onclick: async () => {
+									dialog.close()
+									await showProgressDialog("progressDeleting_msg", driveFileSharingFacade.deleteShareLink(file))
+									const message = lang.getTranslation("shareDeleted_msg", { "{fileName}": file.name })
+									showSnackBar({ message })
+								},
+							}),
+							m(PrimaryButton, {
+								class: "align-self-end",
+								width: "flex",
+								label: lang.getTranslation("updateLink_action"),
+								onclick: () => {
+									if (this.doPassword && this.passwordValue.trim() === "") {
+										throw new UserError(lang.getTranslation("invalidPassword_msg"))
+									}
+									if (this.doExpiry && isNull(this.expirationDate)) {
+										throw new UserError(lang.getTranslation("expirationDateEmpty_msg"))
+									}
+									if (this.doExpiry && assertNotNull(this.expirationDate).getTime() < new Date().getTime()) {
+										throw new UserError(lang.getTranslation("expirationDateInPast_msg"))
+									}
+
+									showProgressDialog(
+										lang.getTranslation("updatingShare_msg"),
+										this.updateShareAndReload(this.doPassword ? this.passwordValue : null, this.doExpiry ? this.expirationDate : null),
+									)
+								},
+							}),
 						]),
 					]),
 				])
