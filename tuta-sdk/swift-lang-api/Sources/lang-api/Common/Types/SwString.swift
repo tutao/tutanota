@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol ToString {
-    func toString() -> SwString
+  func toString() -> SwString
 }
 
 public final class SwString: Sendable, Equatable, Hashable, ToString {
@@ -16,7 +16,7 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
   }
 
   public var length: SwInt {
-    return SwInt(self.inner.count)
+    return SwInt(self.utf16.count)
   }
 
   private var utf16: String.UTF16View {
@@ -34,10 +34,6 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     hasher.combine(self.inner)
   }
 
-  public func toString() -> SwString {
-    return self
-  }
-
   public func at(_ index: SwInt) -> Nullable<SwString> {
     let actualIndex = index.inner < 0 ? self.utf16.count + index.inner : index.inner
     guard let unit = self.codeUnit(at: actualIndex) else {
@@ -48,86 +44,166 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
 
   public func charAt(_ index: SwInt) -> SwString {
     guard let unit = self.codeUnit(at: index.inner) else {
-        return SwString("")
+      return SwString("")
     }
     return SwString(String(decoding: [unit], as: UTF16.self))
   }
 
-  public func charCodeAt(_ index: SwInt) throws -> Nullable<SwInt> {
-      guard let unit = self.codeUnit(at: index.inner) else {
-          return nil
-      }
-      return SwInt(Int(unit))
+  public func charCodeAt(_ index: SwInt) -> Nullable<SwInt> {
+    guard let unit = self.codeUnit(at: index.inner) else {
+      return nil
+    }
+    return SwInt(Int(unit))
   }
 
-  public func codePointAt(_ index: SwInt) throws -> Nullable<SwInt> {
+  public func codePointAt(_ index: SwInt) -> Nullable<SwInt> {
     guard let first = codeUnit(at: index.inner) else {
       return nil
     }
     guard
-        (0xD800...0xDBFF).contains(first),
-        let second = codeUnit(at: index.inner + 1),
-        (0xDC00...0xDFFF).contains(second) else {
+      (0xD800...0xDBFF).contains(first),
+      let second = codeUnit(at: index.inner + 1),
+      (0xDC00...0xDFFF).contains(second)
+    else {
       return SwInt(Int(first))
     }
     return SwInt(Int(0x10000 + ((UInt32(first) - 0xD800) << 10) + (UInt32(second) - 0xDC00)))
   }
 
   public func concat(_ str: any ToString...) -> SwString {
-      return SwString(self.inner + str.map{ $0.toString().inner }.joined())
+    return SwString(self.inner + str.map { $0.toString().inner }.joined())
   }
 
-  public func endsWith(_ searchString: SwString) throws -> Bool {
-    return try self.endsWith(searchString, self.length)
+  public func endsWith(_ searchString: SwString, _ endPosition: SwInt? = nil) -> Bool {
+    let source = self.utf16
+    let search = searchString.utf16
+    let end = min(max(endPosition?.inner ?? source.count, 0), source.count)
+
+    guard search.count <= end else {
+      return false
+    }
+
+    return source.prefix(end).suffix(search.count).elementsEqual(search)
   }
 
-  public func endsWith(_ searchString: SwString, _ endPosition: SwInt) throws -> Bool {
-      fatalError("not yet implemented")
+  public func includes(_ searchString: SwString, _ position: SwInt = SwInt(0)) -> Bool {
+    let source = self.utf16
+    let startIndex = source.index(source.startIndex, offsetBy: position.inner)
+
+    return source.suffix(from: startIndex).contains(searchString.utf16)
   }
 
-  public func padStart(_ start: SwInt, _ pad: SwString) throws -> SwString {
-    fatalError("not yet implemented")
+  public func indexOf(_ searchString: SwString, _ position: SwInt = SwInt(0)) -> SwInt {
+    let source = self.utf16
+    let search = searchString.utf16
+
+    var position = position
+    if position < SwInt(0) {
+      position = SwInt(0)
+    }
+
+    guard position.inner + search.count <= source.count else {
+      return SwInt(-1)
+    }
+
+    let startIndex = source.index(source.startIndex, offsetBy: position.inner)
+    var candidate = startIndex
+    let lastCandidate = source.index(source.endIndex, offsetBy: -search.count)
+
+    while candidate <= lastCandidate {
+      let matchEnd = source.index(candidate, offsetBy: search.count)
+      if source[candidate..<matchEnd].elementsEqual(search) {
+        return position + SwInt(source.distance(from: startIndex, to: candidate))
+      }
+      source.formIndex(after: &candidate)
+    }
+
+    return SwInt(-1)
   }
 
-  public func replaceAll(_ f: SwString, _ with: SwString) throws -> SwString {
-    fatalError("not yet implemented")
+  public func isWellFormed() -> Bool {
+    // Swift strings cannot represent non-well-formed strings. If we want to support that we need to switch to arrays of unsigned 16-bit integers instead.
+    return true
   }
 
-  public func toLowerCase() throws -> SwString {
-    fatalError("not yet implemented")
+  public func lastIndexOf(_ searchString: SwString, _ position: SwInt = SwInt(0)) -> SwInt {
+    let source = self.utf16
+    let search = searchString.utf16
+
+    var position = position
+    if position < SwInt(0) {
+      position = SwInt(0)
+    }
+
+    guard position.inner + search.count <= source.count else {
+      return SwInt(-1)
+    }
+
+    let startIndex = source.index(source.startIndex, offsetBy: position.inner)
+    let lastCandidate = startIndex
+    var candidate = source.index(source.endIndex, offsetBy: -search.count)
+
+    while candidate <= lastCandidate {
+      let matchEnd = source.index(candidate, offsetBy: search.count)
+      if source[candidate..<matchEnd].elementsEqual(search) {
+        return position + SwInt(source.distance(from: startIndex, to: candidate))
+      }
+      source.formIndex(before: &candidate)
+    }
+
+    return SwInt(-1)
   }
 
-  public func trim() throws -> SwString {
-    return try self.trimStart().trimEnd()
+  // public func localeCompare(_ compareString: SwString, _ locales: SwString? = nil, options: Any? = nil) -> SwInt {}
+
+  // public func match(_ regexp: Any) -> SwArray<SwString>? { }
+
+  // public func match(_ regexp: Any) -> Iterator<SwString> {}
+
+  // public func normalize(_ form: SwString) -> SwString {}
+
+  // public func padEnd(_ targetLength: SwInt, _padString: SwString = SwString(" ")) -> SwString { }
+
+  public func padStart(_ targetLength: SwInt, _ padString: SwString = SwString(" ")) -> SwString {
+    let missing = max(targetLength.inner - self.length.inner, 0)
+    let repetitions = padString.length.inner / missing
+    let remainder = padString.length.inner % missing
+
+    return padString.repeat(SwInt(repetitions)) + padString.slice(SwInt(0), SwInt(remainder)) + self
   }
 
-  public func trimStart() throws -> SwString {
-    fatalError("not yet implemented")
+  public func `repeat`(_ count: SwInt) -> SwString {
+    return SwString(String(repeating: self.inner, count: count.inner))
   }
 
-  public func trimEnd() throws -> SwString {
-    fatalError("not yet implemented")
+  public func replace(_ pattern: SwRegex, _ replacement: SwString) -> SwString {
+    return SwString(pattern.replace(in: self.inner, with: replacement.inner))
   }
 
-  public func replaceAll(_ f: SwRegex, _ with: SwString) throws -> SwString {
-    fatalError("not yet implemented")
+  public func replace(_ pattern: SwString, _ replacement: SwString) -> SwString {
+    guard let range = self.inner.range(of: pattern.inner) else {
+      return self
+    }
+    return SwString(self.inner.replacingCharacters(in: range, with: replacement.inner))
   }
 
-  public func split(_ s: SwString) throws -> SwArray<SwString> {
-    return SwArray()
+  // public func replaceAll(_ f: SwString, _ with: SwString) -> SwString { }
+
+  // public func replaceAll(_ f: SwRegex, _ with: SwString) -> SwString { }
+
+  // search()
+
+  public func slice(_ indexStart: SwInt, _ indexEnd: SwInt? = nil) -> SwString {
+    let indexEnd = indexEnd ?? self.length
+    let startIndex = self.utf16.index(self.utf16.startIndex, offsetBy: indexStart.inner)
+    let endIndex = self.utf16.index(self.utf16.startIndex, offsetBy: indexEnd.inner)
+
+    return SwString(String(self.utf16[startIndex..<endIndex]) ?? "")
   }
 
-  public func join(_ other: SwString) throws -> SwString {
-    fatalError("Not yet implemented")
-  }
+  // public func split(_ separator: SwString, _ limit: SwInt? = nil) -> SwArray<SwString> { }
 
-  public func indexOf(_ hay: SwString, _ from: SwInt = SwInt(0)) throws -> SwInt {
-    let haystack = self.inner as NSString
-    let start = max(0, min(Int(from.asPrimitive()), haystack.length))
-    let range = haystack.range(
-      of: hay.inner, range: NSRange(location: start, length: haystack.length - start))
-    return range.location == NSNotFound ? SwInt(-1) : SwInt(Int(range.location))
-  }
+  // public func startsWith(_ substring: SwString)  -> Bool { }
 
   public func substring(_ start: SwInt, _ end: Nullable<SwInt> = nil) -> SwString {
     let nsString = self.inner as NSString
@@ -139,28 +215,46 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     return SwString(nsString.substring(with: NSRange(location: from, length: to - from)))
   }
 
-  public func match(_ other: SwRegex) throws -> Nullable<SwString> {
-    return other.firstMatch(in: self)
+  // toLocaleLowerCase()
+
+  // toLocaleUpperCase()
+
+  public func toLowerCase() -> SwString {
+    return SwString(self.inner.lowercased())
   }
 
-  public func replace(_ pattern: SwRegex, _ replacement: SwString) throws -> SwString {
-    return SwString(pattern.replace(in: self.inner, with: replacement.inner))
+  public func toString() -> SwString {
+    return self
   }
 
-  public func includes(_ substring: SwString) throws -> Bool {
-    return self.inner.contains(substring.inner)
+  public func toUpperCase() -> SwString {
+    return SwString(self.inner.uppercased())
   }
 
-  public func startsWith(_ substring: SwString) throws -> Bool {
-    fatalError("not yet implemented!")
+  public func toWellFormerd() -> SwString {
+    return self
   }
 
-  public func replace(_ pattern: SwString, _ replacement: SwString) -> SwString {
-    guard let range = self.inner.range(of: pattern.inner) else {
-      return self
+  public func trim() -> SwString {
+    return self.trimStart().trimEnd()
+  }
+
+  public func trimEnd() -> SwString {
+    return SwString(String(SwString.trim(self.utf16.reversed()).reversed()) ?? "")
+  }
+
+  public func trimStart() -> SwString {
+    return SwString(String(SwString.trim(self.utf16)) ?? "")
+  }
+
+  private static func trim(_ y: String.UTF16View) -> String.UTF16View.SubSequence {
+      return y.trimmingPrefix { (u) in
+      u == 0x0009 || u == 0x000B || u == 0x000C || u == 0x0020 || u == 0x00A0 || u == 0xFEFF
+        || u == 0x1680 || u == 0x2000 || u == 0x2001 || u == 0x2002 || u == 0x2003
+        || u == 0x2004 || u == 0x2005 || u == 0x2006 || u == 0x2007 || u == 0x2008
+        || u == 0x2009 || u == 0x200A || u == 0x202F || u == 0x205F || u == 0x3000
+        || u == 0x000A || u == 0x000D || u == 0x2028 || u == 0x2029
     }
-    return SwString(
-      self.inner.replacingCharacters(in: range, with: replacement.inner))
   }
 
   public static func fromCharCode(_ nums: SwInt...) -> SwString {

@@ -63,11 +63,9 @@ public func wormhole() {
 
 }
 
-/**
- * Initialize of static value might be a call to some throwing function
- * in that case, we cannot propagate the error up,
- * so use this function to just panic
-*/
+/// Initialize of static value might be a call to some throwing function
+/// in that case, we cannot propagate the error up,
+/// so use this function to just panic
 public func panicOnThrow<T>(_ expression: @autoclosure @escaping () throws -> T) -> () -> T {
   {
     do {

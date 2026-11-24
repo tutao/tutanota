@@ -31,7 +31,8 @@ public final class Promise<T>: @unchecked Sendable, PromiseProtocol {
     self.task = Task { UncheckedSendable(value: try await body.value()) }
   }
 
-  public static func `async`(_ block: @escaping () async throws -> T) -> Promise<T.Value> where T: PromiseProtocol {
+  public static func `async`(_ block: @escaping () async throws -> T) -> Promise<T.Value>
+  where T: PromiseProtocol {
     return Promise<T.Value>(block)
   }
 
@@ -44,12 +45,14 @@ public final class Promise<T>: @unchecked Sendable, PromiseProtocol {
     return try await task.value.value
   }
 
-  public func then<P: PromiseProtocol>(_ action: @escaping (T) throws -> P) throws -> Promise<P.Value> {
-    return Promise<P.Value>{ try action(try await self.await()) }
+  public func then<P: PromiseProtocol>(_ action: @escaping (T) throws -> P) throws -> Promise<
+    P.Value
+  > {
+    return Promise<P.Value> { try action(try await self.await()) }
   }
 
   public func then<R>(_ action: @escaping (T) throws -> R) throws -> Promise<R> {
-    return Promise<R>{ try action(try await self.await()) }
+    return Promise<R> { try action(try await self.await()) }
   }
 
   public func `catch`<R>(_ action: @escaping (TutanotaError) throws -> R) throws -> Promise<R> {
@@ -71,7 +74,7 @@ public final class Promise<T>: @unchecked Sendable, PromiseProtocol {
   }
 
   public static func resolve(_ value: T) -> Promise<T.Value> where T: PromiseProtocol {
-    return Promise<T.Value>{ value }
+    return Promise<T.Value> { value }
   }
 
   public static func resolve(_ value: T) -> Promise<T> {

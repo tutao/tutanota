@@ -55,9 +55,9 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     return self.inner[1]
   }
   public func third() throws -> T {
-    let x = [1,2,3]
+    let x = [1, 2, 3]
     for a: Int in x {
-        print(a)
+      print(a)
     }
     return self.inner[2]
   }
