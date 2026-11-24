@@ -2677,3 +2677,6 @@ export type TranslationKeyType =
 	| "companySignatureEnabled_label"
 	| "selectSignature_action"
 	| "signaturesSettings_label"
+	| "hasRunningMigrations_msg"
+	| "subscriptionSettingsMigrationPaidFeature_label"
+	| "subscriptionSettingsMigrationPaidFeature_msg"

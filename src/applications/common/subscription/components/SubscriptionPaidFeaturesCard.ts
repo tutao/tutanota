@@ -62,6 +62,12 @@ const paidFeatures = [
 		label: "subscriptionSettingStorageFeature_label",
 		message: "subscriptionSettingStorageFeature_msg",
 	},
+	{
+		//Migration
+		label: "subscriptionSettingsMigrationPaidFeature_label",
+		message: "subscriptionSettingsMigrationPaidFeature_msg",
+		route: "/settings/migration",
+	},
 ] satisfies {
 	label: TranslationKey
 	message: TranslationKey

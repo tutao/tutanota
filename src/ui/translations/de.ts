@@ -2677,5 +2677,8 @@ export default {
 		"companySignatureEnabled_label": "Firmensignatur aktiviert",
 		"selectSignature_action": "Signatur auswählen",
 		"signaturesSettings_label": "Signaturen",
+		"hasRunningMigrations_msg": "There are still running migrations, please cancel them before downgrading.",
+		"subscriptionSettingsMigrationPaidFeature_label": "Migrations",
+		"subscriptionSettingsMigrationPaidFeature_msg": "If you have running migrations, please cancel them",
 	}
 }
