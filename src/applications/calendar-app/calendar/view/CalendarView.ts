@@ -16,7 +16,7 @@ import {
 	ofClass,
 	stringToBase64,
 } from "../../../../platform-kit/utils"
-import { elementIdPart, elementIdToId } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, isSameId } from "../../../../platform-kit/meta"
 import { Group, GroupInfo, User } from "@tutao/entities/sys"
 import { GroupType, hasCapabilityOnGroup, NewPaidPlans } from "../../../../entities/sys/Utils"
 import {
@@ -1042,8 +1042,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	private handleDelete(calendarInfo: CalendarInfo) {
 		const calendarName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, false)
 		loadGroupMembers(calendarInfo.group, locator.entityClient).then((members) => {
-			const ownerMail = locator.logins.getUserController().userGroupInfo.mailAddress
-			const otherMembers = members.filter((member) => member.info.mailAddress !== ownerMail)
+			const ownerUserGroupInfo = locator.logins.getUserController().userGroupInfo
+			const otherMembers = members.filter((member) => isSameId(member.userGroupInfo, ownerUserGroupInfo._id))
 			Dialog.confirm(
 				lang.makeTranslation(
 					"confirm_msg",

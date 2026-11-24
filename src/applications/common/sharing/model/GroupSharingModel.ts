@@ -6,7 +6,7 @@ import { elementIdToId, getElementId, getEtId, idToElementId, isSameId, isSameSi
 import { ProgrammingError, ShareCapability } from "../../../../platform-kit/app-env"
 import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { assertNotNull, findAndRemove, lazy, noOp, ofClass, promiseMap } from "../../../../platform-kit/utils"
-import { loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
+import { loadGroupInfoForMember, loadGroupMembersWithGroupInfos } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { UserError } from "../../api/main/UserError"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
@@ -90,7 +90,7 @@ export class GroupSharingModel {
 		const groupSettingsModel = await lazyGroupSettingsModel()
 		const [sentGroupInvitations, memberInfos, groupNameData] = await Promise.all([
 			entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations),
-			loadGroupMembers(group, entityClient),
+			loadGroupMembersWithGroupInfos(group, entityClient),
 			groupSettingsModel.getGroupNameData(groupInfo),
 		])
 		return new GroupSharingModel(

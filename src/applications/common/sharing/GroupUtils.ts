@@ -34,10 +34,13 @@ export function getCapabilityText(capability: ShareCapability): string {
 	}
 }
 
-export function loadGroupMembers(group: Group, entityClient: EntityClient): Promise<Array<GroupMemberInfo>> {
+export function loadGroupMembersWithGroupInfos(group: Group, entityClient: EntityClient): Promise<Array<GroupMemberInfo>> {
 	return entityClient
 		.loadAll(GroupMemberTypeRef, group.members)
 		.then((members) => promiseMap(members, (member) => loadGroupInfoForMember(member, entityClient)))
+}
+export function loadGroupMembers(group: Group, entityClient: EntityClient): Promise<Array<GroupMember>> {
+	return entityClient.loadAll(GroupMemberTypeRef, group.members)
 }
 
 export function loadGroupInfoForMember(groupMember: GroupMember, entityClient: EntityClient): Promise<GroupMemberInfo> {

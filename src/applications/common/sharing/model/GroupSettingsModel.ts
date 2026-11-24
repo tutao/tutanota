@@ -19,7 +19,7 @@ import { GroupInfo, GroupTypeRef } from "@tutao/entities/sys"
 import { isSharedGroupOwner } from "../../../../entities/sys/Utils"
 import { LoginController } from "../../api/main/LoginController"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { getCustomSharedGroupName, getSharedGroupName, loadGroupMembers } from "../GroupUtils"
+import { getCustomSharedGroupName, getSharedGroupName, loadGroupMembersWithGroupInfos } from "../GroupUtils"
 import { noOp, ofClass } from "@tutao/utils"
 import { LockedError } from "@tutao/rest-client/error"
 
@@ -47,7 +47,7 @@ export class GroupSettingsModel {
 
 	async getGroupNameData(groupInfo: GroupInfo): Promise<Readonly<GroupNameData>> {
 		const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupInfo.group))
-		const groupMembers = await loadGroupMembers(group, this.entityClient)
+		const groupMembers = await loadGroupMembersWithGroupInfos(group, this.entityClient)
 
 		const userSettingsGroupRoot = this.loginController.getUserController().userSettingsGroupRoot
 		const customName = getCustomSharedGroupName(groupInfo, userSettingsGroupRoot)
