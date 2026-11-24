@@ -1,3 +1,4 @@
+
 // would have preferred to do all client builds and the release note input completely in parallel,
 // but that would require nested parallel blocks which is not supported in declarative pipelines.
 def releaseNotes
@@ -210,251 +211,247 @@ pipeline {
 					} // parallel
 				} // stage web and desktop
 
-				stage("Mail Mobile") {
-					parallel {
-						stage("iOS Client") {
-							when {
-								expression { params.ios_mail }
-							}
-							stages {
-								stage("Build iOS") {
-									when {
-										expression { shouldBuild() }
-									}
-									steps {
-										script {
-											build job: 'tutanota-3-ios', parameters: [
-													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "PROD", value: true),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage build
-								stage("Publish iOS") {
-									when {
-										expression { params.target != "dryRun" }
-									}
-									steps {
-										script {
-											build job: 'tutanota-3-ios-publish', parameters: params.target.equals("publishToProd") ? [
-													booleanParam(name: "STAGING", value: false),
-													booleanParam(name: "PROD", value: true),
-													booleanParam(name: "GITHUB_RELEASE", value: true),
-													text(name: "releaseNotes", value: releaseNotes.ios_mail),
-													string(name: "branch", value: params.branch)
-											] : [
-													booleanParam(name: "STAGING", value: true),
-													booleanParam(name: "PROD", value: false),
-													booleanParam(name: "GITHUB_RELEASE", value: false),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage publish
-							} // stages
-						} // stage ios client
+				parallel {
+                    stage("Mail Mobile") {
+                            stage("iOS Client") {
+                                when {
+                                    expression { params.ios_mail }
+                                }
+                                stages {
+                                    stage("Build iOS") {
+                                        when {
+                                            expression { shouldBuild() }
+                                        }
+                                        steps {
+                                            script {
+                                                build job: 'tutanota-3-ios', parameters: [
+                                                        booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage build
+                                    stage("Publish iOS") {
+                                        when {
+                                            expression { params.target != "dryRun" }
+                                        }
+                                        steps {
+                                            script {
+                                                build job: 'tutanota-3-ios-publish', parameters: params.target.equals("publishToProd") ? [
+                                                        booleanParam(name: "STAGING", value: false),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: true),
+                                                        text(name: "releaseNotes", value: releaseNotes.ios_mail),
+                                                        string(name: "branch", value: params.branch)
+                                                ] : [
+                                                        booleanParam(name: "STAGING", value: true),
+                                                        booleanParam(name: "PROD", value: false),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: false),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage publish
+                                } // stages
+                            } // stage ios client
 
-						stage("Android Client") {
-							when { expression { params.android_mail } }
-							stages {
-								stage("Build Android") {
-									when {
-										expression { shouldBuild() }
-									}
-									steps {
-										script {
-											build job: 'tutanota-3-android', parameters: [
-													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "PROD", value: true),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage build
-								stage("Publish Android") {
-									when { expression { params.target != "dryRun" } }
-									steps {
-										script {
-											build job: 'tutanota-3-android-publish', parameters: params.target.equals("publishToProd") ? [
-													booleanParam(name: "STAGING", value: false),
-													booleanParam(name: "PROD", value: true),
-													booleanParam(name: "GITHUB_RELEASE", value: true),
-													text(name: "releaseNotes", value: releaseNotes.android_mail),
-													string(name: "branch", value: params.branch)
-											] : [
-													booleanParam(name: "STAGING", value: true),
-													booleanParam(name: "PROD", value: false),
-													booleanParam(name: "GITHUB_RELEASE", value: false),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage publish
-							} // stages
-						} // stage android client
-					} // parallel
-				} // stage Mail Mobile
-				stage("Calendar Mobile") {
-					parallel {
-						stage("Calendar iOS") {
-							when { expression { params.ios_calendar } }
-							stages {
-								stage("Build Calendar iOS") {
-									when { expression { shouldBuild() } }
-									steps {
-										script {
-											build job: 'tuta-calendar-ios', parameters: [
-													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "PROD", value: true),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage build
-								stage("Publish Calendar iOS") {
-									when { expression { params.target != "dryRun" } }
-									steps {
-										script {
-											build job: 'tuta-calendar-ios-publish', parameters: params.target.equals("publishToProd") ? [
-													booleanParam(name: "STAGING", value: false),
-													booleanParam(name: "PROD", value: true),
-													booleanParam(name: "GITHUB_RELEASE", value: true),
-													text(name: "releaseNotes", value: releaseNotes.ios_calendar),
-													string(name: "branch", value: params.branch)
-											] : [
-													booleanParam(name: "STAGING", value: true),
-													booleanParam(name: "PROD", value: false),
-													booleanParam(name: "GITHUB_RELEASE", value: false),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage publish
-							} // stages
-						} // stage ios client
+                            stage("Android Client") {
+                                when { expression { params.android_mail } }
+                                stages {
+                                    stage("Build Android") {
+                                        when {
+                                            expression { shouldBuild() }
+                                        }
+                                        steps {
+                                            script {
+                                                build job: 'tutanota-3-android', parameters: [
+                                                        booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage build
+                                    stage("Publish Android") {
+                                        when { expression { params.target != "dryRun" } }
+                                        steps {
+                                            script {
+                                                build job: 'tutanota-3-android-publish', parameters: params.target.equals("publishToProd") ? [
+                                                        booleanParam(name: "STAGING", value: false),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: true),
+                                                        text(name: "releaseNotes", value: releaseNotes.android_mail),
+                                                        string(name: "branch", value: params.branch)
+                                                ] : [
+                                                        booleanParam(name: "STAGING", value: true),
+                                                        booleanParam(name: "PROD", value: false),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: false),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage publish
+                                } // stages
+                            } // stage android client
+                    } // stage Mail Mobile
+                    stage("Calendar Mobile") {
+                            stage("Calendar iOS") {
+                                when { expression { params.ios_calendar } }
+                                stages {
+                                    stage("Build Calendar iOS") {
+                                        when { expression { shouldBuild() } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-calendar-ios', parameters: [
+                                                        booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage build
+                                    stage("Publish Calendar iOS") {
+                                        when { expression { params.target != "dryRun" } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-calendar-ios-publish', parameters: params.target.equals("publishToProd") ? [
+                                                        booleanParam(name: "STAGING", value: false),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: true),
+                                                        text(name: "releaseNotes", value: releaseNotes.ios_calendar),
+                                                        string(name: "branch", value: params.branch)
+                                                ] : [
+                                                        booleanParam(name: "STAGING", value: true),
+                                                        booleanParam(name: "PROD", value: false),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: false),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage publish
+                                } // stages
+                            } // stage ios client
 
-						stage("Calendar Android") {
-							when { expression { params.android_calendar } }
-							stages {
-								stage("Build Calendar Android") {
-									when { expression { shouldBuild() } }
-									steps {
-										script {
-											build job: 'tuta-calendar-android', parameters: [
-													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "PROD", value: true),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage build
-								stage("Publish Calendar Android") {
-									when { expression { params.target != "dryRun" } }
-									steps {
-										script {
-											build job: 'tuta-calendar-android-publish', parameters: params.target.equals("publishToProd") ? [
-													booleanParam(name: "STAGING", value: false),
-													booleanParam(name: "PROD", value: true),
-													booleanParam(name: "GITHUB_RELEASE", value: true),
-													text(name: "releaseNotes", value: releaseNotes.android_calendar),
-													string(name: "branch", value: params.branch)
-											] : [
-													booleanParam(name: "STAGING", value: true),
-													booleanParam(name: "PROD", value: false),
-													booleanParam(name: "GITHUB_RELEASE", value: false),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage publish
-							} // stages
-						} // stage android client
-					} // parallel
-				} // stage Calendar Mobile
-				stage("Drive Mobile") {
-					parallel {
-						stage("Drive iOS") {
-							when { expression { params.ios_drive } }
-							stages {
-								stage("Build Drive iOS") {
-									when { expression { shouldBuild() } }
-									steps {
-										script {
-											build job: 'tuta-drive-ios', parameters: [
-													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "PROD", value: true),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage build
-								stage("Publish Drive iOS") {
-									when { expression { params.target != "dryRun" } }
-									steps {
-										script {
-											build job: 'tuta-drive-ios-publish', parameters: params.target.equals("publishToProd") ? [
-													booleanParam(name: "STAGING", value: false),
-													booleanParam(name: "PROD", value: true),
-													booleanParam(name: "GITHUB_RELEASE", value: true),
-													text(name: "releaseNotes", value: releaseNotes.ios_drive),
-													string(name: "branch", value: params.branch)
-											] : [
-													booleanParam(name: "STAGING", value: true),
-													booleanParam(name: "PROD", value: false),
-													booleanParam(name: "GITHUB_RELEASE", value: false),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage publish
-							} // stages
-						} // stage ios client
+                            stage("Calendar Android") {
+                                when { expression { params.android_calendar } }
+                                stages {
+                                    stage("Build Calendar Android") {
+                                        when { expression { shouldBuild() } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-calendar-android', parameters: [
+                                                        booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage build
+                                    stage("Publish Calendar Android") {
+                                        when { expression { params.target != "dryRun" } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-calendar-android-publish', parameters: params.target.equals("publishToProd") ? [
+                                                        booleanParam(name: "STAGING", value: false),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: true),
+                                                        text(name: "releaseNotes", value: releaseNotes.android_calendar),
+                                                        string(name: "branch", value: params.branch)
+                                                ] : [
+                                                        booleanParam(name: "STAGING", value: true),
+                                                        booleanParam(name: "PROD", value: false),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: false),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage publish
+                                } // stages
+                            } // stage android client
+                    } // stage Calendar Mobile
+                    stage("Drive Mobile") {
+                            stage("Drive iOS") {
+                                when { expression { params.ios_drive } }
+                                stages {
+                                    stage("Build Drive iOS") {
+                                        when { expression { shouldBuild() } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-drive-ios', parameters: [
+                                                        booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage build
+                                    stage("Publish Drive iOS") {
+                                        when { expression { params.target != "dryRun" } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-drive-ios-publish', parameters: params.target.equals("publishToProd") ? [
+                                                        booleanParam(name: "STAGING", value: false),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: true),
+                                                        text(name: "releaseNotes", value: releaseNotes.ios_drive),
+                                                        string(name: "branch", value: params.branch)
+                                                ] : [
+                                                        booleanParam(name: "STAGING", value: true),
+                                                        booleanParam(name: "PROD", value: false),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: false),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage publish
+                                } // stages
+                            } // stage ios client
 
-						stage("Drive Android") {
-							when { expression { params.android_drive } }
-							stages {
-								stage("Build Drive Android") {
-									when { expression { shouldBuild() } }
-									steps {
-										script {
-											build job: 'tuta-drive-android', parameters: [
-													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
-													booleanParam(name: "PROD", value: true),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage build
-								stage("Publish Drive Android") {
-									when { expression { params.target != "dryRun" } }
-									steps {
-										script {
-											build job: 'tuta-drive-android-publish', parameters: params.target == "publishToProd" ? [
-													booleanParam(name: "STAGING", value: false),
-													booleanParam(name: "PROD", value: true),
-													booleanParam(name: "GITHUB_RELEASE", value: true),
-													text(name: "releaseNotes", value: releaseNotes.android_drive),
-													string(name: "branch", value: params.branch)
-											] : [
-													booleanParam(name: "STAGING", value: true),
-													booleanParam(name: "PROD", value: false),
-													booleanParam(name: "GITHUB_RELEASE", value: false),
-													string(name: "branch", value: params.branch)
-											]
-										} // script
-									} // steps
-								} // stage publish
-							} // stages
-						} // stage android client
-					} // parallel
-				} // stage Drive Mobile
+                            stage("Drive Android") {
+                                when { expression { params.android_drive } }
+                                stages {
+                                    stage("Build Drive Android") {
+                                        when { expression { shouldBuild() } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-drive-android', parameters: [
+                                                        booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage build
+                                    stage("Publish Drive Android") {
+                                        when { expression { params.target != "dryRun" } }
+                                        steps {
+                                            script {
+                                                build job: 'tuta-drive-android-publish', parameters: params.target == "publishToProd" ? [
+                                                        booleanParam(name: "STAGING", value: false),
+                                                        booleanParam(name: "PROD", value: true),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: true),
+                                                        text(name: "releaseNotes", value: releaseNotes.android_drive),
+                                                        string(name: "branch", value: params.branch)
+                                                ] : [
+                                                        booleanParam(name: "STAGING", value: true),
+                                                        booleanParam(name: "PROD", value: false),
+                                                        booleanParam(name: "GITHUB_RELEASE", value: false),
+                                                        string(name: "branch", value: params.branch)
+                                                ]
+                                            } // script
+                                        } // steps
+                                    } // stage publish
+                                } // stages
+                            } // stage android client
+                    } // stage Drive Mobile
+				} // parallel
 			} // stages
 		} // stage other clients
 		stage('notify about release') {
