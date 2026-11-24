@@ -17,13 +17,20 @@ import Stream from "mithril/stream"
 import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import m from "mithril"
 import type { SelectorItemList } from "../../../ui/base/DropDownSelector.js"
-import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
-import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { DropDownSelectorNew } from "../../../ui/base/DropDownSelectorNew.js"
+import { Card } from "../../../ui/base/Card.js"
+import { Icon, IconSize } from "../../../ui/base/Icon.js"
+import { theme } from "../../../ui/theme.js"
+import { px, size } from "../../../ui/size.js"
+import { PlaceholderChip, PlaceholderChips } from "./PlaceholderChips.js"
+import { TextField } from "../../../ui/base/TextField.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/utils"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer.js"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
-import { SegmentControl } from "../../../ui/base/SegmentControl.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { TextSegmentControl, TextSegmentControlItem } from "../../../ui/base/TextSegmentControl.js"
 import { UserError } from "../api/main/UserError.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs.js"
 import { getAvailablePlansWithWhitelabel, isWhitelabelActive } from "../subscription/utils/SubscriptionUtils.js"
@@ -93,9 +100,9 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		template = createNotificationMailTemplate({
 			language: "en",
 			body: getDefaultNotificationMail(),
-			subject: lang.get("externalNotificationMailSubject_msg", {
+			subject: lang.getTranslation("externalNotificationMailSubject_msg", {
 				"{1}": "{sender}",
-			}),
+			}).text,
 		})
 	} else {
 		template = existingTemplate
@@ -109,22 +116,26 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		.enableToolbar()
 		.setToolbarOptions({
 			imageButtonClickHandler: insertInlineImageB64ClickHandler,
+			isNonElevatedBackground: true,
 		})
-	const editSegment = {
-		name: lang.get("edit_action"),
+		.setBackgroundClass("nav-bg")
+	const editSegment: TextSegmentControlItem<string> = {
+		icon: Icons.PenOutline,
+		label: "edit_action",
 		value: "edit",
 	}
-	const previewSegment = {
-		name: lang.get("preview_label"),
+	const previewSegment: TextSegmentControlItem<string> = {
+		icon: Icons.EyeOutline,
+		label: "preview_label",
 		value: "preview",
 	}
 	const selectedTab = stream(editSegment.value)
 	const sortedLanguages: SelectorItemList<string> = languages
 		.slice()
-		.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+		.sort((a, b) => lang.getTranslationText(a.textId).localeCompare(lang.getTranslationText(b.textId)))
 		.map((language) => {
 			return {
-				name: lang.get(language.textId),
+				name: lang.getTranslationText(language.textId),
 				value: language.code,
 			}
 		})
@@ -141,27 +152,68 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		}
 	})
 
+	let subjectInput = null as HTMLInputElement | null
+	let subjectFocused = false
+	const insertPlaceholder = (placeholder: string) => {
+		if (subjectFocused && subjectInput) {
+			subjectInput.setRangeText(placeholder, subjectInput.selectionStart ?? subject().length, subjectInput.selectionEnd ?? subject().length, "end")
+			subject(subjectInput.value)
+		} else {
+			editor.insertAtCursor(placeholder)
+		}
+	}
+	const removePlaceholder = (placeholder: string) => {
+		subject(subject().split(placeholder).join(""))
+		editor.removeText(placeholder)
+	}
+	const placeholderChips: PlaceholderChip[] = [
+		{ placeholder: "{link}", label: "notificationMailLink_label", required: true },
+		{ placeholder: "{sender}", label: "sender_label" },
+	]
+
 	const editTabContent = () => [
-		m(".small.mt-8", lang.get("templateHelp_msg")),
-		existingTemplate
-			? m(LegacyTextField, {
-					label: "notificationMailLanguage_label",
-					isReadOnly: true,
-					value: selectedLanguage.name,
-				})
-			: m(DropDownSelector, {
-					label: "notificationMailLanguage_label",
-					items: sortedLanguages,
-					selectedValue: selectedLanguageStream(),
-					selectionChangedHandler: selectedLanguageStream,
-					dropdownWidth: 250,
-				}),
-		m(LegacyTextField, {
-			label: "subject_label",
-			value: subject(),
-			oninput: subject,
-		}),
-		m(editor),
+		m(Card, { classes: ["mt-16 center"], style: { padding: px(size.spacing_16) } }, [
+			m(Icon, { icon: Icons.BellFilled, size: IconSize.PX32, style: { fill: theme.on_surface_variant } }),
+			m(".smaller.mt-16", lang.getTranslationText("templateHelp_msg")),
+		]),
+		m(".mt-16", [
+			existingTemplate
+				? m(TextField, {
+						label: "notificationMailLanguage_label",
+						isReadOnly: true,
+						value: selectedLanguage.name,
+					})
+				: m(DropDownSelectorNew, {
+						label: "notificationMailLanguage_label",
+						items: sortedLanguages,
+						selectedValue: selectedLanguageStream(),
+						selectionChangedHandler: selectedLanguageStream,
+						dropdownWidth: 250,
+					}),
+		]),
+		m(
+			".mt-16",
+			m(PlaceholderChips, {
+				chips: placeholderChips,
+				contentWithPlaceholder: subject() + editor.getValue(),
+				onInsert: insertPlaceholder,
+				onRemove: removePlaceholder,
+			}),
+		),
+		m(
+			".mt-16",
+			m(TextField, {
+				label: "subject_label",
+				value: subject(),
+				oninput: subject,
+				onfocus: (_, input) => {
+					subjectInput = input
+					subjectFocused = true
+				},
+				onblur: () => (subjectFocused = false),
+			}),
+		),
+		m(".mt-16", m(editor)),
 	]
 
 	const senderName = locator.logins.getUserController().userGroupInfo.name
@@ -178,86 +230,93 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	})
 
 	const previewTabContent = () => [
-		m(LegacyTextField, {
-			label: "subject_label",
-			value: subject().replace(/{sender}/g, senderName),
-			isReadOnly: true,
-		}),
-		m(".small.mt-16.mb-16", lang.get("mailBody_label")),
+		m(".mt-16", m(TextField, { label: "subject_label", value: subject().replace(/{sender}/g, senderName), isReadOnly: true })),
+		m(".small.mt-16.mb-16", lang.getTranslationText("mailBody_label")),
 		m.trust(sanitizePreview(savedHtml.replace(/{sender}/g, senderName).replace(/{link}/g, senderDomain))),
 	]
 
-	Dialog.showActionDialog({
-		type: DialogType.EditLarge,
+	const save = (dialog: Dialog) => {
+		if (!editor.getValue().includes("{link}")) {
+			return Dialog.message(
+				lang.getTranslation("templateMustContain_msg", {
+					"{value}": "{link}",
+				}),
+			)
+		}
+
+		let templates: NotificationMailTemplate[]
+		let isExistingTemplate: boolean
+		const oldLanguage = template.language
+		const oldSubject = template.subject
+		const oldBody = template.body
+		return showProgressDialog(
+			"pleaseWait_msg",
+			customerProperties.getAsync().then((customerProperties) => {
+				templates = customerProperties.notificationMailTemplates
+
+				if (customerProperties.notificationMailTemplates.some((t) => t !== existingTemplate && t.language === selectedLanguageStream())) {
+					throw new UserError("templateLanguageExists_msg")
+				}
+
+				isExistingTemplate = templates.includes(template)
+
+				if (!isExistingTemplate) {
+					customerProperties.notificationMailTemplates.push(template)
+				}
+
+				template.subject = htmlSanitizer.sanitizeHTML(subject(), {
+					blockExternalContent: false,
+				}).html
+				template.body = htmlSanitizer.sanitizeHTML(editor.getValue(), {
+					blockExternalContent: false,
+				}).html
+				template.language = selectedLanguageStream()
+				return locator.entityClient.update(customerProperties).then(() => dialog.close())
+			}),
+		)
+			.catch(
+				ofClass(UserError, (err) => {
+					return Dialog.message(lang.makeTranslation("error_message", err.message))
+				}),
+			)
+			.catch(
+				ofClass(PayloadTooLargeError, () => {
+					template.subject = oldSubject
+					template.body = oldBody
+					template.language = oldLanguage
+
+					if (!isExistingTemplate) {
+						templates.pop()
+					}
+
+					return Dialog.message("notificationMailTemplateTooLarge_msg")
+				}),
+			)
+	}
+
+	const dialog = Dialog.showActionDialog({
+		type: DialogType.Popup_L,
 		title: "edit_action",
 		child: () => {
 			return [
-				m(SegmentControl, {
+				m(TextSegmentControl, {
 					items: [editSegment, previewSegment],
 					selectedValue: selectedTab(),
 					onValueSelected: selectedTab,
 				}),
 				selectedTab() === editSegment.value ? editTabContent() : previewTabContent(),
+				m(
+					".flex-end.wrap.mt-24.gap-16",
+					m(PrimaryButton, {
+						width: "flex",
+						label: "save_action",
+						onclick: () => save(dialog),
+						disabled: !(selectedTab() === editSegment.value ? editor.getValue() : savedHtml).includes("{link}"),
+					}),
+				),
 			]
 		},
-		okAction: (dialog: Dialog) => {
-			if (!editor.getValue().includes("{link}")) {
-				return Dialog.message(
-					lang.getTranslation("templateMustContain_msg", {
-						"{value}": "{link}",
-					}),
-				)
-			}
-
-			let templates: NotificationMailTemplate[]
-			let isExistingTemplate: boolean
-			const oldLanguage = template.language
-			const oldSubject = template.subject
-			const oldBody = template.body
-			return showProgressDialog(
-				"pleaseWait_msg",
-				customerProperties.getAsync().then((customerProperties) => {
-					templates = customerProperties.notificationMailTemplates
-
-					if (customerProperties.notificationMailTemplates.some((t) => t !== existingTemplate && t.language === selectedLanguageStream())) {
-						throw new UserError("templateLanguageExists_msg")
-					}
-
-					isExistingTemplate = templates.includes(template)
-
-					if (!isExistingTemplate) {
-						customerProperties.notificationMailTemplates.push(template)
-					}
-
-					template.subject = htmlSanitizer.sanitizeHTML(subject(), {
-						blockExternalContent: false,
-					}).html
-					template.body = htmlSanitizer.sanitizeHTML(editor.getValue(), {
-						blockExternalContent: false,
-					}).html
-					template.language = selectedLanguageStream()
-					return locator.entityClient.update(customerProperties).then(() => dialog.close())
-				}),
-			)
-				.catch(
-					ofClass(UserError, (err) => {
-						return Dialog.message(lang.makeTranslation("error_message", err.message))
-					}),
-				)
-				.catch(
-					ofClass(PayloadTooLargeError, () => {
-						template.subject = oldSubject
-						template.body = oldBody
-						template.language = oldLanguage
-
-						if (!isExistingTemplate) {
-							templates.pop()
-						}
-
-						return Dialog.message("notificationMailTemplateTooLarge_msg")
-					}),
-				)
-		},
+		okAction: null,
 	})
 }
 
@@ -267,29 +326,29 @@ const HTML_PTAG_END = "</p>"
 function getDefaultNotificationMail(): string {
 	return (
 		HTML_PTAG_START +
-		lang.get("externalNotificationMailBody1_msg") +
+		lang.getTranslationText("externalNotificationMailBody1_msg") +
 		HTML_PTAG_END +
 		HTML_PTAG_START +
-		lang.get("externalNotificationMailBody2_msg", {
+		lang.getTranslation("externalNotificationMailBody2_msg", {
 			"{1}": InfoLink.HomePage,
-		}) +
+		}).text +
 		HTML_PTAG_END +
 		HTML_PTAG_START +
 		"<a href='{link}'>" +
-		lang.get("externalNotificationMailBody3_msg") +
+		lang.getTranslationText("externalNotificationMailBody3_msg") +
 		"</a>" +
 		HTML_PTAG_END +
 		HTML_PTAG_START +
-		lang.get("externalNotificationMailBody4_msg") +
+		lang.getTranslationText("externalNotificationMailBody4_msg") +
 		"<br>" +
 		"{link}" +
 		"<br>" +
 		HTML_PTAG_END +
 		HTML_PTAG_START +
-		lang.get("externalNotificationMailBody5_msg") +
+		lang.getTranslationText("externalNotificationMailBody5_msg") +
 		HTML_PTAG_END +
 		HTML_PTAG_START +
-		lang.get("externalNotificationMailBody6_msg") +
+		lang.getTranslationText("externalNotificationMailBody6_msg") +
 		"<br>" +
 		"{sender}" +
 		HTML_PTAG_END

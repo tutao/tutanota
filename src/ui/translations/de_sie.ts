@@ -2678,5 +2678,6 @@ export default {
 		"companySignatureEnabled_label": "Firmensignatur aktiviert",
 		"selectSignature_action": "Signatur auswählen",
 		"signaturesSettings_label": "Signaturen",
+		"notificationMailLink_label": "Link zur Mailbox",
 	}
 }
