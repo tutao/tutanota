@@ -108,7 +108,13 @@ export async function showUserSatisfactionDialog(
 					image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/rate-us.svg`,
 					imageStyle: { maxWidth: px(320) },
 					titleText: "ratingGooglePlay_title",
-					messageText: "ratingFeedbackSent_msg",
+					messageText: () => {
+						const linkText = lang.getTranslationText("ratingBusinessContactLinkText_msg")
+						const message = lang.getTranslation("ratingBusinessContact_msg", {
+							"{link}": `<a href="https://tuta.com/business/contact" target="_blank" rel="noopener noreferrer" class="underline">${linkText}</a>`,
+						})
+						return m.trust(message.text)
+					},
 					mainActionText: "close_alt",
 					mainActionClick: () => dialog.close(),
 					subActionText: null,

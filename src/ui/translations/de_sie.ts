@@ -2644,6 +2644,8 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"accessGone_msg": "Dieses Konto wurde auf Veranlassung des Kontoinhabers deaktiviert.",
 		"feedbackForUs_label": "Haben Sie Feedback für uns?",
-		"feedbackNoReply_msg": "Wir werden nicht auf Ihre Nachricht antworten, sie aber an das Team weiterleiten."
+		"feedbackNoReply_msg": "Wir werden nicht auf Ihre Nachricht antworten, sie aber an das Team weiterleiten.",
+		"ratingBusinessContact_msg": "Wenn Sie ein Unternehmen kennen, das auch Datenschutz verdient, {link}.",
+		"ratingBusinessContactLinkText_msg": "geben Sie uns Bescheid",
 	}
 }

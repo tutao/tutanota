@@ -1,4 +1,4 @@
-import m, { Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { lang, TranslationKey } from "../utils/LanguageViewModel"
 import { BaseButton } from "../base/buttons/BaseButton"
 import { component_size, px, size } from "../size"
@@ -9,7 +9,7 @@ import { DynamicColorSvg } from "../base/DynamicColorSvg.js"
 interface ImageWithOptionsDialogAttrs {
 	image: string
 	titleText: TranslationKey
-	messageText: TranslationKey
+	messageText: TranslationKey | (() => Children)
 	mainActionText: TranslationKey
 	mainActionClick: () => unknown
 	subActionText: TranslationKey | null
@@ -39,7 +39,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 					),
 				),
 				m("h1.text-center", lang.getTranslationText(attrs.titleText)),
-				m("p.text-center", lang.getTranslationText(attrs.messageText)),
+				m("p.text-center", typeof attrs.messageText === "function" ? attrs.messageText() : lang.getTranslationText(attrs.messageText)),
 			),
 			m(
 				"section.flex.flex-column",

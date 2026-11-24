@@ -2644,6 +2644,8 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"accessGone_msg": "This account has been deactivated at the account owner's request.",
 		"feedbackForUs_label": "Have some feedback?",
-		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and shared with the team"
+		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and shared with the team",
+		"ratingBusinessContact_msg": "If you know a business that also deserves privacy, {link}.",
+		"ratingBusinessContactLinkText_msg": "let us know",
 	}
 }

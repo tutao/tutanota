@@ -2637,3 +2637,5 @@ export type TranslationKeyType =
 	| "fileLoadingError_msg"
 	| "fileExpirationDate_msg"
 	| "emptyString_msg"
+	| "ratingBusinessContact_msg"
+	| "ratingBusinessContactLinkText_msg"
