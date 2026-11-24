@@ -16,3 +16,5 @@ export const TsDouble = Object.assign(Number, {
 	},
 })
 export const TsString = String
+
+export type NonPromise<T> = T extends Promise<any> ? never : T
