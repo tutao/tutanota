@@ -209,10 +209,9 @@ pipeline {
 						} // stage desktop client
 					} // parallel
 				} // stage web and desktop
-
-				stage("Mail Mobile") {
+				stage("Mobile Clients") {
 					parallel {
-						stage("iOS Client") {
+						stage("Mail iOS Client") {
 							when {
 								expression { params.ios_mail }
 							}
@@ -254,9 +253,8 @@ pipeline {
 									} // steps
 								} // stage publish
 							} // stages
-						} // stage ios client
-
-						stage("Android Client") {
+						}
+						stage("Mail Android Client") {
 							when { expression { params.android_mail } }
 							stages {
 								stage("Build Android") {
@@ -294,11 +292,8 @@ pipeline {
 									} // steps
 								} // stage publish
 							} // stages
-						} // stage android client
-					} // parallel
-				} // stage Mail Mobile
-				stage("Calendar Mobile") {
-					parallel {
+						} // mail android client
+
 						stage("Calendar iOS") {
 							when { expression { params.ios_calendar } }
 							stages {
@@ -335,8 +330,7 @@ pipeline {
 									} // steps
 								} // stage publish
 							} // stages
-						} // stage ios client
-
+						} // stage calendar ios client
 						stage("Calendar Android") {
 							when { expression { params.android_calendar } }
 							stages {
@@ -373,11 +367,7 @@ pipeline {
 									} // steps
 								} // stage publish
 							} // stages
-						} // stage android client
-					} // parallel
-				} // stage Calendar Mobile
-				stage("Drive Mobile") {
-					parallel {
+						} // stage calendar android client
 						stage("Drive iOS") {
 							when { expression { params.ios_drive } }
 							stages {
@@ -414,8 +404,7 @@ pipeline {
 									} // steps
 								} // stage publish
 							} // stages
-						} // stage ios client
-
+						} // stage drive ios client
 						stage("Drive Android") {
 							when { expression { params.android_drive } }
 							stages {
@@ -452,9 +441,9 @@ pipeline {
 									} // steps
 								} // stage publish
 							} // stages
-						} // stage android client
+						} // stage drive android client
 					} // parallel
-				} // stage Drive Mobile
+				} // stage mobile clients
 			} // stages
 		} // stage other clients
 		stage('notify about release') {
