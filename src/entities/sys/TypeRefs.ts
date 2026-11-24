@@ -10103,9 +10103,6 @@ export type PartnerManagedCustomer = {
 	_permissions: Id
 	_format: NumberString
 	_ownerGroup: null | Id
-	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
-	_ownerKeyVersion: null | NumberString
-	_kdfNonce: null | Uint8Array<ArrayBuffer>
 
 	// == associations
 
@@ -10115,12 +10112,14 @@ export type PartnerManagedCustomer = {
 
 	bucketKey: null
 
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
 	_type: TypeRef<PartnerManagedCustomer>
-	_errors: Object
 	_original: Nullable<PartnerManagedCustomer>
 	isAdapter: false
 }

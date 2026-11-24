@@ -16807,7 +16807,7 @@
 		"id": 2672,
 		"rootId": "A3N5cwAKcA",
 		"versioned": false,
-		"encrypted": true,
+		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": null,
 		"values": {
@@ -16843,33 +16843,6 @@
 				"name": "_ownerGroup",
 				"id": 2677,
 				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false,
-				"transferredAttributeId": null
-			},
-			"2678": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 2678,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false,
-				"transferredAttributeId": null
-			},
-			"2679": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 2679,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false,
-				"transferredAttributeId": null
-			},
-			"2708": {
-				"final": true,
-				"name": "_kdfNonce",
-				"id": 2708,
-				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null

@@ -6388,19 +6388,8 @@ pub struct PartnerManagedCustomer {
 	pub _format: i64,
 	#[serde(rename = "2677")]
 	pub _ownerGroup: Option<GeneratedId>,
-	#[serde(rename = "2678")]
-	#[serde(with = "serde_bytes")]
-	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2679")]
-	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2708")]
-	#[serde(with = "serde_bytes")]
-	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "2680")]
 	pub customerInfo: IdTupleGenerated,
-
-	#[serde(default)]
-	pub _errors: Errors,
 }
 
 impl Entity for PartnerManagedCustomer {
