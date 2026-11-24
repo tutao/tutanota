@@ -838,6 +838,7 @@ export default {
 		"formatTextAlignment_msg": "Alignment",
 		"formatTextBold_msg": "Make selected text bold.",
 		"formatTextCenter_msg": "Center",
+		"formatTextColor_msg": "Text color",
 		"formatTextFontSize_msg": "Font size",
 		"formatTextItalic_msg": "Make selected text italic.",
 		"formatTextJustify_msg": "Justified",
