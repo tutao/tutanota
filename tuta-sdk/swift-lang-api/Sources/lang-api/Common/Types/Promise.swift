@@ -31,8 +31,8 @@ public final class Promise<T>: @unchecked Sendable, PromiseProtocol {
     self.task = Task { UncheckedSendable(value: try await body.value()) }
   }
 
-  public static func `async`<P: PromiseProtocol>(_ block: @escaping () async throws -> P) -> Promise<T> where P.Value == T  {
-    return Promise(block)
+  public static func `async`(_ block: @escaping () async throws -> T) -> Promise<T.Value> where T: PromiseProtocol {
+    return Promise<T.Value>(block)
   }
 
   public static func `async`(_ block: @escaping () async throws -> T) -> Promise<T> {
@@ -70,8 +70,8 @@ public final class Promise<T>: @unchecked Sendable, PromiseProtocol {
     }
   }
 
-  public static func resolve<P: PromiseProtocol>(_ value: P) -> Promise<P.Value> {
-    return Promise<P.Value>{ value }
+  public static func resolve(_ value: T) -> Promise<T.Value> where T: PromiseProtocol {
+    return Promise<T.Value>{ value }
   }
 
   public static func resolve(_ value: T) -> Promise<T> {
