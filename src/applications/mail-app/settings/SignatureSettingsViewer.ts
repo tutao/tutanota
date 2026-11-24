@@ -6,7 +6,6 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import type { LoginController } from "../../common/api/main/LoginController"
 import { CustomEmailSignature } from "@tutao/entities/tutanota"
 import { isSameId } from "@tutao/meta"
-import { EmailSignatureType } from "../../../entities/tutanota/Utils"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { theme } from "../../../ui/theme"
@@ -15,7 +14,6 @@ import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { DropDownSelectorNew } from "../../../ui/base/DropDownSelectorNew"
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
-import { TextField } from "../../../ui/base/TextField"
 import { component_size, px, size } from "../../../ui/size"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons"
 import { Dialog } from "../../../ui/base/Dialog"
@@ -26,7 +24,6 @@ import { EmailSignatureContext, EmailSignatureSetting } from "../mail/signature/
 import { getUsedCompanyEmailSignatureFields } from "../mail/signature/CompanyEmailSignature"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { Card } from "../../../ui/base/Card"
-import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 import { showCustomSignatureEditor } from "./EditSignatureDialog"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { SignatureSettingsViewerModel } from "./SignatureSettingsViewerModel"
@@ -63,8 +60,8 @@ export class SignatureSettingsViewer implements UpdatableSettingsViewer {
 					m(".mt-24", m(MenuTitle, { content: lang.getTranslationText("defaultSignatures_label") })),
 					this.renderDefaultSelector(EmailSignatureContext.NewMail, "defaultSignatureNewMails_label"),
 					this.renderDefaultSelector(EmailSignatureContext.ReplyOrForward, "defaultSignatureRepliesAndForwards_label"),
-					m(".mt-24", m(MenuTitle, { content: lang.getTranslationText("customSignatures_label") })),
 					this.renderCompanyEmailSignature(),
+					m(".mt-24", m(MenuTitle, { content: lang.getTranslationText("customSignatures_label") })),
 					this.model.supportsCustomEmailSignatures ? this.renderCustomSignatures(this.model.customEmailSignatures) : null,
 				]),
 				this.model.supportsCustomEmailSignatures ? this.renderAddCustomSignatureButton() : null,
@@ -98,52 +95,51 @@ export class SignatureSettingsViewer implements UpdatableSettingsViewer {
 				selectedValue: selectedItem?.value ?? null,
 				selectionChangedHandler: (newEmailSignatureSetting: EmailSignatureSetting) => this.saveSelection(context, newEmailSignatureSetting),
 			}),
-			emailSignatureSetting.type === EmailSignatureType.NONE ? null : this.renderPreview(this.model.getSignatureHtml(emailSignatureSetting)),
 		]
-	}
-
-	private renderPreview(signatureHtml: string): Children {
-		const sanitized = getHtmlSanitizer().sanitizeHTML(signatureHtml, { blockExternalContent: false }).html
-		return m(
-			Card,
-			{
-				classes: ["mt-8", "scroll"],
-				style: {
-					minHeight: px(75),
-					maxHeight: px(200),
-				},
-			},
-			sanitized.trim() === "" ? m(".small", lang.getTranslationText("comboBoxSelectionNone_msg")) : m.trust(sanitized),
-		)
 	}
 
 	private renderCompanyEmailSignature(): Children {
 		const companyEmailSignature = this.model.companyEmailSignature
+		const companyEmailSignatureTemplate = this.model.companyEmailSignatureTemplate
 		// there is nothing to enter for the user if the template does not use any of the fields
 		if (
 			companyEmailSignature == null ||
-			(companyEmailSignature && getUsedCompanyEmailSignatureFields(companyEmailSignature.signatureTemplate).size === 0)
+			companyEmailSignatureTemplate == null ||
+			getUsedCompanyEmailSignatureFields(companyEmailSignatureTemplate.signatureTemplate).size === 0
 		) {
 			return null
 		}
 
 		const value = companyEmailSignature.name ?? lang.getTranslationText("companySignatureEnabled_label")
 		return [
-			m(TextField, {
-				class: "mt-16",
-				label: "companySignature_label",
-				value,
-				isReadOnly: true,
-				injectionsRight: () => [
-					m(IconButton, {
-						label: "edit_action",
-						icon: Icons.PenFilled,
-						size: ButtonSize.Compact,
-						click: () => showEditCompanyEmailSignatureDialog(companyEmailSignature),
-					}),
-				],
-			}),
-			m(".small.mt-8", lang.getTranslationText("companySignatureDisclaimer_msg")),
+			m(".mt-24", m(MenuTitle, { content: lang.getTranslationText("companySignature_label") })),
+			m(".mt-16", [
+				m(
+					Card,
+					{ style: { padding: "0", overflow: "hidden" } },
+					m(
+						".flex.items-center",
+						{
+							style: {
+								minHeight: px(component_size.button_height_lg),
+								paddingLeft: px(size.spacing_16),
+								paddingRight: px(size.spacing_16),
+							},
+						},
+						[
+							m(".flex-grow.min-width-0.text-ellipsis", { title: lang.getTranslationText("companySignature_label") }, value),
+							m(".flex.items-center.flex", [
+								m(IconButton, {
+									label: "edit_action",
+									icon: Icons.PenFilled,
+									size: ButtonSize.Compact,
+									click: () => showEditCompanyEmailSignatureDialog(this.model.props, companyEmailSignatureTemplate.signatureTemplate),
+								}),
+							]),
+						],
+					),
+				),
+			]),
 		]
 	}
 

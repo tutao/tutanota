@@ -1,5 +1,5 @@
 import m from "mithril"
-import { CompanyEmailSignature } from "@tutao/entities/sys"
+import { TutanotaProperties } from "@tutao/entities/tutanota"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { TextField } from "../../../ui/base/TextField"
@@ -18,6 +18,7 @@ import {
 	getUsedCompanyEmailSignatureFields,
 } from "../mail/signature/CompanyEmailSignature"
 import { px } from "../../../ui/size"
+import { applyDarkThemeFixToSignatureHtml } from "../mail/signature/Signature"
 
 const FIELDS: ReadonlyArray<{ placeholder: CompanyEmailSignaturePlaceholder; label: TranslationKey; kind?: "phone" | "multiline" | "link" }> = [
 	{ placeholder: "name", label: "name_label" },
@@ -31,8 +32,12 @@ const FIELDS: ReadonlyArray<{ placeholder: CompanyEmailSignaturePlaceholder; lab
 	{ placeholder: "custom2", label: "customField2_label", kind: "link" },
 ]
 
-export function showEditCompanyEmailSignatureDialog(companyEmailSignature: CompanyEmailSignature) {
-	const usedFields = FIELDS.filter(({ placeholder }) => getUsedCompanyEmailSignatureFields(companyEmailSignature.signatureTemplate).has(placeholder))
+export function showEditCompanyEmailSignatureDialog(props: TutanotaProperties, signatureTemplate: string) {
+	const companyEmailSignature = props.companyEmailSignatureValues
+	if (companyEmailSignature === null) {
+		return
+	}
+	const usedFields = FIELDS.filter(({ placeholder }) => getUsedCompanyEmailSignatureFields(signatureTemplate).has(placeholder))
 	const values = Object.fromEntries(FIELDS.map(({ placeholder }) => [placeholder, companyEmailSignature[placeholder] ?? ""])) as Record<
 		CompanyEmailSignaturePlaceholder,
 		string
@@ -65,7 +70,9 @@ export function showEditCompanyEmailSignatureDialog(companyEmailSignature: Compa
 							maxHeight: px(300),
 						},
 					},
-					m.trust(createCompanyEmailSignatureHtml(companyEmailSignature.signatureTemplate, values satisfies CompanyEmailSignatureData) ?? ""),
+					m.trust(
+						applyDarkThemeFixToSignatureHtml(createCompanyEmailSignatureHtml(signatureTemplate, values satisfies CompanyEmailSignatureData) ?? ""),
+					),
 				),
 				m(
 					".flex-end.wrap.mt-24.gap-16",
@@ -76,7 +83,7 @@ export function showEditCompanyEmailSignatureDialog(companyEmailSignature: Compa
 							for (const { placeholder } of FIELDS) {
 								companyEmailSignature[placeholder] = parseMultilineAndUrlToHtml(placeholder, values[placeholder].trim()) || null
 							}
-							showProgressDialog("pleaseWait_msg", locator.entityClient.update(companyEmailSignature)).then(() => dialog.close)
+							showProgressDialog("pleaseWait_msg", locator.entityClient.update(props)).then(() => dialog.close)
 						},
 					}),
 				),

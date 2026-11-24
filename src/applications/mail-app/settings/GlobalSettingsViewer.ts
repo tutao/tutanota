@@ -35,7 +35,7 @@ import {
 import stream from "mithril/stream"
 import { formatDateTime } from "../../../ui/utils/Formatter"
 import { Dialog } from "../../../ui/base/Dialog"
-import { LockedError, NotFoundError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
+import { LockedError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -63,6 +63,7 @@ import {
 	showBuyOrSetCompanyEmailSignatureTemplateDialog,
 	showCompanyEmailSignatureTemplateDialog,
 } from "../../common/settings/EditCompanyEmailSignatureTemplateDialog"
+import { loadCompanyEmailSignatureTemplate } from "../mail/signature/CompanyEmailSignature"
 
 EnvProvider.assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -75,12 +76,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private customer: Customer | null = null
 	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
 	private companyEmailSignatureTemplate: LazyLoaded<CompanyEmailSignatureTemplate | null> = new LazyLoaded(async () => {
-		const customerInfo = await this.customerInfo.reload()
-		return customerInfo.companyEmailSignatureTemplate
-			? locator.entityClient
-					.load(CompanyEmailSignatureTemplateTypeRef, idToElementId(customerInfo.companyEmailSignatureTemplate))
-					.catch(ofClass(NotFoundError, (_) => null))
-			: null
+		return loadCompanyEmailSignatureTemplate(locator.entityClient, locator.logins.getUserController().getCustomerGroupRoot())
 	})
 
 	private accountMaintenanceUpdateNotifier: AccountMaintenanceUpdateNotifier | null = null

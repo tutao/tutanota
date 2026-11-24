@@ -2683,3 +2683,4 @@ export type TranslationKeyType =
 	| "subscriptionSettingsCustomSingaturesPaidFeature_label"
 	| "subscriptionSettingsCustomSingaturesPaidFeature_msg"
 	| "customSignatureLimitExceeded_msg"
+	| "notificationMailLink_label"

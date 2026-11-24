@@ -2683,5 +2683,6 @@ export default {
 		"subscriptionSettingsCustomSingaturesPaidFeature_label": "Email Signatures",
 		"subscriptionSettingsCustomSingaturesPaidFeature_msg": "If you have more than one custom email signature, please delete them",
 		"customSignatureLimitExceeded_msg": "You have more than one custom signature, please delete them before downgrading.",
+		"notificationMailLink_label": "Link",
 	}
 }

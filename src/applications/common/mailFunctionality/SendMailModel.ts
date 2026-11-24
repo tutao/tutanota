@@ -14,6 +14,7 @@ import {
 	MailDetails,
 	MailDetailsDraftTypeRef,
 	MailTypeRef,
+	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
 import {
 	Attachment,
@@ -29,7 +30,7 @@ import {
 	ReplyType,
 	VerificationRecipients,
 } from "../../../entities/tutanota/Utils"
-import { CompanyEmailSignatureTypeRef, CustomerPropertiesTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
+import { CustomerPropertiesTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import {
 	assertNotNull,
 	cleanMailAddress,
@@ -58,6 +59,7 @@ import stream from "mithril/stream"
 import {
 	checkAttachmentSize,
 	getDefaultSender,
+	getEnabledMailAddressesWithUser,
 	getTemplateLanguages,
 	isAliasEnabledWithUser,
 	isSharedMailbox,
@@ -92,7 +94,6 @@ import {
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
 import { UserError } from "../api/main/UserError.js"
-import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
 import { RecipientNotResolvedError } from "../../../platform-kit/network/error/RecipientNotResolvedError.js"
 import { RecipientsNotFoundError } from "../../../platform-kit/network/error/RecipientsNotFoundError.js"
@@ -112,7 +113,7 @@ import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"
 import { isDriveEnabled } from "../misc/DriveUtils"
-import { EmailSignature, getDefaultEmailSignature, isCompanyEmailSignature, loadCustomEmailSignatures } from "../../mail-app/mail/signature/Signature"
+import { type EmailSignature } from "../../mail-app/mail/signature/Signature"
 
 EnvProvider.assertMainOrNode()
 
@@ -174,7 +175,15 @@ export class SendMailModel {
 	private senderAddress: string
 	private confidential: boolean
 	private sendAt: Date | null = null
-	private emailSignatures: LazyLoaded<EmailSignature[]> = new LazyLoaded(async () => loadCustomEmailSignatures(this.entity, this.user()))
+	private emailSignatures: LazyLoaded<EmailSignature[]> = new LazyLoaded(async () => {
+		const { loadCustomEmailSignatures, getDefaultEmailSignature, isCompanyEmailSignature } = await import("../../mail-app/mail/signature/Signature")
+		const defaultTutaSignature: EmailSignature[] = !this.logins.isEnabled(FeatureType.DisableDefaultSignature) ? [getDefaultEmailSignature()] : []
+		const loaded = await loadCustomEmailSignatures(this.entity, this.user())
+		return loaded
+			.filter(isCompanyEmailSignature)
+			.concat(defaultTutaSignature)
+			.concat(loaded.filter((signature) => !isCompanyEmailSignature(signature)))
+	})
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
 	// We want to keep track of these for use in the mail editor, to allowing undo of deleting images
@@ -948,13 +957,7 @@ export class SendMailModel {
 	}
 
 	getAvailableEmailSignatures() {
-		const defaultTutaSignature: EmailSignature[] = !this.logins.isEnabled(FeatureType.DisableDefaultSignature) ? [getDefaultEmailSignature()] : []
-		const loaded = this.emailSignatures.isLoaded() ? this.emailSignatures.getLoaded() : []
-
-		return loaded
-			.filter(isCompanyEmailSignature)
-			.concat(defaultTutaSignature)
-			.concat(loaded.filter((signature) => !isCompanyEmailSignature(signature)))
+		return this.emailSignatures.isLoaded() ? this.emailSignatures.getLoaded() : []
 	}
 
 	setDefaultSendAtDate(): void {
@@ -1489,7 +1492,7 @@ export class SendMailModel {
 					}
 				}
 			}
-			if (isUpdateForTypeRef(CustomEmailSignatureTypeRef, update) || isUpdateForTypeRef(CompanyEmailSignatureTypeRef, update)) {
+			if (isUpdateForTypeRef(CustomEmailSignatureTypeRef, update) || isUpdateForTypeRef(TutanotaPropertiesTypeRef, update)) {
 				await this.emailSignatures.reload()
 			}
 			this.markAsChangedIfNecessary(changed)

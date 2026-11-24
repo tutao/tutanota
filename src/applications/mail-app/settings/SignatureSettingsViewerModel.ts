@@ -1,20 +1,25 @@
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import type { LoginController } from "../../common/api/main/LoginController"
-import { createCustomEmailSignature, CustomEmailSignature, CustomEmailSignatureTypeRef, TutanotaProperties } from "@tutao/entities/tutanota"
-import { CompanyEmailSignature, CompanyEmailSignatureTypeRef } from "@tutao/entities/sys"
-import { idToElementId, isSameId, OperationType } from "@tutao/meta"
+import {
+	CompanyEmailSignatureValues,
+	createCustomEmailSignature,
+	CustomEmailSignature,
+	CustomEmailSignatureTypeRef,
+	TutanotaProperties,
+} from "@tutao/entities/tutanota"
+import { CompanyEmailSignatureTemplate, CompanyEmailSignatureTemplateTypeRef, CustomerGroupRootTypeRef } from "@tutao/entities/sys"
+import { isSameId, OperationType } from "@tutao/meta"
 import { FeatureType, MAX_CUSTOM_EMAIL_SIGNATURES_PER_FREE_USER } from "../../../platform-kit/app-env"
 import { EmailSignatureType } from "../../../entities/tutanota/Utils"
-import { NotFoundError } from "../../../platform-kit/rest-client/error"
-import { assertNotNull, ofClass } from "../../../platform-kit/utils"
+import { assertNotNull } from "../../../platform-kit/utils"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { EmailSignatureContext, EmailSignatureSetting, getDefaultEmailSignature, getSignatureSetting, setSignatureSetting } from "../mail/signature/Signature"
-import { createCompanyEmailSignatureHtml } from "../mail/signature/CompanyEmailSignature"
+import { createCompanyEmailSignatureHtml, loadCompanyEmailSignatureTemplate } from "../mail/signature/CompanyEmailSignature"
 
 export class SignatureSettingsViewerModel {
 	private _customEmailSignatures: CustomEmailSignature[] = []
-	private _companyEmailSignature: CompanyEmailSignature | null = null
+	private _companyEmailSignatureTemplate: CompanyEmailSignatureTemplate | null = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -25,15 +30,19 @@ export class SignatureSettingsViewerModel {
 		return this._customEmailSignatures
 	}
 
-	get companyEmailSignature(): CompanyEmailSignature | null {
-		return this._companyEmailSignature
+	get companyEmailSignature(): CompanyEmailSignatureValues | null {
+		return this.props.companyEmailSignatureValues
+	}
+
+	get companyEmailSignatureTemplate(): CompanyEmailSignatureTemplate | null {
+		return this._companyEmailSignatureTemplate
 	}
 
 	get supportsCustomEmailSignatures(): boolean {
 		return this.listId != null
 	}
 
-	private get props(): TutanotaProperties {
+	get props(): TutanotaProperties {
 		return this.logins.getUserController().props
 	}
 
@@ -42,15 +51,12 @@ export class SignatureSettingsViewerModel {
 	}
 
 	async init(): Promise<void> {
-		const user = this.logins.getUserController().user
-		const [customEmailSignatures, companyEmailSignature] = await Promise.all([
+		const [customEmailSignatures, companyEmailSignatureTemplate] = await Promise.all([
 			this.listId != null ? this.entityClient.loadAll(CustomEmailSignatureTypeRef, this.listId) : Promise.resolve<CustomEmailSignature[]>([]),
-			user.companyEmailSignature != null
-				? this.entityClient.load(CompanyEmailSignatureTypeRef, idToElementId(user.companyEmailSignature)).catch(ofClass(NotFoundError, () => null))
-				: null,
+			loadCompanyEmailSignatureTemplate(this.entityClient, this.logins.getUserController().getCustomerGroupRoot()),
 		])
 		this._customEmailSignatures = customEmailSignatures.sort((a, b) => a.name.localeCompare(b.name))
-		this._companyEmailSignature = companyEmailSignature
+		this._companyEmailSignatureTemplate = companyEmailSignatureTemplate
 	}
 
 	async onEntityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
@@ -74,11 +80,11 @@ export class SignatureSettingsViewerModel {
 						this._customEmailSignatures.splice(index, 1)
 					}
 				}
-			} else if (isUpdateForTypeRef(CompanyEmailSignatureTypeRef, update)) {
-				this._companyEmailSignature =
-					update.operation === OperationType.DELETE
-						? null
-						: await this.entityClient.load(CompanyEmailSignatureTypeRef, idToElementId(update.instanceId))
+			} else if (isUpdateForTypeRef(CompanyEmailSignatureTemplateTypeRef, update)) {
+				this._companyEmailSignatureTemplate = await loadCompanyEmailSignatureTemplate(
+					this.entityClient,
+					this.logins.getUserController().getCustomerGroupRoot(),
+				)
 			}
 		}
 	}
@@ -94,7 +100,7 @@ export class SignatureSettingsViewerModel {
 		}
 		if (emailSignatureSetting.type === EmailSignatureType.COMPANY) {
 			// there is nothing to select if the company signature has been removed
-			return this._companyEmailSignature != null ? emailSignatureSetting : this.getFallbackSelection()
+			return this._companyEmailSignatureTemplate != null ? emailSignatureSetting : this.getFallbackSelection()
 		}
 		return emailSignatureSetting
 	}
@@ -107,7 +113,7 @@ export class SignatureSettingsViewerModel {
 
 	getDropdownItems(): { name: string; value: EmailSignatureSetting }[] {
 		const items: { name: string; value: EmailSignatureSetting }[] = []
-		if (this._companyEmailSignature !== null) {
+		if (this._companyEmailSignatureTemplate !== null) {
 			items.push({
 				name: lang.getTranslationText("companySignature_label"),
 				value: { id: null, type: EmailSignatureType.COMPANY },
@@ -138,8 +144,8 @@ export class SignatureSettingsViewerModel {
 		}
 
 		if (emailSignatureSetting.type === EmailSignatureType.COMPANY) {
-			return this._companyEmailSignature != null
-				? (createCompanyEmailSignatureHtml(this._companyEmailSignature.signatureTemplate, this._companyEmailSignature) ?? "")
+			return this._companyEmailSignatureTemplate != null
+				? (createCompanyEmailSignatureHtml(this._companyEmailSignatureTemplate.signatureTemplate, this.companyEmailSignature) ?? "")
 				: ""
 		}
 

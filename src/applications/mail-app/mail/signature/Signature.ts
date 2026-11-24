@@ -9,6 +9,8 @@ import { loadCompanyEmailSignatureHtml } from "./CompanyEmailSignature"
 import type { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EmailSignatureType } from "../../../../entities/tutanota/Utils"
 import { isSameId } from "@tutao/meta"
+import { isDarkTheme } from "../../../../ui/theme"
+import { applyDarkThemeFix } from "../view/MailGuiUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -74,16 +76,14 @@ export function isCompanyEmailSignature(signature: EmailSignature): boolean {
 	return signature.type === EmailSignatureType.COMPANY
 }
 
-export function createCompanyEmailSignature(html: string): EmailSignature {
-	return { name: lang.getTranslationText("companySignature_label"), value: html, type: EmailSignatureType.COMPANY, id: null }
-}
-
 export async function loadCustomEmailSignatures(entityClient: EntityClient, userController: UserController): Promise<EmailSignature[]> {
 	const properties = userController.props
-	const companyEmailSignatureHtml = await loadCompanyEmailSignatureHtml(entityClient, userController.user).catch((e) => {
-		console.warn("could not load company signature", e)
-		return null
-	})
+	const companyEmailSignatureHtml = await loadCompanyEmailSignatureHtml(entityClient, userController.getCustomerGroupRoot(), userController.props).catch(
+		(e) => {
+			console.warn("could not load company signature", e)
+			return null
+		},
+	)
 	const companyEmailSignature = companyEmailSignatureHtml != null ? [createCompanyEmailSignature(companyEmailSignatureHtml)] : []
 	if (properties.customEmailSignatures == null) {
 		return companyEmailSignature
@@ -101,9 +101,13 @@ export async function loadCustomEmailSignatures(entityClient: EntityClient, user
 		.concat(companyEmailSignature)
 }
 
+export function createCompanyEmailSignature(html: string): EmailSignature {
+	return { name: lang.getTranslationText("companySignature_label"), value: html, type: EmailSignatureType.COMPANY, id: null }
+}
+
 function getEmailSignatureBySetting(
 	tutanotaProperties: TutanotaProperties,
-	customEmailSignatures: readonly EmailSignature[],
+	customEmailSignatures: ReadonlyArray<EmailSignature>,
 	context: EmailSignatureContext,
 ): EmailSignature | null {
 	const { type, id } = getSignatureSetting(tutanotaProperties, context)
@@ -133,7 +137,7 @@ export function markQuoteInfoLine(infoHtml: string): string {
 export function appendEmailSignature(
 	body: string,
 	properties: TutanotaProperties,
-	emailSignatures: readonly EmailSignature[],
+	emailSignatures: ReadonlyArray<EmailSignature>,
 	context: EmailSignatureContext,
 ): string {
 	const signature = getEmailSignatureBySetting(properties, emailSignatures, context)
@@ -193,7 +197,7 @@ export function replaceEmailSignature(body: string, signature: EmailSignature | 
 export function prependEmailSignature(
 	body: string,
 	logins: LoginController,
-	customEmailSignatures: readonly EmailSignature[],
+	customEmailSignatures: ReadonlyArray<EmailSignature>,
 	context: EmailSignatureContext,
 ): string {
 	// add space between signature and existing body
@@ -210,4 +214,15 @@ export function prependEmailSignature(
 	}
 
 	return bodyWithSignature
+}
+
+export function applyDarkThemeFixToSignatureHtml(sanitizedSignatureHtml: string): string {
+	if (!isDarkTheme()) {
+		return sanitizedSignatureHtml
+	}
+	const template = document.createElement("template")
+	template.innerHTML = sanitizedSignatureHtml
+	const container = document.createElement("div")
+	container.appendChild(applyDarkThemeFix(template.content))
+	return container.innerHTML
 }

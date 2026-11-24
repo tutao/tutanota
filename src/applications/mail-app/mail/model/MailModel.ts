@@ -32,8 +32,26 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { BulkMailLoader, MailsMaybeWithDetails } from "../../workerUtils/index/BulkMailLoader"
-import { Mail, MailboxGroupRoot, MailboxProperties, MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, MovedMails } from "@tutao/entities/tutanota"
-import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../../entities/tutanota/Utils"
+import {
+	createCompanyEmailSignatureValues,
+	Mail,
+	MailboxGroupRoot,
+	MailboxProperties,
+	MailSet,
+	MailSetEntryTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+	MovedMails,
+	TutanotaPropertiesTypeRef,
+} from "@tutao/entities/tutanota"
+import {
+	EmailSignatureType,
+	MailReportType,
+	MailSetKind,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
+	ReportMovedMailsType,
+	SystemFolderType,
+} from "../../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { WebsocketCounterData } from "@tutao/entities/sys"
@@ -223,6 +241,23 @@ export class MailModel {
 				}
 				if (EnvProvider.get().isBrowser()) {
 					this._showNotification(targetFolder, mail)
+				}
+			} else if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update)) {
+				const tutanotaProperties = await this.entityClient.load(TutanotaPropertiesTypeRef, idToElementId(update.instanceId))
+				if (tutanotaProperties.emailSignatureTypeForNewMails === EmailSignatureType.COMPANY && tutanotaProperties.companyEmailSignatureValues == null) {
+					// setting up companyEmailSignaturesValues when admin configured a company signature
+					tutanotaProperties.companyEmailSignatureValues = createCompanyEmailSignatureValues({
+						name: this.logins.getUserController().userGroupInfo.name,
+						email: this.logins.getUserController().userGroupInfo.mailAddress,
+						mobileNumber: null,
+						phoneNumber: null,
+						address: null,
+						role: null,
+						department: null,
+						custom1: null,
+						custom2: null,
+					})
+					this.entityClient.update(tutanotaProperties)
 				}
 			}
 		}

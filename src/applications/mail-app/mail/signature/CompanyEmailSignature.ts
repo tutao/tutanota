@@ -1,5 +1,8 @@
-import { CompanyEmailSignature, CompanyEmailSignatureTypeRef, User } from "@tutao/entities/sys"
+import { CompanyEmailSignatureTemplate, CompanyEmailSignatureTemplateTypeRef, CustomerGroupRoot } from "@tutao/entities/sys"
+import { CompanyEmailSignatureValues, TutanotaProperties } from "@tutao/entities/tutanota"
 import { idToElementId } from "@tutao/meta"
+import { ofClass } from "@tutao/utils"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import type { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
@@ -7,7 +10,7 @@ import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 EnvProvider.assertMainOrNode()
 
 export type CompanyEmailSignatureData = Pick<
-	CompanyEmailSignature,
+	CompanyEmailSignatureValues,
 	"name" | "email" | "phoneNumber" | "mobileNumber" | "role" | "department" | "address" | "custom1" | "custom2"
 >
 
@@ -47,8 +50,8 @@ export function fillCompanyEmailSignatureTemplate(template: string, data: Compan
 	return template.replace(PLACEHOLDER_REGEX, (_, key: string) => placeholderValues[key])
 }
 
-export function createCompanyEmailSignatureHtml(template: string | null, data: CompanyEmailSignatureData): string | null {
-	if (template == null || template.trim() === "") {
+export function createCompanyEmailSignatureHtml(template: string | null, data: CompanyEmailSignatureData | null): string | null {
+	if (template == null || template.trim() === "" || data === null) {
 		return null
 	}
 	const filled = fillCompanyEmailSignatureTemplate(template, data)
@@ -56,10 +59,23 @@ export function createCompanyEmailSignatureHtml(template: string | null, data: C
 	return getHtmlSanitizer().sanitizeHTML(filled, { blockExternalContent: false }).html
 }
 
-export async function loadCompanyEmailSignatureHtml(entityClient: EntityClient, user: User): Promise<string | null> {
-	if (user.companyEmailSignature == null) {
+export async function loadCompanyEmailSignatureTemplate(
+	entityClient: EntityClient,
+	customerGroupRoot: CustomerGroupRoot | null,
+): Promise<CompanyEmailSignatureTemplate | null> {
+	if (customerGroupRoot?.companyEmailSignatureTemplate == null) {
 		return null
 	}
-	const companyEmailSignature = await entityClient.load(CompanyEmailSignatureTypeRef, idToElementId(user.companyEmailSignature))
-	return createCompanyEmailSignatureHtml(companyEmailSignature.signatureTemplate, companyEmailSignature)
+	return await entityClient
+		.load(CompanyEmailSignatureTemplateTypeRef, idToElementId(customerGroupRoot.companyEmailSignatureTemplate))
+		.catch(ofClass(NotFoundError, () => null))
+}
+
+export async function loadCompanyEmailSignatureHtml(
+	entityClient: EntityClient,
+	customerGroupRoot: CustomerGroupRoot | null,
+	props: TutanotaProperties,
+): Promise<string | null> {
+	const template = await loadCompanyEmailSignatureTemplate(entityClient, customerGroupRoot)
+	return template != null ? createCompanyEmailSignatureHtml(template.signatureTemplate, props.companyEmailSignatureValues) : null
 }
