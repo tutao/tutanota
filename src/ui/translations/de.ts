@@ -2684,5 +2684,8 @@ export default {
 		"subscriptionSettingsCustomSingaturesPaidFeature_msg": "If you have more than one custom email signature, please delete them",
 		"customSignatureLimitExceeded_msg": "You have more than one custom signature, please delete them before downgrading.",
 		"notificationMailLink_label": "Link",
+		"formatTextColor_action": "Textfarbe ändern",
+		"recentColors_label": "Zuletzt verwendete Farben",
+		"lowContrastColor_msg": "Diese Farbe ist auf hellem oder dunklem Hintergrund möglicherweise schlecht lesbar.",
 	}
 }

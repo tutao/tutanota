@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Icons } from "./icons/Icons"
 import type { Editor, Listing, Style } from "../editor/Editor"
 import { Alignment } from "../editor/Editor"
-import { numberRange } from "../../platform-kit/utils"
+import { isEmpty, isNotEmpty, numberRange } from "../../platform-kit/utils"
 import { font_size, px } from "../size"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
@@ -12,6 +12,9 @@ import { BrowserType } from "../../platform-kit/app-env/boot/ClientConstants"
 import { ToggleButton } from "./buttons/ToggleButton.js"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
+import { Dialog } from "./Dialog.js"
+import { ColorPickerView } from "./colorPicker/ColorPickerView.js"
+import { theme } from "../theme"
 
 export interface RichTextToolbarAttrs {
 	editor: Editor
@@ -25,7 +28,7 @@ export interface RichTextToolbarAttrs {
 
 export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 	selectedSize = font_size.base
-
+	recentTextColors: string[] = []
 	constructor({ attrs }: Vnode<RichTextToolbarAttrs>) {
 		try {
 			this.selectedSize = parseInt(attrs.editor.squire!.getFontInfo()?.size!.slice(0, -2))
@@ -66,6 +69,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 					this.renderCustomButtons(attrs),
 					this.renderAlignDropDown(attrs),
 					this.renderSizeButtons(attrs),
+					this.renderTextColorButton(attrs),
 					this.renderRemoveFormattingButton(attrs),
 				),
 			],
@@ -205,6 +209,70 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 							}
 						}),
 				})(e, dom)
+			},
+		})
+	}
+
+	private renderTextColorButton({ editor }: RichTextToolbarAttrs): Children {
+		const MAX_RECENT_COLORS = 8
+		return m(IconButton, {
+			label: "formatTextColor_action",
+			icon: Icons.ColorpaletteOutline,
+			size: ButtonSize.Compact,
+			click: (e) => {
+				e.stopPropagation()
+				let color = ""
+				editor.squire!.focus()
+				const applyColor = (value: string) => {
+					this.recentTextColors.splice(
+						0,
+						this.recentTextColors.length,
+						...[value, ...this.recentTextColors.filter((recent) => recent !== value)].slice(0, MAX_RECENT_COLORS),
+					)
+					editor.squire!.setTextColor(value)
+				}
+				const dialog = Dialog.showActionDialog({
+					title: "formatTextColor_action",
+					child: () => [
+						isNotEmpty(this.recentTextColors)
+							? m(".mt-16", [
+									m(".small.mb-8", lang.getTranslationText("recentTextColors_label")),
+									m(
+										".flex.wrap.gap-8",
+										this.recentTextColors.map((recent) =>
+											m("button.border-radius.flash", {
+												"aria-label": recent,
+												style: {
+													width: px(30),
+													height: px(30),
+													backgroundColor: recent,
+													border: `1px solid ${theme.outline}`,
+													cursor: "pointer",
+												},
+												onclick: () => {
+													dialog.close()
+													applyColor(recent)
+												},
+											}),
+										),
+									),
+								])
+							: null,
+						m(
+							`${isEmpty(this.recentTextColors) ? ".mt-32" : ".mt-16"}`,
+							m(ColorPickerView, {
+								value: color,
+								onselect: (newColor) => {
+									color = newColor
+								},
+							}),
+						),
+					],
+					okAction: (dialog) => {
+						dialog.close()
+						applyColor(color)
+					},
+				})
 			},
 		})
 	}

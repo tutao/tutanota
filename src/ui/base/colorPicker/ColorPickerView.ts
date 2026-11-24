@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { ColorPickerModel } from "./ColorPickerModel"
 import { isDarkTheme, theme } from "../../theme"
-import { hexToHSL, hslToHex, isValidCSSHexColor, MAX_HUE_ANGLE, normalizeHueAngle } from "../Color"
+import { hexToHSL, hslToHex, isLowContrastColor, isValidCSSHexColor, MAX_HUE_ANGLE, normalizeHueAngle } from "../Color"
 import { assertNotNull, clamp, filterInt } from "@tutao/utils"
 import { px, size } from "../../size"
 import { Checkbox } from "../Checkbox"
@@ -106,6 +106,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 				}),
 				this.isAdvanced ? m("", this.renderCustomColorContainer(attrs)) : null,
 			]),
+			isValidCSSHexColor(attrs.value) && isLowContrastColor(attrs.value) ? m(".small.mt-16", lang.getTranslationText("lowContrastColor_msg")) : null,
 		])
 	}
 
@@ -129,13 +130,14 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 	}
 
 	private renderCustomColorContainer(attrs: ColorPickerViewAttrs) {
-		return m(".custom-color-container.flex.items-start.gap-12", [
+		return m(".custom-color-container.flex.items-center.column-gap-12", [
 			m(".hex-code-text-field", [
 				m(TextField, {
+					style: { marginTop: px(0) },
 					value: this.customColorHex.replace("#", ""),
 					oninput: (v) => this.handleCustomHexInput(v, attrs),
 				}),
-				!isValidCSSHexColor(this.customColorHex) && m(".small", lang.get("invalidInputFormat_msg")),
+				!isValidCSSHexColor(this.customColorHex) && m(".small", lang.getTranslationText("invalidInputFormat_msg")),
 			]),
 			this.renderColorOption({
 				color: this.customColorHex,
@@ -145,7 +147,6 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 					this.postionSliderOnHue(assertNotNull(this.hueImgDom), assertNotNull(this.hueSliderDom))
 					attrs.onselect(color)
 				},
-				className: ".mt-24",
 			}),
 		])
 	}
@@ -227,7 +228,10 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 				m(".border-radius", {
 					tabIndex: TabIndex.Default,
 					role: "radio",
-					ariaLabel: index === PaletteIndex.customVariant ? lang.get("customColor_label") : `${lang.get("variant_label")} ${index}`,
+					ariaLabel:
+						index === PaletteIndex.customVariant
+							? lang.getTranslationText("customColor_label")
+							: `${lang.getTranslationText("variant_label")} ${index}`,
 					ariaChecked: isOptionSelected,
 					style: {
 						width: px(30),
@@ -293,7 +297,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 					step: a11yHueShiftStep,
 					tabIndex: TabIndex.Default,
 					role: "slider",
-					ariaLabel: lang.get("hue_label"),
+					ariaLabel: lang.getTranslationText("hue_label"),
 					style: {
 						opacity: 0,
 					},

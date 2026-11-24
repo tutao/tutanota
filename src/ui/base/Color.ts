@@ -63,6 +63,11 @@ export function isColorLight(c: string): boolean {
 	return getColorLuminance(c) > 0.5
 }
 
+export function isLowContrastColor(color: string): boolean {
+	const luminance = getColorLuminance(color)
+	return luminance > 0.85 || luminance < 0.15
+}
+
 export function normalizeHueAngle(hue: number): number {
 	return ((hue % MAX_HUE_ANGLE) + MAX_HUE_ANGLE) % MAX_HUE_ANGLE
 }
