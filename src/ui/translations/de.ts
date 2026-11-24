@@ -2679,5 +2679,8 @@ export default {
 		"selectSignature_action": "Signatur auswählen",
 		"signaturesSettings_label": "Signaturen",
 		"notificationMailLink_label": "Link zur Mailbox",
+		"hasRunningMigrations_msg": "There are still running migrations, please cancel them before downgrading.",
+		"subscriptionSettingsMigrationPaidFeature_label": "Migrations",
+		"subscriptionSettingsMigrationPaidFeature_msg": "If you have running migrations, please cancel them",
 	}
 }

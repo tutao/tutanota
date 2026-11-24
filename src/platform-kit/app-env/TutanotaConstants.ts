@@ -354,6 +354,7 @@ export const enum UnsubscribeFailureReason {
 	HAS_SCHEDULED_MAILS = "unsubscribe.has_scheduled_mails",
 	DRIVE_NOT_EMPTY = "unsubscribe.drive_not_empty",
 	NO_PAYMENT_METHOD = "unsubscribe.no_payment_method",
+	HAS_RUNNING_MIGRATIONS = "unsubscribe.has_running_migrations",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.

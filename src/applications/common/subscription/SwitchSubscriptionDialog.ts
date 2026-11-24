@@ -437,6 +437,10 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 				detailMsg = lang.getTranslationText("noPaymentMethodError_msg")
 				break
 
+			case UnsubscribeFailureReason.HAS_RUNNING_MIGRATIONS:
+				detailMsg = lang.getTranslationText("hasRunningMigrations_msg")
+				break
+
 			default:
 				throw e
 		}
