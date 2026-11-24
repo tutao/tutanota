@@ -95,6 +95,7 @@ import {
 	EmailSignatureContext,
 	getAppliedSignatureElement,
 	getSelectedEmailSignatureName,
+	getSignaturePreviewHtml,
 	loadCustomEmailSignatures,
 	replaceEmailSignature,
 } from "../signature/Signature"
@@ -323,8 +324,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
-			this.editor.setHTML(model.getBody())
-			this.saveAppliedSignatureHtml()
+			this.setEditorHtml(model.getBody())
 
 			const editorDom = this.editor.getDOM()
 
@@ -531,6 +531,22 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		})
 	}
 
+	private setEditorHtml(html: string) {
+		const template = document.createElement("template")
+		template.innerHTML = html
+		const signatureElement = getAppliedSignatureElement(template.content)
+		if (signatureElement != null) {
+			signatureElement.innerHTML = getSignaturePreviewHtml(signatureElement.innerHTML)
+		}
+		this.editor.setHTML(template.innerHTML)
+		this.saveAppliedSignatureHtml()
+	}
+
+	private isAppliedSignatureModified(): boolean {
+		const applied = getAppliedSignatureElement(this.editor.getDOM())
+		return applied != null && applied.innerHTML !== this.appliedSignatureHtml
+	}
+
 	private saveAppliedSignatureHtml() {
 		this.appliedSignatureHtml = getAppliedSignatureElement(this.editor.getDOM())?.innerHTML ?? null
 	}
@@ -646,11 +662,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						},
 						childAttrs: async () => {
 							const applySignature = (signature: EmailSignature | null) => {
-								const applied = getAppliedSignatureElement(this.editor.getDOM())
 								// the user changed the signature that is currently applied, so we must not throw their changes away
-								const isModified = applied != null && applied.innerHTML !== this.appliedSignatureHtml
-								this.editor.setHTML(replaceEmailSignature(this.sendMailModel.getBody(), signature, isModified))
-								this.saveAppliedSignatureHtml()
+								this.setEditorHtml(replaceEmailSignature(this.sendMailModel.getBody(), signature, this.isAppliedSignatureModified()))
 								this.sendMailModel.setBody(this.getBodyHtml(this.editor.getDOM()))
 							}
 							return availableEmailSignatures
@@ -1017,7 +1030,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			blockExternalContent: this.blockExternalContent,
 		})
 
+		const wasSignatureModified = this.isAppliedSignatureModified()
 		this.editor.setHTML(sanitized.html)
+		if (!wasSignatureModified) {
+			this.saveAppliedSignatureHtml()
+		}
 	}
 
 	private processInlineImages() {

@@ -27,6 +27,7 @@ import {
 	getDefaultCompanyEmailSignatureTemplate,
 } from "../../mail-app/mail/signature/CompanyEmailSignature.js"
 import { idToElementId } from "@tutao/meta"
+import { getSignaturePreviewHtml } from "../../mail-app/mail/signature/Signature"
 
 export async function showBuyOrSetCompanyEmailSignatureTemplateDialog(): Promise<void> {
 	if (!(await locator.logins.getUserController().isNewPaidBusinessPlan())) {
@@ -119,7 +120,7 @@ export async function showCompanyEmailSignatureTemplateDialog(existingTemplate: 
 	]
 	const previewTabContent = () => [
 		m(".small.mt-16.mb-16", lang.getTranslationText("preview_label")),
-		m.trust(createCompanyEmailSignatureHtml(savedHtml, previewData) ?? ""),
+		m.trust(getSignaturePreviewHtml(createCompanyEmailSignatureHtml(savedHtml, previewData) ?? "")),
 	]
 
 	const save = async (dialog: Dialog) => {

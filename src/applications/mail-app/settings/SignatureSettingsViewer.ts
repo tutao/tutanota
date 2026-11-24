@@ -22,7 +22,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { PayloadTooLargeError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { ofClass } from "../../../platform-kit/utils"
-import { EmailSignatureContext, EmailSignatureSetting } from "../mail/signature/Signature"
+import { EmailSignatureContext, EmailSignatureSetting, getSignaturePreviewHtml } from "../mail/signature/Signature"
 import { getUsedCompanyEmailSignatureFields } from "../mail/signature/CompanyEmailSignature"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { Card } from "../../../ui/base/Card"
@@ -113,7 +113,7 @@ export class SignatureSettingsViewer implements UpdatableSettingsViewer {
 					maxHeight: px(200),
 				},
 			},
-			sanitized.trim() === "" ? m(".small", lang.getTranslationText("comboBoxSelectionNone_msg")) : m.trust(sanitized),
+			sanitized.trim() === "" ? m(".small", lang.getTranslationText("comboBoxSelectionNone_msg")) : m.trust(getSignaturePreviewHtml(sanitized)),
 		)
 	}
 

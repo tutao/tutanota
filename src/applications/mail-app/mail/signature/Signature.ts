@@ -9,6 +9,8 @@ import { loadCompanyEmailSignatureHtml } from "./CompanyEmailSignature"
 import type { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EmailSignatureType } from "../../../../entities/tutanota/Utils"
 import { isSameId } from "@tutao/meta"
+import { isDarkTheme } from "../../../../ui/theme"
+import { applyDarkThemeFix } from "../view/MailGuiUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -210,4 +212,15 @@ export function prependEmailSignature(
 	}
 
 	return bodyWithSignature
+}
+
+export function getSignaturePreviewHtml(sanitizedSignatureHtml: string): string {
+	if (!isDarkTheme()) {
+		return sanitizedSignatureHtml
+	}
+	const template = document.createElement("template")
+	template.innerHTML = sanitizedSignatureHtml
+	const container = document.createElement("div")
+	container.appendChild(applyDarkThemeFix(template.content))
+	return container.innerHTML
 }
