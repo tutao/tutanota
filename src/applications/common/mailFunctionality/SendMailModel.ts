@@ -663,8 +663,7 @@ export class SendMailModel {
 			this.setMailSavedAt(this.mailChangedAt + 1)
 		}
 
-		this.mailRemotelyUpdatedAt = this.mailChangedAt
-		this.setMailSavedAt(this.mailChangedAt)
+		this.setMailRemotelyUpdatedAt(this.mailSavedAt)
 		this._draftSavedRecently = false
 
 		assertNotNull(this.initialized, "somehow got to the end of init without startInit called").resolve()
@@ -1430,7 +1429,9 @@ export class SendMailModel {
 						this._draftSavedRecently = false
 					} else {
 						this.mailRemotelyUpdatedAt = this.dateProvider.now()
-						if (this.mailRemotelyUpdatedAt < this.mailSavedAt) {
+
+						// handle potentially receiving an update at the same time it was saved (to force a conflict state)
+						if (this.mailRemotelyUpdatedAt <= this.mailSavedAt) {
 							this.mailRemotelyUpdatedAt = this.mailSavedAt + 1
 						}
 						await this.makeLocalAutosave()
