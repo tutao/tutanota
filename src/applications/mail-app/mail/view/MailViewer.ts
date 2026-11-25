@@ -462,8 +462,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.iframeRoot.style.overflow = "hidden"
 
 		// Restore!
-		this.iframeRoot.style.transform = oldTransformation
-		this.iframeRoot.style.transformOrigin = oldTransformationOrigin
+		iframeBody.style.transform = oldTransformation
+		iframeBody.style.transformOrigin = oldTransformationOrigin
 	})
 
 	private createCollapsedBlockQuote(quote: HTMLElement, expanded: boolean) {

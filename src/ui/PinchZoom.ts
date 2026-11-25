@@ -5,6 +5,9 @@ type CoordinatePair = {
 	y: number
 }
 
+const MIN_ZOOM: number = 1.0
+const MAX_ZOOM: number = 3.0
+
 /**
  * This class handles pinch of a given HTMLElement (zoomable) inside another HTMLElement (viewport). If that zoomable HTMLElement is zoomed in it is possible to drag it (with a new finger gesture)
  * up to the viewport borders.
@@ -47,7 +50,6 @@ export class PinchZoom {
 		pointer2: { x: 0, y: 0 },
 	}
 	private pinchSessionTranslation: CoordinatePair = { x: 0, y: 0 }
-	private zoomBoundaries = { min: 1, max: 3 }
 	// values of this variable should only be the result of the calculateSafeScaleValue function (except from the initial value the value must never be 1 due to division by 1-scale). Never set values directly!
 	private currentScale = 1
 
@@ -110,12 +112,13 @@ export class PinchZoom {
 					eventTarget,
 					(e, target) => singleClickAction(e, target),
 					(e) => {
-						let scale = 1
-						if (this.currentScale > this.zoomBoundaries.min) {
-							scale = this.zoomBoundaries.min // zoom out
-						} else {
-							scale = (this.zoomBoundaries.min + this.zoomBoundaries.max) / 2
+						// Zoom out if zoomed in
+						if (this.isZoomed()) {
+							this.reset()
+							return
 						}
+
+						const scale = (MIN_ZOOM + MAX_ZOOM) / 2
 						const translationAndOrigin = this.calculateSessionsTranslationAndTransformOrigin({
 							x: e.changedTouches[0].clientX,
 							y: e.changedTouches[0].clientY,
@@ -183,7 +186,7 @@ export class PinchZoom {
 		if (this.onTouchMoveListener) {
 			this.zoomable.removeEventListener("ontouchmove", this.onTouchMoveListener)
 		}
-		this.currentScale = this.zoomBoundaries.min
+		this.currentScale = MIN_ZOOM
 		this.viewportResizeObserver.disconnect()
 		this.reset()
 	}
@@ -231,33 +234,6 @@ export class PinchZoom {
 			y: top + this.scrollable.scrollTop,
 			y2: bottom + this.scrollable.scrollTop,
 		}
-	}
-
-	private getZoomablePosition() {
-		// the zoomable's position is relative to the iframe, not the mail viewer, so we need to add the viewport's
-		// position as an offset
-
-		const viewportPosition = this.getViewportPosition()
-		let { top, left, right, bottom } = this.zoomable.getBoundingClientRect()
-
-		return {
-			x: left + viewportPosition.x,
-			x2: right + viewportPosition.x2,
-			y: top + viewportPosition.y,
-			y2: bottom + viewportPosition.y2,
-		}
-	}
-
-	private getCurrentlyAppliedTransformOriginOfZoomable(): CoordinatePair {
-		const computedStyle = getComputedStyle(this.zoomable)
-		let transformOrigin = computedStyle.transformOrigin
-
-		let numberPattern = /-?\d+\.?\d*/g
-		let transformOriginValues = transformOrigin.match(numberPattern) //relative
-		if (transformOriginValues) {
-			return { x: Number(transformOriginValues[0]), y: Number(transformOriginValues[1]) }
-		}
-		return { x: 0, y: 0 }
 	}
 
 	/**
@@ -374,42 +350,33 @@ export class PinchZoom {
 	}
 
 	private dragHandling(ev: TouchEvent) {
-		if (this.currentScale > this.zoomBoundaries.min && this.lastDragTouchPosition) {
+		if (this.isZoomed() && this.lastDragTouchPosition) {
 			if (
 				Math.abs(ev.touches[0].clientX - this.currentTouchStart.x) >= PinchZoom.DRAG_THRESHOLD ||
 				Math.abs(ev.touches[0].clientY - this.currentTouchStart.y) >= PinchZoom.DRAG_THRESHOLD
 			) {
 				this.draggingOrZooming = true
 			}
-			let delta = {
+			const delta = {
 				x: ev.touches[0].clientX - this.lastDragTouchPosition.x,
 				y: ev.touches[0].clientY - this.lastDragTouchPosition.y,
 			}
 			this.lastDragTouchPosition = { x: ev.touches[0].clientX, y: ev.touches[0].clientY }
 
-			let currentRect = this.zoomable.getBoundingClientRect()
+			const currentRect = this.zoomable.getBoundingClientRect()
 
 			// intuitive formula:
 			// newPosition = transformOriginAbsolutePosition - relativeTransformOrigin * scaling	| substitute unknown values
 			// currentRect.x + delta.x = (currentOriginalRect + this.pinchSessionTranslation + newTransformOrigin) - (newTransformOrigin * this.currentScale)	| solve for newTransformOrigin
 			//
 			// newTransformOrigin = (currentRect.x + delta.x - (currentOriginalRect.x + this.pinchSessionTranslation.x)) / (1 - this.currentScale)
-			let newTransformOrigin = {
+			const newTransformOrigin = {
 				x: (currentRect.x + delta.x - this.pinchSessionTranslation.x) / (1 - this.currentScale), // zoom is never 1
 				y: (currentRect.y + delta.y - this.pinchSessionTranslation.y) / (1 - this.currentScale),
 			}
-			let newPinchSessionTranslation = this.pinchSessionTranslation
-			// for too large emails and scale 1 we manually need to set the sessionTranslation to allow dragging
-			// dragging via adjusting the transform origin does not work for scale=1
-			if (this.currentScale === 1) {
-				newTransformOrigin = { x: 0, y: 0 } // otherwise NaN but the value does not have any impact
-				newPinchSessionTranslation = {
-					x: newPinchSessionTranslation.x + delta.x,
-					y: newPinchSessionTranslation.y + delta.y,
-				}
-			}
+			const newPinchSessionTranslation = this.pinchSessionTranslation
 
-			let result = this.setCurrentSafePosition(newTransformOrigin, newPinchSessionTranslation, this.currentScale)
+			const result = this.setCurrentSafePosition(newTransformOrigin, newPinchSessionTranslation, this.currentScale)
 			// default behavior is allowed if vertical dragging is not detected/ possible
 			// horizontal behavior is ignored
 			if (ev.cancelable && result.verticalTransformationAllowed) {
@@ -502,7 +469,7 @@ export class PinchZoom {
 		}
 
 		// keep the zooming factor within the defined boundaries
-		newScale = Math.max(this.zoomBoundaries.min, Math.min(this.zoomBoundaries.max, newScale))
+		newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newScale))
 
 		const targetedOutcome = this.simulateTransformation(
 			viewportRect.x2 - viewportRect.x,
@@ -540,7 +507,7 @@ export class PinchZoom {
 			)
 		}
 
-		if (newScale === 1 && this.zoomBoundaries.min === 1) {
+		if (newScale === 1) {
 			// not initially scaled email is back in the original state
 			this.pinchSessionTranslation = { x: 0, y: 0 }
 		} else {
@@ -573,5 +540,9 @@ export class PinchZoom {
 			x2: transformOrigin.x + (originalWidth - transformOrigin.x) * scale + translation.x + viewportOrigin.x,
 			y2: transformOrigin.y + (originalHeight - transformOrigin.y) * scale + translation.y + viewportOrigin.y,
 		}
+	}
+
+	private isZoomed(): boolean {
+		return this.currentScale !== MIN_ZOOM
 	}
 }
