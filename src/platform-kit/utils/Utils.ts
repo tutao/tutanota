@@ -1,9 +1,22 @@
-import { downcast, isNotNull, TypeChecks } from "@tutao/lang-api"
+import { downcast, isNotNull, Nullable, TypeChecks } from "@tutao/lang-api"
 import { KeyVersion } from "./TsUtils"
 
-export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "@tutao/lang-api"
-
-export { lazy, lazyAsync, Thunk } from "@tutao/lang-api"
+export {
+	TypeChecks,
+	isNotNull,
+	isNull,
+	assert,
+	assertNotNull,
+	assertNull,
+	assertNotNaN,
+	assertNonNull,
+	neverNull,
+	downcast,
+	Nullable,
+	lazy,
+	lazyAsync,
+	Thunk,
+} from "@tutao/lang-api"
 
 export function isKeyVersion(version: number): version is KeyVersion {
 	// we do not check the upper boundary (100) because this is just a limitation of the type system not a real one
@@ -269,8 +282,6 @@ export function createResizeObserver(cb: ResizeObserverCallback): ResizeObserver
 		})
 	})
 }
-
-export type Nullable<T> = T | null
 
 export function isSessionStorageAvailable(): boolean {
 	try {
