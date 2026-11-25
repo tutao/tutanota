@@ -53,6 +53,7 @@ import java.time.temporal.ChronoUnit
 
 const val TAG = "AgendaWidget"
 const val DAYS_IN_WIDGET = 7
+const val DAYS_TO_LOAD_FROM_SERVER = DAYS_IN_WIDGET + 1
 
 class Agenda : GlanceAppWidget() {
 	override val stateDefinition: GlanceStateDefinition<*> = WidgetStateDefinition()
@@ -119,12 +120,12 @@ class Agenda : GlanceAppWidget() {
 
 	@Composable
 	fun WidgetBody(data: WidgetUIState, userId: String?) {
+		val containerPadding = Dimensions.Spacing.space_16.dp
+
 		Column(
 			modifier = GlanceModifier.padding(
-				top = Dimensions.Spacing.space_16.dp,
-				start = Dimensions.Spacing.space_16.dp,
-				end = Dimensions.Spacing.space_16.dp,
-				bottom = 0.dp
+				start = containerPadding,
+				end = containerPadding,
 			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground()
 				.cornerRadius(20.dp),
 		) {
@@ -155,7 +156,8 @@ class Agenda : GlanceAppWidget() {
 						ScrollableDaysList(
 							data,
 							onNewEvent = onNewEvent,
-							userId
+							userId,
+							containerPadding
 						)
 					} else {
 						EmptyStateUI(onNewEvent, userId)
