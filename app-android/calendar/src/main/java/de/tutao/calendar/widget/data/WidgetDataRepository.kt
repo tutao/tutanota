@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import de.tutao.calendar.widget.DAYS_TO_LOAD_FROM_SERVER
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_EVENTS_CACHE
 import de.tutao.tutasdk.ApiCallException
@@ -153,8 +154,8 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
 
 		val start = systemCalendar.timeInMillis.toULong()
-
-		systemCalendar.add(Calendar.DAY_OF_MONTH, 7)
+		// Load an extra day so when transitioning to a new day we have data for the last day in the range.
+		systemCalendar.add(Calendar.DAY_OF_MONTH, DAYS_TO_LOAD_FROM_SERVER)
 		systemCalendar.set(Calendar.HOUR, 0)
 		systemCalendar.set(Calendar.MINUTE, 0)
 		systemCalendar.set(Calendar.SECOND, 0)
