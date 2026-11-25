@@ -114,8 +114,11 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): MaybeTranslation {
 	switch (error.constructor) {
 		case BadRequestError:
+			return "badNetworkOrRequest_msg"
+
 		case NotAuthenticatedError:
 			return "loginFailed_msg"
+
 		case AccessDeactivatedError:
 			return "accessDeactivated_msg"
 

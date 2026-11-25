@@ -2641,3 +2641,4 @@ export type TranslationKeyType =
 	| "fileExpirationDate_msg"
 	| "emptyString_msg"
 	| "editSpamRule_action"
+	| "badNetworkOrRequest_msg"

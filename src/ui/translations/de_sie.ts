@@ -2643,5 +2643,6 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"editSpamRule_action": "Spam-Regel bearbeiten",
+		"badNetworkOrRequest_msg": "Die Verbindung wurde vorzeitig abgebrochen oder es gab andere Probleme mit der Anfrage. Bitte versuchen Sie es nochmal oder mit einem anderen Client oder Browser. Auch ein instabiles Netzwerk könnte dieses Problem verursachen."
 	}
 }
