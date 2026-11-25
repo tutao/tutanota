@@ -121,7 +121,7 @@ export const domainConfigs = {
 		giftCardBaseUrl: "http://localhost:9000/giftcard",
 		referralBaseUrl: "http://localhost:9000/signup",
 		websiteBaseUrl: "https://tuta.com",
-		driveFileShareBaseUrl: "https://localhost:9000/drivefile",
+		driveFileShareBaseUrl: "http://localhost:9000/drivefile",
 	},
 	"{hostname}": {
 		firstPartyDomain: false,
