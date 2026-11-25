@@ -260,6 +260,43 @@ o.spec("ProcessInboxHandler", function () {
 			verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
 		})
 
+		o.test("correctly uses spam filter behavior settings, skips prediction", async () => {
+			mail.sets = [inboxFolder._id]
+			mailboxProperties.spamFilterBehavior = SpamFilterBehavior.STRICT
+
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)).thenResolve({
+				modelInput,
+				uploadableVectorLegacy,
+				uploadableVector,
+				skipPredictionReason: SkipClientSpamClassificationReason.StrictSpamFilter,
+			})
+
+			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
+
+			o.check(targetFolder).deepEquals(spamFolder)
+			verify(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT), { times: 1 })
+			verify(spamHandler.predictSpamForNewMail(anything(), anything()), { times: 0 })
+		})
+
+		o.test("falls back to the DEFAULT spam filter behavior", async () => {
+			mail.sets = [inboxFolder._id]
+			mailboxProperties.spamFilterBehavior = null
+
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
+				modelInput,
+				uploadableVectorLegacy,
+				uploadableVector,
+				skipPredictionReason: SkipClientSpamClassificationReason.None,
+			})
+			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(null)
+
+			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
+
+			o.check(targetFolder).deepEquals(inboxFolder)
+			verify(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT), { times: 1 })
+		})
+
 		o.test("when mail is marked as phishing, skip spam classification and inbox rules", async () => {
 			mail.sets = [spamFolder._id]
 			mail.serverClassificationData = "1,2"

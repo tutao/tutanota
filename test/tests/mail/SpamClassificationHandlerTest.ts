@@ -263,6 +263,137 @@ o.spec("SpamClassificationHandler", function () {
 			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
 		})
 
+		o.spec("mail authentication with strict spam filter", () => {
+			o.beforeEach(() => {
+				mail.sender = createTestEntity(MailAddressTypeRef, { address: "strict@email.com", name: "Strict Sender" })
+				mail.serverClassificationData = null
+			})
+
+			o.test("[skip] spam classification with StrictSpamFilter[ON] for authStatus [HARD_FAIL]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
+			})
+
+			o.test("[do not skip] spam classification with StrictSpamFilter[OFF] for authStatus [HARD_FAIL]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.None)
+			})
+
+			o.test("[skip] spam classification with StrictSpamFilter[ON] for authStatus [SOFT_FAIL]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
+			})
+
+			o.test("[do not skip] spam classification with StrictSpamFilter[OFF] for authStatus [SOFT_FAIL]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.None)
+			})
+
+			o.test("[skip] spam classification with StrictSpamFilter[ON] for authStatus [INVALID_MAIL_FROM]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.INVALID_MAIL_FROM
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
+			})
+
+			o.test("[do not skip] spam classification with StrictSpamFilter[OFF] for authStatus [INVALID_MAIL_FROM]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.INVALID_MAIL_FROM
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.None)
+			})
+
+			o.test("[skip] spam classification with StrictSpamFilter[ON] for authStatus [MISSING_MAIL_FROM]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.MISSING_MAIL_FROM
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
+			})
+
+			o.test("[do not skip] spam classification with StrictSpamFilter[OFF] for authStatus [MISSING_MAIL_FROM]", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.MISSING_MAIL_FROM
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.None)
+			})
+
+			o.test("skip spam classification with StrictSpamFilter when authStatus is missing", async function () {
+				mailDetails.authStatus = ""
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
+			})
+
+			o.test("do not skip spam classification when authStatus is AUTHENTICATED", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.None)
+			})
+
+			o.test("mail from a contact with a failed authStatus is not trusted and is skipped by the strict filter", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+				when(contactModel.searchForContact(mail.sender.address)).thenResolve(
+					createTestEntity(ContactTypeRef, {
+						mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: mail.sender.address })],
+					}),
+				)
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
+			})
+
+			o.test("mail from a contact with AUTHENTICATED authStatus is trusted", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
+				when(contactModel.searchForContact(mail.sender.address)).thenResolve(
+					createTestEntity(ContactTypeRef, {
+						mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: mail.sender.address })],
+					}),
+				)
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.FromTrustedSender)
+			})
+
+			o.test("spoofed self-sender takes priority over the strict filter", async function () {
+				mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
+				mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.SpoofedSender)
+			})
+
+			o.test("phishing takes priority over the strict filter", async function () {
+				mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+
+				const { skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.STRICT)
+
+				o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.MarkedAsPhishing)
+			})
+		})
+
 		o.test("skip spam classification when mail is classified by trusted serverClassifier", async function () {
 			mail.serverClassificationData = "0,10"
 			SERVER_CLASSIFIERS_TO_TRUST.add(10)
