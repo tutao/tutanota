@@ -223,7 +223,7 @@ struct WidgetModel {
 				if $0.isBirthdayEvent { return true } else if $1.isBirthdayEvent { return false }
 
 				let comparisonDate0 = if $0.startsEarlierAndEndsToday { $0.endDate } else { $0.startDate }
-				let comparisonDate1 = if $1.startsEarlierAndEndsToday { $0.endDate } else { $0.startDate }
+				let comparisonDate1 = if $1.startsEarlierAndEndsToday { $1.endDate } else { $1.startDate }
 
 				return comparisonDate0 < comparisonDate1
 			}
