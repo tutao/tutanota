@@ -3,16 +3,24 @@ import Foundation
 public final class SwDate: Sendable {
   private let inner: Date
 
-  public required init(_ timeInMillis: TsDate) {
-    self.inner = Date()
+  private init(_ date: Date) {
+    self.inner = date
   }
 
-  public static func now() throws -> SwDate {
-    fatalError("not yet implemented!")
+  public convenience init() {
+    self.init(Date.now)
   }
 
-  public static func getTime() -> TsInt {
-    fatalError("not yet implemented!")
+  public convenience init(_ value: TsInt) {
+    self.init(Date(timeIntervalSince1970: Double(value.inner) / 1_000))
+  }
+
+  public func getTime() -> TsInt {
+    return TsInt(Int(self.inner.timeIntervalSince1970 * 1_000))
+  }
+
+  public static func now() -> TsInt {
+    return SwDate().getTime()
   }
 }
 

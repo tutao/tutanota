@@ -15,7 +15,6 @@ open class TutanotaError: Error, @unchecked Sendable, EquitableIsIdentity {
   }
 
   public init(_ name: SwString, _ message: SwString) throws {
-    try thisFunctionDoesNothing()
     self._name = name.inner
     self._message = message.inner
   }
@@ -23,7 +22,6 @@ open class TutanotaError: Error, @unchecked Sendable, EquitableIsIdentity {
 
 open class ProgrammingError: TutanotaError, @unchecked Sendable {
   public init(_ m: Nullable<SwString> = nil) throws {
-    try thisFunctionDoesNothing()
     if let m {
       try super.init(SwString("ProgrammingError"), m)
     } else {
