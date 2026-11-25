@@ -13,6 +13,7 @@ export default {
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
 		"acceptTemplateGroupEmailSubject_msg": "Template list invitation accepted",
 		"accessDeactivated_msg": "Your account has been deactivated.",
+		"accessGone_msg": "This account has been deactivated at the account owner's request.",
 		"account_label": "User",
 		"accountCongratulations_msg": "Congratulations",
 		"accountCreationCongratulation_msg": "Your account has been created! Welcome to the encrypted side. 🔒",
@@ -794,6 +795,8 @@ export default {
 		"featureTutanotaOnly_msg": "You may only use this feature with other Tuta users.",
 		"fediverse_label": "Fediverse",
 		"feedbackAnonymousAndHelpUs_label": "Your feedback is anonymous and helps us to improve Tuta.",
+		"feedbackForUs_label": "Have some feedback?",
+		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and shared with the team.",
 		"feedbackOnErrorInfo_msg": "Please tell us which steps have led to this error in English or German so we can fix it. Your message, error details and your browser identifier are sent encrypted to the Tuta team. Thank you!",
 		"fetchingExternalCalendar_error": "Something went wrong. Error while fetching external calendar. Please check that the calendar is publicly accessible and try again later.",
 		"field_label": "Field",
@@ -1839,6 +1842,8 @@ export default {
 		"rateAppStore_action": "Rate on App Store",
 		"rateGooglePlay_action": "Rate on Google Play",
 		"rateUs_action": "Rate us",
+		"ratingBusinessContact_msg": "If you know a business that also deserves privacy, {link}",
+		"ratingBusinessContactLinkText_msg": "let us know.",
 		"ratingDissatisfied_msg": "Got feedback or facing an issue? We're here for you.",
 		"ratingDissatisfied_title": "We are all ears!",
 		"ratingExplanation_msg": "Whether you love the app or feel we can do better, let us know.",
@@ -2641,11 +2646,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"accessGone_msg": "This account has been deactivated at the account owner's request.",
-		"feedbackForUs_label": "Have some feedback?",
-		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and shared with the team",
-		"ratingBusinessContact_msg": "If you know a business that also deserves privacy, {link}.",
-		"ratingBusinessContactLinkText_msg": "let us know",
+		"zoomOut_action": "Zoom Out"
 	}
 }

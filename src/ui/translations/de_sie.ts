@@ -13,6 +13,7 @@ export default {
 		"acceptPrivacyPolicyReminder_msg": "Bitte erkennen Sie die Datenschutzerklärung an, indem Sie das Häkchen setzen.",
 		"acceptTemplateGroupEmailSubject_msg": "Einladung zur Vorlagenliste angenommen",
 		"accessDeactivated_msg": "Ihr Account wurde deaktiviert.",
+		"accessGone_msg": "Dieses Konto wurde auf Veranlassung des Kontoinhabers deaktiviert.",
 		"account_label": "Benutzer",
 		"accountCongratulations_msg": "Herzlichen Glückwunsch",
 		"accountCreationCongratulation_msg": "Ihr Account wurde erstellt! Willkommen in Ihrer verschlüsselten Mailbox. 🔒",
@@ -794,6 +795,8 @@ export default {
 		"featureTutanotaOnly_msg": "Sie können diese Funktion nur mit anderen Tuta-Benutzer verwenden.",
 		"fediverse_label": "Fediverse",
 		"feedbackAnonymousAndHelpUs_label": "Ihr Feedback ist anonym und hilft uns, Tuta zu verbessern.",
+		"feedbackForUs_label": "Haben Sie Feedback für uns?",
+		"feedbackNoReply_msg": "Wir werden nicht auf Ihre Nachricht antworten, sie aber an das Team weiterleiten.",
 		"feedbackOnErrorInfo_msg": "Bitte beschreiben Sie, welche Schritte zu diesem Fehler geführt haben, so dass wir ihn beheben können. Ihre Nachricht, Fehlerdetails und Ihre Browser-Kennung werden verschlüsselt an das Tuta-Team gesendet. Danke!",
 		"fetchingExternalCalendar_error": "Beim Abrufen eines externen Kalenders ist ein Fehler aufgetreten. Bitte überprüfen Sie, dass der Anbieter ihn öffentlich gemacht hat und versuchen Sie es später noch ein mal.",
 		"field_label": "Feld",
@@ -1839,6 +1842,8 @@ export default {
 		"rateAppStore_action": "Bewerten Sie im App-Store",
 		"rateGooglePlay_action": "Bewerten Sie auf Google Play",
 		"rateUs_action": "Bewerten Sie uns",
+		"ratingBusinessContact_msg": "Wenn Sie ein Unternehmen kennen, das auch Datenschutz verdient, {link}.",
+		"ratingBusinessContactLinkText_msg": "geben Sie uns gerne Bescheid",
 		"ratingDissatisfied_msg": "Sie haben Feedback oder ein Problem? Wir sind für Sie da.",
 		"ratingDissatisfied_title": "Wir sind ganz Ohr!",
 		"ratingExplanation_msg": "Ob Sie Tuta lieben oder meinen, wir könnten etwas verbessern, lassen Sie es uns wissen!",
@@ -2641,11 +2646,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"accessGone_msg": "Dieses Konto wurde auf Veranlassung des Kontoinhabers deaktiviert.",
-		"feedbackForUs_label": "Haben Sie Feedback für uns?",
-		"feedbackNoReply_msg": "Wir werden nicht auf Ihre Nachricht antworten, sie aber an das Team weiterleiten.",
-		"ratingBusinessContact_msg": "Wenn Sie ein Unternehmen kennen, das auch Datenschutz verdient, {link}.",
-		"ratingBusinessContactLinkText_msg": "geben Sie uns Bescheid",
+		"zoomOut_action": "Herauszoomen"
 	}
 }
