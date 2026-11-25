@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import java.security.SecureRandom
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -148,21 +149,22 @@ class WidgetUIViewModel(
 
 		val startOfToday = now.toLocalDate()
 
-		// an array representing the current day and the next six days, to fill with events that appear on each day.
-		val daysAndEvents: Array<List<UIEvent>> =
-			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+		val daysToEvents: MutableMap<LocalDate, MutableList<UIEvent>> =
+			mutableMapOf()
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			Log.d(TAG, "[$widgetId] Creating UIEvents from calendar $calendarId")
 			val shortAndLongEvents: List<CalendarEventDao> = eventList.shortEvents.plus(eventList.longEvents)
 
 			for (eventDao: CalendarEventDao in shortAndLongEvents) {
-				for (dayIndex in 0..<daysAndEvents.size) {
+				for (dayIndex in 0..<7) {
 
-					val currentDayMidnightInstantLocalZone =
-						startOfToday.atStartOfDay(zoneId).plus(dayIndex.toLong(), ChronoUnit.DAYS).toInstant()
-					val nextDayMidnightInstantLocalZone = startOfToday
-						.plusDays(1 + dayIndex.toLong())
+					val day = startOfToday.plus(dayIndex.toLong(), ChronoUnit.DAYS)
+
+					val dayMidnightInstantLocalZone =
+						day.atStartOfDay(zoneId).toInstant()
+					val nextDayMidnightInstantLocalZone = day
+						.plusDays(1)
 						.atStartOfDay(zoneId)
 						.toInstant()
 
@@ -198,7 +200,7 @@ class WidgetUIViewModel(
 						) /* will equal tomorrow midnight if event ends after today */
 					} else {
 						uiEventStartMax = max(
-							currentDayMidnightInstantLocalZone.toEpochMilli(),
+							dayMidnightInstantLocalZone.toEpochMilli(),
 							eventDao.startTime.toLong()
 						)    /* will equal today midnight if the event starts before today */
 						uiEventEndMin = min(
@@ -216,11 +218,11 @@ class WidgetUIViewModel(
 
 					// Handle logic for modifying string related to all day events and events spanning multiple days
 					val eventTakesEntireDay =
-						eventStartInstant < currentDayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
+						eventStartInstant < dayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
 					val eventStartsBeforeTodayAndEndsToday =
-						eventStartInstant < currentDayMidnightInstantLocalZone && eventEndInstant < nextDayMidnightInstantLocalZone
+						eventStartInstant < dayMidnightInstantLocalZone && eventEndInstant < nextDayMidnightInstantLocalZone
 					val eventStartsTodayAndEndsLater =
-						eventStartInstant >= currentDayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
+						eventStartInstant >= dayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
 
 					val dayMonthFormatter = DateTimeFormatter.ofPattern("d MMM")
 
@@ -264,7 +266,7 @@ class WidgetUIViewModel(
 						startsBeforeTodayAndEndsToday = eventStartsBeforeTodayAndEndsToday
 					)
 
-					daysAndEvents[dayIndex] = daysAndEvents[dayIndex].plus(uiEvent)
+					daysToEvents.getOrPut(day){mutableListOf()}.add(uiEvent)
 				}
 			}
 			for (birthdayEventDao: BirthdayEventDao in eventList.birthdayEvents) {
@@ -293,17 +295,13 @@ class WidgetUIViewModel(
 					Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong()).atZone(ZoneOffset.UTC)
 						.toLocalDate()
 
-				// we get the index differently for birthday events because we know they will always only be a single instance of an all day event.
-				// so much of the complex logic for other types of events is not necessary.
-				val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
-				daysAndEvents[index.toInt()] = daysAndEvents[index.toInt()].plus(uiEvent)
-			}
+				daysToEvents.getOrPut(eventStartDate){mutableListOf()}.add(uiEvent)}
 		}
 
 		Log.d(TAG, "[$widgetId] Sorting events by start time")
 		// we sorted events in a day to put them in the correct order.
-		for ((index, eventsOfDay) in daysAndEvents.withIndex()) {
-			val sortedEventsOfDay = eventsOfDay.sortedWith(Comparator<UIEvent> { a, b ->
+		for ( eventsOfDay in daysToEvents.values) {
+			eventsOfDay.sortWith(Comparator { a, b ->
 
 				// Birthday events should always be at front of list so they always show in all-day section
 				if (a.isBirthday) {
@@ -322,11 +320,10 @@ class WidgetUIViewModel(
 					comparisonDateA.compareTo(comparisonDateB)
 				compareResult
 			})
-			daysAndEvents[index] = sortedEventsOfDay
 		}
 
 		Log.d(TAG, "[$widgetId] Assigning sorted events to uiState")
-		_uiState.value = WidgetUIState.Available(daysAndEvents, startOfToday)
+		_uiState.value = WidgetUIState.Available(daysToEvents)
 
 		return uiState.value
 	}

@@ -49,8 +49,10 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 const val TAG = "AgendaWidget"
+const val DAYS_IN_WIDGET = 7
 
 class Agenda : GlanceAppWidget() {
 	override val stateDefinition: GlanceStateDefinition<*> = WidgetStateDefinition()
@@ -145,7 +147,7 @@ class Agenda : GlanceAppWidget() {
 				}
 
 				is WidgetUIState.Available -> {
-					val hasEvents = data.daysAndEvents.any { it.isNotEmpty() }
+					val hasEvents = data.daysAndEvents.isNotEmpty()
 
 					val onNewEvent = openCalendarEditor(LocalContext.current, userId)
 
@@ -177,10 +179,11 @@ class Agenda : GlanceAppWidget() {
 	@Preview(widthDp = 250, heightDp = 600)
 	@Composable
 	fun AgendaPreviewWithOnlyAllDays() {
-		val daysAndEvents: Array<List<UIEvent>> =
-			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+		val currentDay = LocalDate.now()
+		val daysAndEvents: MutableMap<LocalDate, MutableList<UIEvent>> =
+			mutableMapOf()
 
-		daysAndEvents[0] = listOf(
+		daysAndEvents[currentDay] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -193,7 +196,7 @@ class Agenda : GlanceAppWidget() {
 			)
 		)
 
-		daysAndEvents[2] = listOf(
+		daysAndEvents[currentDay.plus(2, ChronoUnit.DAYS)] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -210,8 +213,7 @@ class Agenda : GlanceAppWidget() {
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
 				WidgetUIState.Available(
-					daysAndEvents = daysAndEvents,
-					LocalDate.now()
+					daysAndEvents = mutableMapOf()
 				),
 				""
 			)
@@ -225,10 +227,11 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun AgendaPreviewWithNormalAndAllDayEvents() {
 
-		val daysAndEvents: Array<List<UIEvent>> =
-			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+		val currentDay = LocalDate.now()
+		val daysAndEvents: MutableMap<LocalDate, MutableList<UIEvent>> =
+			mutableMapOf()
 
-		daysAndEvents[0] = listOf(
+		daysAndEvents[currentDay] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -262,7 +265,7 @@ class Agenda : GlanceAppWidget() {
 		)
 
 		for (i in 1..10) {
-			daysAndEvents[1] = daysAndEvents[1]!!.plus(
+			daysAndEvents.getOrPut(currentDay.plus(1, ChronoUnit.DAYS)){mutableListOf()}.add(
 				UIEvent(
 					"previewCalendar",
 					IdTuple("", ""),
@@ -276,8 +279,8 @@ class Agenda : GlanceAppWidget() {
 			)
 		}
 
-		daysAndEvents[1] = daysAndEvents[1]!!.plus(
-			listOf(
+		daysAndEvents.getOrPut(currentDay.plus(1, ChronoUnit.DAYS)){mutableListOf()}.addAll(
+			mutableListOf(
 				UIEvent(
 					"previewCalendar",
 					IdTuple("", ""),
@@ -301,7 +304,7 @@ class Agenda : GlanceAppWidget() {
 			)
 		)
 
-		daysAndEvents[2] = listOf(
+		daysAndEvents.getOrPut(currentDay.plus(2, ChronoUnit.DAYS)){mutableListOf()}.addAll( mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -322,14 +325,11 @@ class Agenda : GlanceAppWidget() {
 				isDisplayedAsAllDay = false,
 				""
 			)
-		)
+		))
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIState.Available(
-					daysAndEvents,
-					LocalDate.now()
-				),
+				WidgetUIState.Available(daysAndEvents),
 				""
 			)
 		}
@@ -340,11 +340,11 @@ class Agenda : GlanceAppWidget() {
 	@Preview(widthDp = 250, heightDp = 400)
 	@Composable
 	fun AgendaPreviewWithoutAllDays() {
+		val currentDay = LocalDate.now()
+		val daysAndEvents: MutableMap<LocalDate, MutableList<UIEvent>> =
+			mutableMapOf()
 
-		val daysAndEvents: Array<List<UIEvent>> =
-			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
-
-		daysAndEvents[0] = listOf(
+		daysAndEvents[currentDay] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -357,7 +357,7 @@ class Agenda : GlanceAppWidget() {
 			)
 		)
 
-		daysAndEvents[1] = listOf(
+		daysAndEvents[currentDay.plus(1, ChronoUnit.DAYS)] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -381,7 +381,7 @@ class Agenda : GlanceAppWidget() {
 		)
 
 
-		daysAndEvents[2] = listOf(
+		daysAndEvents[currentDay.plus(2, ChronoUnit.DAYS)] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -408,7 +408,6 @@ class Agenda : GlanceAppWidget() {
 			WidgetBody(
 				WidgetUIState.Available(
 					daysAndEvents,
-					LocalDate.now()
 				),
 				""
 			)
@@ -423,10 +422,11 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun AgendaPreviewNoEventsToday() {
 
-		val daysAndEvents: Array<List<UIEvent>> =
-			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+		val currentDay = LocalDate.now()
+		val daysAndEvents: MutableMap<LocalDate, MutableList<UIEvent>> =
+			mutableMapOf()
 
-		daysAndEvents[1] = listOf(
+		daysAndEvents[currentDay.plus(1, ChronoUnit.DAYS)] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -449,7 +449,7 @@ class Agenda : GlanceAppWidget() {
 			)
 		)
 
-		daysAndEvents[2] = listOf(
+		daysAndEvents[currentDay.plus(2, ChronoUnit.DAYS)] = mutableListOf(
 			UIEvent(
 				"previewCalendar",
 				IdTuple("", ""),
@@ -476,7 +476,6 @@ class Agenda : GlanceAppWidget() {
 			WidgetBody(
 				WidgetUIState.Available(
 					daysAndEvents,
-					LocalDate.now()
 				),
 				""
 			)
@@ -488,14 +487,12 @@ class Agenda : GlanceAppWidget() {
 	@Preview(widthDp = 200, heightDp = 400)
 	@Composable
 	fun AgendaPreviewNoEvents() {
-		val daysAndEvents: Array<List<UIEvent>> =
-			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
 				WidgetUIState.Available(
-					daysAndEvents,
-					LocalDate.now()
+					mutableMapOf(),
 				),
 				""
 			)

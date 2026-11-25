@@ -13,8 +13,6 @@ sealed interface WidgetUIState {
 	data class Error(val error: WidgetError) : WidgetUIState
 
 	data class Available(
-		var daysAndEvents: Array<List<UIEvent>>,
-		/** the date on which this state was loaded.  Used for updating event positions after date change. */
-		val loadUiStateDate: LocalDate
+		var daysAndEvents: Map<LocalDate, MutableList<UIEvent>>,
 	) : WidgetUIState
 }

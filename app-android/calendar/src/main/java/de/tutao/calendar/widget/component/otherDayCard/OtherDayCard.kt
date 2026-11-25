@@ -14,14 +14,14 @@ import de.tutao.calendar.widget.component.EventList
 import de.tutao.calendar.widget.component.allDayRow.AllDayRow
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 @Composable
 fun OtherDayCard(
 	userId: String?,
 	events: List<UIEvent>,
 	clickAction: Action,
-	currentDate: LocalDateTime
+	currentDate: LocalDate
 ) {
 
 	// this is not yet possible

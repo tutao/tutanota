@@ -39,6 +39,7 @@ import org.mockito.kotlin.whenever
 import org.mockito.kotlin.wheneverBlocking
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 
 class WidgetUIViewModelTest {
@@ -243,15 +244,17 @@ class WidgetUIViewModelTest {
 
 		assertTrue(state is WidgetUIState.Available)
 		val availableState = state as WidgetUIState.Available
-		assert(availableState.daysAndEvents[0].isNotEmpty())
+		val testLocalDate = TEST_LOCAL_DATE_TIME.toLocalDate()
+
+		assert(!availableState.daysAndEvents[testLocalDate].isNullOrEmpty())
 		for (i in 1..<7) {
-			assert(availableState.daysAndEvents[i].isEmpty())
+			assert(availableState.daysAndEvents[testLocalDate.plus(i.toLong(), ChronoUnit.DAYS)].isNullOrEmpty(), {"test failed on $i"})
 		}
 
 		verify(mockWidgetRepository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
 		verify(mockWidgetRepository, times(1)).loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 
-		val eventsIds = availableState.daysAndEvents[0].map { uIEvent -> uIEvent.eventId }
+		val eventsIds = availableState.daysAndEvents.getOrElse(testLocalDate){mutableListOf()}.map { uIEvent -> uIEvent.eventId }
 		assertEquals(listOf(eventFour, eventTwo, eventThree, eventOne).map { eventDao -> eventDao.id }, eventsIds)
 	}
 

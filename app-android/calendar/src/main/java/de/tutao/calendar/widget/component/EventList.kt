@@ -10,14 +10,16 @@ import de.tutao.calendar.widget.component.eventCard.EventRow
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.Dimensions
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 
 @Composable
 fun EventList(
 	userId: String?,
 	normalEvents: List<UIEvent>,
-	currentDay: LocalDateTime,
+	currentDay: LocalDate,
 	paddingEndForFirstElement: Int = 0
 ) {
 	// we need to chunk events because columns  can only have 10 children
@@ -40,7 +42,7 @@ fun EventList(
 								end = paddingEnd.dp
 							),
 						event,
-						openEventAction = openCalendarAgenda(LocalContext.current, userId, currentDay, event.eventId)
+						openEventAction = openCalendarAgenda(LocalContext.current, userId, LocalDateTime.of(currentDay, LocalTime.MIDNIGHT), event.eventId)
 					)
 				}
 			}
