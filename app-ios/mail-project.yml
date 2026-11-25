@@ -91,6 +91,7 @@ targets:
       - target: TutanotaSharedFramework
       - target: TutanotaShareExtension
         codeSign: false
+      - target: TutanotaContactProvider
       - framework: tutasdk.framework
         embed: false
       - framework: StoreKit.framework
@@ -153,6 +154,15 @@ targets:
         embed: false
       - package: Mockable
         product: "Mockable"
+  TutanotaContactProvider:
+    templates: [ "formatAndLint" ]
+    type: "app-extension"
+    sources: "TutanotaContactProvider"
+    settings:
+      base:
+        IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+        PRODUCT_NAME: "TutanotaContactProvider"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaContactProvider"
 schemes:
   tuta debug:
     build:

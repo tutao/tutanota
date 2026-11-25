@@ -1,0 +1,30 @@
+//
+//  TutanotaContactProvider.swift
+//  TutanotaContactProvider
+//
+//  Created by Tutao GmbH on 24.11.26.
+//
+
+import ContactProvider
+import ExtensionFoundation
+import Foundation
+
+@main class TutanotaContactProvider: ContactProviderExtension {
+	private let rootContainerEnumerator: TutanotaContactProviderRootContainerEnumerator
+
+	required init() {
+		// Initialize your extension here.
+		rootContainerEnumerator = TutanotaContactProviderRootContainerEnumerator()
+	}
+
+	func configure(for domain: ContactProviderDomain) {
+		// Configure your extension here.
+		rootContainerEnumerator.configure(for: domain)
+	}
+
+	func enumerator(for collection: ContactItem.Identifier) -> ContactItemEnumerator { rootContainerEnumerator }
+
+	func invalidate() async throws {
+		// TODO: Stop any enumeration and cleanup as the extension will be terminated.
+	}
+}
