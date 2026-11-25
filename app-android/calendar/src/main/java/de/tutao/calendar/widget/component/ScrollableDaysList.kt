@@ -1,5 +1,6 @@
 package de.tutao.calendar.widget.component
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
@@ -8,6 +9,7 @@ import androidx.glance.action.Action
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.layout.Row
 import androidx.glance.layout.padding
+import de.tutao.calendar.widget.TAG
 import de.tutao.calendar.widget.component.otherDayCard.OtherDayCard
 import de.tutao.calendar.widget.component.todayCard.TodayCard
 import de.tutao.calendar.widget.data.WidgetUIState
@@ -24,11 +26,19 @@ fun ScrollableDaysList(
 	onNewEvent: Action,
 	userId: String?
 ) {
-
+	var adjustedDaysToEvents = data.daysAndEvents
 	val startOfToday = LocalDate.now()
+	val dayDifference = ChronoUnit.DAYS.between(data.loadUiStateDate, startOfToday).toInt()
+	if (dayDifference > 0) {
+		Log.i(TAG, "Adjusting daysToEvents: dayDifference = $dayDifference")
+		adjustedDaysToEvents = data.daysAndEvents.slice(dayDifference ..< data.daysAndEvents.size).plus(List(dayDifference) { emptyList() }).toTypedArray()
+		// TODO: Kick-off new loadUiState, to populate new day arrays with events that were outside the previous range
+	} else if (dayDifference < 0){
+		Log.w(TAG, "Day difference was negative. This should never happen. resetting to 0.")
+	}
 
 	LazyColumn {
-		items(data.daysAndEvents.size) { dayIndex ->
+		items(adjustedDaysToEvents.size) { dayIndex ->
 
 			val currentDay = LocalDateTime.of(startOfToday.plus(dayIndex.toLong(), ChronoUnit.DAYS), LocalTime.MIDNIGHT)
 
@@ -37,7 +47,7 @@ fun ScrollableDaysList(
 				Dimensions.Spacing.space_8.dp
 			} else 0.dp
 
-			val bottomPadding = if (dayIndex == data.daysAndEvents.size - 1) {
+			val bottomPadding = if (dayIndex == adjustedDaysToEvents.size - 1) {
 				Dimensions.Spacing.space_16.dp
 			} else {
 				0.dp
@@ -48,17 +58,17 @@ fun ScrollableDaysList(
 				Row(modifier = GlanceModifier.padding(top = topPadding, bottom = bottomPadding)) {
 					TodayCard(
 						userId,
-						data.daysAndEvents[dayIndex],
+						adjustedDaysToEvents[dayIndex],
 						currentDayAction,
 						currentDay,
 						onNewEvent
 					)
 				}
-			} else if (data.daysAndEvents[dayIndex].isNotEmpty()) {
+			} else if (adjustedDaysToEvents[dayIndex].isNotEmpty()) {
 				Row(modifier = GlanceModifier.padding(top = topPadding, bottom = bottomPadding)) {
 					OtherDayCard(
 						userId,
-						data.daysAndEvents[dayIndex],
+						adjustedDaysToEvents[dayIndex],
 						currentDayAction,
 						currentDay
 					)
