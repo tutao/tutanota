@@ -13,12 +13,11 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.tutao.calendar.widget.style.Dimensions
-import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun DayWithWeekday(currentDate: LocalDateTime) {
+fun DayWithWeekday(currentDate: LocalDate) {
 	val day = currentDate.format(DateTimeFormatter.ofPattern("dd"))
 	val weekday = currentDate.format(DateTimeFormatter.ofPattern("EE"))
 	Column(

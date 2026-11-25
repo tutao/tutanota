@@ -24,19 +24,16 @@ import de.tutao.calendar.widget.component.TodayWithWeekday
 import de.tutao.calendar.widget.component.allDayRow.AllDayRow
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 @Composable
 fun TodayCard(
 	userId: String?,
-	events: List<UIEvent>,
+	events: MutableList<UIEvent>?,
 	cardAction: Action,
-	currentDay: LocalDateTime,
+	currentDay: LocalDate,
 	onNewEvent: Action
 ) {
-
-	val normalEvents = events.filter { uiEvent -> !uiEvent.isDisplayedAsAllDay }
-	val allDayEvents = events.filter { uiEvent -> uiEvent.isDisplayedAsAllDay }
 
 	Card(cardAction) {
 		Box(modifier = GlanceModifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
@@ -48,7 +45,7 @@ fun TodayCard(
 				).fillMaxWidth()
 			) {
 				TodayWithWeekday()
-				if (normalEvents.isEmpty() && allDayEvents.isEmpty()) {
+				if (events == null) {
 					Text(
 						LocalContext.current.getString(R.string.widgetNoEventsToday_msg),
 						style = TextStyle(
@@ -59,6 +56,8 @@ fun TodayCard(
 						modifier = GlanceModifier.fillMaxWidth()
 					)
 				} else {
+					val normalEvents = events.filter { uiEvent -> !uiEvent.isDisplayedAsAllDay }
+					val allDayEvents = events.filter { uiEvent -> uiEvent.isDisplayedAsAllDay }
 					if (allDayEvents.isNotEmpty()) {
 						Row(modifier = GlanceModifier.padding(end = (Dimensions.Size.core_48 + Dimensions.Spacing.space_4).dp)) {
 							AllDayRow(allDayEvents)
