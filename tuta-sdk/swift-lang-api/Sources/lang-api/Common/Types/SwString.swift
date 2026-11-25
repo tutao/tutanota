@@ -240,21 +240,25 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
   }
 
   public func trimEnd() -> SwString {
-    return SwString(String(SwString.trim(self.utf16.reversed()).reversed()) ?? "")
+    let x = self.inner
+      .reversed()
+      .trimmingPrefix(while: SwString.isWhitespace)
+      .reversed()
+    return SwString(String(x))
   }
 
   public func trimStart() -> SwString {
-    return SwString(String(SwString.trim(self.utf16)) ?? "")
+    return SwString(String(self.inner.trimmingPrefix(while: SwString.isWhitespace)))
   }
 
-  private static func trim(_ y: String.UTF16View) -> String.UTF16View.SubSequence {
-      return y.trimmingPrefix { (u) in
-      u == 0x0009 || u == 0x000B || u == 0x000C || u == 0x0020 || u == 0x00A0 || u == 0xFEFF
-        || u == 0x1680 || u == 0x2000 || u == 0x2001 || u == 0x2002 || u == 0x2003
-        || u == 0x2004 || u == 0x2005 || u == 0x2006 || u == 0x2007 || u == 0x2008
-        || u == 0x2009 || u == 0x200A || u == 0x202F || u == 0x205F || u == 0x3000
-        || u == 0x000A || u == 0x000D || u == 0x2028 || u == 0x2029
-    }
+  private static func isWhitespace(_ character: Character) -> Bool {
+    // Swift's Character.isWhitespace behaves differently on characters like 0x0089 and 0xFEFF
+    let u = character.utf16.first
+    return u == 0x0009 || u == 0x000B || u == 0x000C || u == 0x0020 || u == 0x00A0 || u == 0xFEFF
+      || u == 0x1680 || u == 0x2000 || u == 0x2001 || u == 0x2002 || u == 0x2003 || u == 0x2004
+      || u == 0x2005 || u == 0x2006 || u == 0x2007 || u == 0x2008 || u == 0x2009 || u == 0x200A
+      || u == 0x202F || u == 0x205F || u == 0x3000 || u == 0x000A || u == 0x000D || u == 0x2028
+      || u == 0x2029
   }
 
   public static func fromCharCode(_ nums: SwInt...) -> SwString {
