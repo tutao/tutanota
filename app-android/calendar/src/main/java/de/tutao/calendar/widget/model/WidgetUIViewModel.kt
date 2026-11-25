@@ -11,6 +11,7 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
+import de.tutao.calendar.widget.DAYS_TO_LOAD_FROM_SERVER
 import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.BirthdayEventDao
 import de.tutao.calendar.widget.data.CalendarEventDao
@@ -157,7 +158,7 @@ class WidgetUIViewModel(
 			val shortAndLongEvents: List<CalendarEventDao> = eventList.shortEvents.plus(eventList.longEvents)
 
 			for (eventDao: CalendarEventDao in shortAndLongEvents) {
-				for (dayIndex in 0..<7) {
+				for (dayIndex in 0..<DAYS_TO_LOAD_FROM_SERVER) {
 
 					val day = startOfToday.plus(dayIndex.toLong(), ChronoUnit.DAYS)
 
