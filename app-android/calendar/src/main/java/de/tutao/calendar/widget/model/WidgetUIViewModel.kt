@@ -326,7 +326,7 @@ class WidgetUIViewModel(
 		}
 
 		Log.d(TAG, "[$widgetId] Assigning sorted events to uiState")
-		_uiState.value = WidgetUIState.Available(daysAndEvents)
+		_uiState.value = WidgetUIState.Available(daysAndEvents, startOfToday)
 
 		return uiState.value
 	}

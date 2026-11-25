@@ -46,6 +46,7 @@ import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -210,6 +211,7 @@ class Agenda : GlanceAppWidget() {
 			WidgetBody(
 				WidgetUIState.Available(
 					daysAndEvents = daysAndEvents,
+					LocalDate.now()
 				),
 				""
 			)
@@ -325,7 +327,8 @@ class Agenda : GlanceAppWidget() {
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
 				WidgetUIState.Available(
-					daysAndEvents
+					daysAndEvents,
+					LocalDate.now()
 				),
 				""
 			)
@@ -404,7 +407,8 @@ class Agenda : GlanceAppWidget() {
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
 				WidgetUIState.Available(
-					daysAndEvents
+					daysAndEvents,
+					LocalDate.now()
 				),
 				""
 			)
@@ -471,7 +475,8 @@ class Agenda : GlanceAppWidget() {
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
 				WidgetUIState.Available(
-					daysAndEvents
+					daysAndEvents,
+					LocalDate.now()
 				),
 				""
 			)
@@ -489,7 +494,8 @@ class Agenda : GlanceAppWidget() {
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
 				WidgetUIState.Available(
-					daysAndEvents
+					daysAndEvents,
+					LocalDate.now()
 				),
 				""
 			)
