@@ -87,12 +87,12 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 			}
 
 			view(): Children {
-				return m(".flex.col.height-100p", {}, [
+				return m(".flex.col.height-100p", [
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => dialog.close(), type: ButtonType.Secondary }],
 						middle: "share_action",
 					}),
-					m(".flex.col.mlr-16.mt-16.mb-16.gap-16.overflow-y-scroll", [
+					m(".flex.col.mlr-16.mt-16.mb-16.min-height-0", [
 						m(".flex.col.overflow-y-scroll", [
 							m(".flex.gap-12", [
 								m(Icon, {
@@ -211,39 +211,45 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 								),
 							]),
 						]),
-						m(".flex.row.gap-16.justify-between.flex-grow", [
-							m(SecondaryButton, {
-								width: "flex",
-								label: lang.getTranslation("deleteLink_action"),
-								onclick: async () => {
-									dialog.close()
-									await showProgressDialog("progressDeleting_msg", driveFileSharingFacade.deleteShareLink(file))
-									const message = lang.getTranslation("shareDeleted_msg", { "{fileName}": file.name })
-									showSnackBar({ message })
-								},
-							}),
-							m(PrimaryButton, {
-								class: "align-self-end",
-								width: "flex",
-								label: lang.getTranslation("updateLink_action"),
-								onclick: () => {
-									if (this.doPassword && this.passwordValue.trim() === "") {
-										throw new UserError(lang.getTranslation("invalidPassword_msg"))
-									}
-									if (this.doExpiry && isNull(this.expirationDate)) {
-										throw new UserError(lang.getTranslation("expirationDateEmpty_msg"))
-									}
-									if (this.doExpiry && assertNotNull(this.expirationDate).getTime() < new Date().getTime()) {
-										throw new UserError(lang.getTranslation("expirationDateInPast_msg"))
-									}
+						m(
+							".flex.gap-16.justify-between.flex-grow.pt-16",
+							{
+								class: Styles.get().isMobileLayout() ? "col" : "row",
+							},
+							[
+								m(SecondaryButton, {
+									width: "flex",
+									label: lang.getTranslation("deleteLink_action"),
+									onclick: async () => {
+										dialog.close()
+										await showProgressDialog("progressDeleting_msg", driveFileSharingFacade.deleteShareLink(file))
+										const message = lang.getTranslation("shareDeleted_msg", { "{fileName}": file.name })
+										showSnackBar({ message })
+									},
+								}),
+								m(PrimaryButton, {
+									class: Styles.get().isMobileLayout() ? "" : "align-self-end",
+									width: "flex",
+									label: lang.getTranslation("updateLink_action"),
+									onclick: () => {
+										if (this.doPassword && this.passwordValue.trim() === "") {
+											throw new UserError(lang.getTranslation("invalidPassword_msg"))
+										}
+										if (this.doExpiry && isNull(this.expirationDate)) {
+											throw new UserError(lang.getTranslation("expirationDateEmpty_msg"))
+										}
+										if (this.doExpiry && assertNotNull(this.expirationDate).getTime() < new Date().getTime()) {
+											throw new UserError(lang.getTranslation("expirationDateInPast_msg"))
+										}
 
-									showProgressDialog(
-										lang.getTranslation("updatingShare_msg"),
-										this.updateShareAndReload(this.doPassword ? this.passwordValue : null, this.doExpiry ? this.expirationDate : null),
-									)
-								},
-							}),
-						]),
+										showProgressDialog(
+											lang.getTranslation("updatingShare_msg"),
+											this.updateShareAndReload(this.doPassword ? this.passwordValue : null, this.doExpiry ? this.expirationDate : null),
+										)
+									},
+								}),
+							],
+						),
 					]),
 				])
 			}
