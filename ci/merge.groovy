@@ -127,7 +127,7 @@ pipeline {
 				stage("checkout mac m1") {
 					agent {
 						node {
-							label "mac-m1"
+							label "mac-integration"
 							customWorkspace macWorkspace
 						}
 					}
@@ -211,7 +211,7 @@ pipeline {
 				stage("lint swift") {
 					agent {
 						node {
-							label "mac-m1"
+							label "mac-integration"
 							customWorkspace macWorkspace
 						}
 					}
@@ -397,7 +397,7 @@ pipeline {
 				stage("ios tests") {
                     agent {
                         node {
-                            label "mac-m1"
+                            label "mac-integration"
                             customWorkspace macWorkspace
                         }
                     }
