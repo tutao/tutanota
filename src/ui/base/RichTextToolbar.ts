@@ -20,6 +20,8 @@ export interface RichTextToolbarAttrs {
 	imageButtonClickHandler?: ((ev: Event, editor: Editor) => unknown) | null
 	alignmentEnabled?: boolean
 	fontSizeEnabled?: boolean
+	/** buttons rendered before all other toolbar buttons */
+	leadingButtonAttrs?: Array<IconButtonAttrs>
 	customButtonAttrs?: Array<IconButtonAttrs>
 	isNonElevatedBackground?: boolean
 }
@@ -62,6 +64,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			[
 				m(
 					".flex-end.wrap.items-center.mb-4.mt-4.ml-between-4",
+					(attrs.leadingButtonAttrs ?? []).map((attrs) => m(IconButton, attrs)),
 					this.renderStyleButtons(attrs),
 					this.renderCustomButtons(attrs),
 					this.renderAlignDropDown(attrs),

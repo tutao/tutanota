@@ -113,7 +113,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 
 		const defaultMessage = this._languageViewModel.getTranslationText("outOfOfficeDefault_msg")
 		const templateMessage = this.isUserMailbox
-			? appendEmailSignature(defaultMessage, this._userController.props, this.customEmailSignatures, EmailSignatureContext.NewMail)
+			? appendEmailSignature(defaultMessage, this._userController.props, this.customEmailSignatures, EmailSignatureContext.ReplyOrForward)
 			: defaultMessage
 		this.organizationSubject(templateSubject)
 		this.defaultSubject(templateSubject)

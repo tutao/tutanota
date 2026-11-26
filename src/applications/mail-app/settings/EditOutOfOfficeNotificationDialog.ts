@@ -17,7 +17,16 @@ import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError
 import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
 import { OUT_OF_OFFICE_SUBJECT_PREFIX } from "../../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
-import { loadCustomEmailSignatures } from "../mail/signature/Signature"
+import {
+	EmailSignature,
+	getDefaultEmailSignature,
+	getSelectedEmailSignatureName,
+	isCompanyEmailSignature,
+	loadCustomEmailSignatures,
+	replaceEmailSignature,
+} from "../mail/signature/Signature"
+import { attachDropdown } from "../../../ui/base/Dropdown"
+import { FeatureType } from "../../../platform-kit/app-env"
 import { elementIdToId } from "@tutao/meta"
 import { mailLocator } from "../mailLocator"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
@@ -37,6 +46,11 @@ export async function showEditOutOfOfficeNotificationDialog(mailGroupId: Id) {
 	const userController = locator.logins.getUserController()
 	let mailboxDetail = await mailLocator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
 	const customEmailSignatures = await loadCustomEmailSignatures(locator.entityClient, userController)
+	const defaultSignature: EmailSignature[] = !locator.logins.isEnabled(FeatureType.DisableDefaultSignature) ? [getDefaultEmailSignature()] : []
+	const availableSignatures = customEmailSignatures
+		.filter(isCompanyEmailSignature)
+		.concat(defaultSignature)
+		.concat(customEmailSignatures.filter((signature) => !isCompanyEmailSignature(signature)))
 
 	let state: DialogState | null = null
 	let isSaving = false
@@ -44,6 +58,7 @@ export async function showEditOutOfOfficeNotificationDialog(mailGroupId: Id) {
 	const selectMailbox = async (detail: MailboxDetail) => {
 		const mailGroupId = elementIdToId(detail.mailGroup._id)
 		const notification = await loadOutOfOfficeNotification(mailGroupId)
+		const userMailbox = isUserMailbox(detail)
 		const model = new EditOutOfOfficeNotificationDialogModel(
 			notification,
 			locator.entityClient,
@@ -52,13 +67,13 @@ export async function showEditOutOfOfficeNotificationDialog(mailGroupId: Id) {
 			locator.serviceExecutor,
 			customEmailSignatures,
 			mailGroupId,
-			isUserMailbox(detail),
+			userMailbox,
 		)
 		mailboxDetail = detail
 		state = {
 			model,
-			organizationMessageEditor: createMessageEditor(model.organizationMessage()),
-			defaultMessageEditor: createMessageEditor(model.defaultMessage()),
+			organizationMessageEditor: createMessageEditor(model.organizationMessage(), userMailbox ? availableSignatures : []),
+			defaultMessageEditor: createMessageEditor(model.defaultMessage(), userMailbox ? availableSignatures : []),
 		}
 		m.redraw()
 	}
@@ -110,14 +125,34 @@ export async function showEditOutOfOfficeNotificationDialog(mailGroupId: Id) {
 
 type DialogState = EditOutOfOfficeNotificationDialogAttrs
 
-function createMessageEditor(value: string): HtmlEditor {
-	return new HtmlEditor(getHtmlSanitizer())
-		.setMinHeight(100)
-		.showBorders()
-		.setValue(value)
-		.enableToolbar()
-		.setToolbarOptions({ isNonElevatedBackground: true })
-		.setBackgroundClass("nav-bg")
+function createMessageEditor(value: string, signatures: readonly EmailSignature[]): HtmlEditor {
+	const editor: HtmlEditor = new HtmlEditor(getHtmlSanitizer()).setMinHeight(100).showBorders().setValue(value).enableToolbar().setBackgroundClass("nav-bg")
+	const applySignature = (signature: EmailSignature | null) => editor.setValue(replaceEmailSignature(editor.getValue(), signature))
+	const signatureButton =
+		signatures.length > 0
+			? attachDropdown({
+					mainButtonAttrs: {
+						label: "selectSignature_action",
+						icon: Icons.PenFilled,
+						size: ButtonSize.Compact,
+					},
+					childAttrs: async () => {
+						const appliedName = getSelectedEmailSignatureName(editor.getValue())
+						return signatures
+							.map((signature) => ({
+								label: lang.makeTranslation("signature", signature.name),
+								click: () => applySignature(signature),
+								icon: appliedName === signature.name ? Icons.Checkmark : undefined,
+							}))
+							.concat({
+								label: lang.getTranslation("comboBoxSelectionNone_msg"),
+								click: () => applySignature(null),
+								icon: appliedName === null ? Icons.Checkmark : undefined,
+							})
+					},
+				})
+			: null
+	return editor.setToolbarOptions({ isNonElevatedBackground: true, leadingButtonAttrs: signatureButton ? [signatureButton] : [] })
 }
 
 type EditOutOfOfficeNotificationDialogAttrs = {
