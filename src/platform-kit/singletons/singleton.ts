@@ -1,14 +1,18 @@
 import { AppType, EnvProvider, EnvType } from "@tutao/app-env"
 import { ClientDetector } from "../app-env/boot/ClientDetector"
-import { assert, assertNotNull, isNull, Nullable, structuredClone, TsString } from "@tutao/lang-api"
+import { assert, assertNotNull, isNotNull, isNull, Nullable, structuredClone, TsString } from "@tutao/lang-api"
 
 export class Singletons {
 	private static _envProvider: Nullable<EnvProvider> = null
 	private static _clientDetector: Nullable<ClientDetector> = null
 
-	public static async init(userAgent: TsString, platform: TsString, appType?: AppType): Promise<void> {
+	public static async init(userAgent: TsString, platform: TsString, appType: Nullable<AppType> = null): Promise<void> {
 		Singletons._envProvider = new EnvProvider(assertNotNull(globalThis.env, "global env is not yet defined"))
-		Singletons._clientDetector = await ClientDetector.init(Singletons.envProvider, userAgent, platform, appType)
+		if (isNotNull(appType)) {
+			Singletons._clientDetector = await ClientDetector.init(Singletons.envProvider, userAgent, platform, appType)
+		} else {
+			Singletons._clientDetector = await ClientDetector.init(Singletons.envProvider, userAgent, platform)
+		}
 	}
 
 	public static get clientDetector(): ClientDetector {
