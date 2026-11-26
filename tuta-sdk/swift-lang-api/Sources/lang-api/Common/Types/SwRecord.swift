@@ -1,15 +1,18 @@
-public final class SwRecord<Key, Value>: Sendable {
-  public func keys() -> [Key] {
-    fatalError("not implemented")
+public final class SwRecord<K: Hashable, V>: @unchecked Sendable {
+  private var inner: [K: V] = [:]
+
+  private init(_ map: [K: V]) {
+    self.inner = map
   }
 
-  public func values() -> [Value] {
-    fatalError("not implemented")
-  }
-
-  public func entries() -> [(Key, Value)] {
-    fatalError("not implemented")
+  public subscript(key: K) -> V? {
+    get {
+      return self.inner[key]
+    }
+    set(newValue) {
+      self.inner[key] = newValue
+    }
   }
 }
 
-public typealias TsRecord<Key, Value> = SwRecord<Key, Value>
+public typealias TsRecord<K: Hashable, V> = SwRecord<K, V>
