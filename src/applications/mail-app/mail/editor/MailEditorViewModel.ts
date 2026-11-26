@@ -20,6 +20,11 @@ import { ArchiveDataType } from "../../../../entities/sys/Utils"
 
 export async function attachDriveFile(model: SendMailModel): Promise<void> {
 	const roots = await mailLocator.driveFacade.loadRootFolders("withNetwork")
+	if (roots == null) {
+		// FIXME
+		return
+	}
+
 	mailLocator.showDriveFilePickerDialog(roots.root, async (pickedItems: readonly FolderItemId[]) => {
 		for (const pickedItem of pickedItems) {
 			if (pickedItem.type === "folder") {

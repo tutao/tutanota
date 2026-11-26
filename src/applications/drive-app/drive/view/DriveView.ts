@@ -62,6 +62,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { DriveFileShareDialog } from "./DriveFileShareDialog"
 import { wholeListSelected } from "../../../common/misc/ListModel"
 import { showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
+import { pureComponent } from "../../../../ui/base/PureComponent"
 
 export type MailFileSender = (item: DriveFile) => unknown
 
@@ -79,7 +80,7 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
 	private readonly viewSlider: ViewSlider
 	private readonly driveNavColumn: ViewColumn
-	private readonly currentFolderColumn: ViewColumn
+	private readonly mainColumn: ViewColumn
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		if (!this.driveViewModel.isDriveEnabledForCustomer()) {
@@ -139,13 +140,12 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			this.driveViewModel.moveItems(items, destinationId)
 		}
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs, onTrash, onMove) // this is where we see the left bar
-		this.currentFolderColumn = this.createCurrentFolderColumn(
-			vnode.attrs.header,
-			vnode.attrs.showMoveItemDialog,
-			vnode.attrs.sendFileViaMail,
-			vnode.attrs.fileShareDialog,
-		) // this where we see the files of the selected folder being listed
-		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn], windowFacade)
+
+		// create the main column
+		// this will be a folder view if Drive is set up properly,
+		// otherwise some setup instructions / access gate
+		this.mainColumn = this.createMainColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog, vnode.attrs.sendFileViaMail, vnode.attrs.fileShareDialog)
+		this.viewSlider = new ViewSlider([this.driveNavColumn, this.mainColumn], windowFacade)
 
 		this.shortcuts = [
 			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel.selectionEvents),
@@ -356,7 +356,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											onMove,
 											isDropAllowed: this.driveViewModel.currentFolder?.folder.type !== DriveFolderType.Trash,
 											onFolderClick: () => {
-												this.viewSlider.focus(this.currentFolderColumn)
+												this.viewSlider.focus(this.mainColumn)
 											},
 										})
 									: null,
@@ -397,7 +397,22 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(".mlr-8.mt-8.mb-8.flex.col", [m(DriveProgressBar, { percentage: usedPercentage }), m(".small.mt-4", [usedStorage, " / ", totalStorage])])
 	}
 
-	private createCurrentFolderColumn(
+	private createDriveSetupColumn() {
+		return new ViewColumn(
+			{
+				view: () => {
+					return m("", "Drive is not set up")
+				},
+			},
+			ColumnType.Background,
+			{
+				minWidth: layout_size.second_col_min_width + layout_size.third_col_min_width,
+				maxWidth: layout_size.second_col_max_width + layout_size.third_col_max_width,
+			},
+		)
+	}
+
+	private createMainColumn(
 		headerAttrs: AppHeaderAttrs,
 		showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"],
 		sendFileAsMail: MailFileSender | null,
@@ -406,6 +421,16 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return new ViewColumn(
 			{
 				view: () => {
+					switch (this.driveViewModel.state.type) {
+						case "init":
+						case "loading":
+							return null
+						case "noDrive":
+							return m(OnboardingView)
+						case "done":
+							break
+					}
+
 					const listState = this.driveViewModel.listState()
 
 					return m(BackgroundColumnLayout, {
@@ -674,3 +699,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		if (ok) this.driveViewModel.deleteFromTrash(items)
 	}
 }
+
+const OnboardingView = pureComponent(() => {
+	// FIXME
+	return m("", "You aren't ongeboarded yet!")
+})

@@ -3,7 +3,7 @@ import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef, ListenerPriority
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
-import { assertNotNull, debounceStart, last, lazyAsync, memoizedWithHiddenArgument, promiseMap } from "@tutao/utils"
+import { assertNotNull, debounceStart, defer, DeferredObject, isNull, last, lazyAsync, memoizedWithHiddenArgument, promiseMap } from "@tutao/utils"
 import { DriveTransfers, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
@@ -88,6 +88,8 @@ export interface DriveStorage {
 	totalBytes: number
 }
 
+type DriveLoadingState = { type: "init" } | { type: "loading" } | { type: "done"; roots: DriveRootFolders } | { type: "noDrive" }
+
 export class DriveViewModel {
 	public readonly userMailAddress: string
 
@@ -96,14 +98,22 @@ export class DriveViewModel {
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
 	parents: readonly DriveFolder[] = []
-	roots: DriveRootFolders | null = null
+
+	// If we have a fully-loaded state with existing Drive, this will return
+	// the Drive roots. Otherwise (e.g. Drive is still loading or uninitialized) it returns null.
+	get roots(): DriveRootFolders | null {
+		return this.#state.type === "done" ? this.#state.roots : null
+	}
+	#state: DriveLoadingState = { type: "init" }
+	get state(): DriveLoadingState {
+		return this.#state
+	}
 
 	private listModel: ListModel<FolderItem, Id> = emptyListModel()
 	private listStateSubscription: Stream<unknown> | null = null
 	private storage: DriveStorage | null = null
 
-	public readonly initialized: Promise<void>
-	public resolveInitialized: (value: PromiseLike<void> | void) => void = (value: void) => {}
+	private readonly initialized: DeferredObject<void>
 
 	private readonly syncListener: SyncListener = {
 		id: "DriveViewModel",
@@ -129,35 +139,32 @@ export class DriveViewModel {
 		private readonly driveModel: DriveModel,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
-		this.initialized = new Promise((resolve, reject) => {
-			this.resolveInitialized = resolve
-		})
+		this.initialized = defer()
 	}
 
 	get clipboard(): DriveClipboard | null {
 		return this.driveModel.clipboard
 	}
+
 	readonly init = async () => {
 		this.syncTracker.addSyncListener(this.syncListener)
 
 		// if the roots have already been loaded the init must have been finished
-		if (this.roots) {
+		if (this.#state.type !== "init") {
 			return
 		}
 
+		this.#state = { type: "loading" }
 		try {
-			this.roots = await this.driveFacade.loadRootFolders("cached")
+			this.#state = await this.loadRoots("cached")
 		} catch (e) {
+			// if the roots are cached they will get returned. if they are not we might hit offline error so we need
+			// to wait for login before actually loading anything
 			if (isOfflineError(e)) {
 				await this.loginController.waitForFullLogin()
-
-				// do not finish init if the plan does not support it
-				if (await this.currentPlanSupportsDrive()) {
-					this.roots = await this.driveFacade.loadRootFolders("withNetwork")
-				} else {
-					return
-				}
+				this.#state = await this.loadRoots("withNetwork")
 			} else {
+				this.#state = { type: "init" }
 				throw e
 			}
 		}
@@ -172,11 +179,20 @@ export class DriveViewModel {
 
 		this.loginController.waitForFullLogin().then(() => this.refreshStorage())
 		await this.driveModel.init()
-		this.resolveInitialized()
+		this.initialized.resolve()
+	}
+
+	private async loadRoots(cacheMode: "withNetwork" | "cached"): Promise<DriveLoadingState> {
+		const maybeRoots = await this.driveFacade.loadRootFolders("cached")
+		if (isNull(maybeRoots)) {
+			return { type: "noDrive" }
+		} else {
+			return { type: "done", roots: maybeRoots }
+		}
 	}
 
 	public waitForInit(): Promise<void> {
-		return this.initialized
+		return this.initialized.promise
 	}
 
 	public async currentPlanSupportsDrive(): Promise<boolean> {

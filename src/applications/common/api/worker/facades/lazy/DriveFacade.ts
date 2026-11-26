@@ -180,17 +180,20 @@ export class DriveFacade {
 		return result.operationId
 	}
 
-	public async loadRootFolders(cacheMode: "cached" | "withNetwork"): Promise<DriveRootFolders> {
+	/**
+	 * @throws ConnectionError
+	 * @return DriveRootFolders or null if DriveGroupRoot does not exist (i.e. Drive is not set up for this user)
+	 */
+	public async loadRootFolders(cacheMode: "cached" | "withNetwork"): Promise<DriveRootFolders | null> {
 		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
 
 		let driveGroupRoot: DriveGroupRoot
-
 		if (cacheMode === "withNetwork") {
 			try {
 				driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, idToElementId(fileGroupId))
 			} catch (e) {
 				if (e instanceof NotFoundError) {
-					driveGroupRoot = await this.createGroupRoot(fileGroupId)
+					return null
 				} else {
 					throw e
 				}

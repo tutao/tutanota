@@ -562,6 +562,11 @@ export function showDriveFilePickerDialog(entityClient: EntityClient, driveFacad
 
 export async function showDriveDestinationPickerDialog(entityClient: EntityClient, driveFacade: DriveFacade, action: PickedDestinationAction) {
 	const rootFolders = await driveFacade.loadRootFolders("withNetwork")
+	if (rootFolders == null) {
+		// FIXME
+		return
+	}
+
 	const pickerAttrs: DriveItemPickerAttrs = {
 		action,
 		actionLabel: "pickDriveFileDestination_action",
