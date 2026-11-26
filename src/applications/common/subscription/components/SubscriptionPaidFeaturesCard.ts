@@ -68,6 +68,12 @@ const paidFeatures = [
 		message: "subscriptionSettingsMigrationPaidFeature_msg",
 		route: "/settings/migration",
 	},
+	{
+		//Custom signatures
+		label: "subscriptionSettingsCustomSingaturesPaidFeature_label",
+		message: "subscriptionSettingsCustomSingaturesPaidFeature_msg",
+		route: "/settings/signatures",
+	},
 ] satisfies {
 	label: TranslationKey
 	message: TranslationKey

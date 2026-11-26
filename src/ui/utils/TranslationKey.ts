@@ -2680,3 +2680,6 @@ export type TranslationKeyType =
 	| "hasRunningMigrations_msg"
 	| "subscriptionSettingsMigrationPaidFeature_label"
 	| "subscriptionSettingsMigrationPaidFeature_msg"
+	| "subscriptionSettingsCustomSingaturesPaidFeature_label"
+	| "subscriptionSettingsCustomSingaturesPaidFeature_msg"
+	| "customSignatureLimitExceeded_msg"

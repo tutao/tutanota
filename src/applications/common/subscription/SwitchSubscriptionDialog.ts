@@ -451,6 +451,10 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 				detailMsg = lang.getTranslationText("hasRunningMigrations_msg")
 				break
 
+			case UnsubscribeFailureReason.CUSTOM_SIGNATURE_LIMIT_EXCEEDED:
+				detailMsg = lang.getTranslationText("customSignatureLimitExceeded_msg")
+				break
+
 			default:
 				throw e
 		}

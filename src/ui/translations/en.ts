@@ -2680,5 +2680,8 @@ export default {
 		"hasRunningMigrations_msg": "There are still running migrations, please cancel them before downgrading.",
 		"subscriptionSettingsMigrationPaidFeature_label": "Migrations",
 		"subscriptionSettingsMigrationPaidFeature_msg": "If you have running migrations, please cancel them",
+		"subscriptionSettingsCustomSingaturesPaidFeature_label": "Email Signatures",
+		"subscriptionSettingsCustomSingaturesPaidFeature_msg": "If you have more than one custom email signature, please delete them",
+		"customSignatureLimitExceeded_msg": "You have more than one custom signature, please delete them before downgrading.",
 	}
 }

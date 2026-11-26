@@ -355,6 +355,7 @@ export const enum UnsubscribeFailureReason {
 	DRIVE_NOT_EMPTY = "unsubscribe.drive_not_empty",
 	NO_PAYMENT_METHOD = "unsubscribe.no_payment_method",
 	HAS_RUNNING_MIGRATIONS = "unsubscribe.has_running_migrations",
+	CUSTOM_SIGNATURE_LIMIT_EXCEEDED = "unsubscribe.custom_signature_limit_exceeded",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.
