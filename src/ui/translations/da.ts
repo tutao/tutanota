@@ -792,8 +792,6 @@ export default {
 		"newMail_action": "Ny e-mail",
 		"newMails_msg": "Ny Tuta e-mail er modtaget.",
 		"newPassword_label": "Ny adgangskode",
-		"newPlansNews_title": "Klar til mere?!",
-		"newPlansOfferEndingNews_title": "Sidste chance! 🥳",
 		"news_label": "Nyheder",
 		"next_action": "Næste",
 		"nextDay_label": "Næste dag",
