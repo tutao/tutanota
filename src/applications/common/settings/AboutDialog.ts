@@ -15,12 +15,27 @@ import { getTutaLogoSvg } from "../../../ui/base/Logo"
 import { theme } from "../../../ui/theme"
 import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
+import { LegacyPrivatePlans, NewPersonalPlans } from "../../../entities/sys/Utils"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
 }
 
 export class AboutDialog implements Component<AboutDialogAttrs> {
+	private showRateUsLink = false
+
+	async oninit(): Promise<void> {
+		if (!locator.logins.isInternalUserLoggedIn()) return
+
+		try {
+			const plan = await locator.logins.getUserController().getPlanType()
+			this.showRateUsLink = NewPersonalPlans.some((personalPlan) => personalPlan === plan) || LegacyPrivatePlans.includes(plan)
+			m.redraw()
+		} catch (error) {
+			console.warn("Could not determine the account plan for the About dialog", error)
+		}
+	}
+
 	view(vnode: Vnode<AboutDialogAttrs>): Children {
 		return m(".flex.col", [
 			m(".center.mt-16", "Powered by"),
@@ -49,22 +64,24 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 					isCompanySite: false,
 					class: "mlr-12 mt-16",
 				}),
-				m(
-					"a.underline",
-					{
-						href: "#",
-						class: "mlr-12 mt-16",
-						// Allow keyboard usage in modals etc.
-						tabindex: TabIndex.Default,
-						onkeydown: (e: KeyboardEvent) => {
-							if (isKeyPressed(e.key, Keys.RETURN)) {
-								e.stopPropagation()
-							}
+
+				this.showRateUsLink &&
+					m(
+						"a.underline",
+						{
+							href: "#",
+							class: "mlr-12 mt-16",
+							// Allow keyboard usage in modals etc.
+							tabindex: TabIndex.Default,
+							onkeydown: (e: KeyboardEvent) => {
+								if (isKeyPressed(e.key, Keys.RETURN)) {
+									e.stopPropagation()
+								}
+							},
+							onclick: async () => (await import("../ratings/UserSatisfactionUtils")).scheduleSatisfactionDialog(),
 						},
-						onclick: async () => (await import("../ratings/UserSatisfactionUtils")).scheduleSatisfactionDialog(),
-					},
-					lang.getTranslation("rateUs_action").text,
-				),
+						lang.getTranslation("rateUs_action").text,
+					),
 			]),
 			m(".flex.justify-center.selectable.flex-wrap", [
 				m("p.center.mt-16.mlr-12", `v${env.versionNumber}`),
