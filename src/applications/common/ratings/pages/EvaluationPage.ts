@@ -46,7 +46,7 @@ export class EvaluationPage implements Component<EvaluationPageAttrs> {
 				deviceConfig.setLastRatingPromptedDate(getCurrentDate())
 				dialog.close()
 				void locator.systemFacade.requestInAppRating()
-			} else if (env.isBrowser() && Math.random() >= 0.5) {
+			} else if (env.isBrowser() && Math.random() >= 0.25) {
 				navigate("thankYou")
 			} else {
 				navigate("rateUs")
