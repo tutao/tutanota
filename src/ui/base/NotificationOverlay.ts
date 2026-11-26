@@ -6,6 +6,7 @@ import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
 import { EnvProvider } from "../../platform-kit/app-env"
 import { ClickHandler } from "./GuiUtils"
+import { Styles } from "../styles"
 
 EnvProvider.assertMainOrNode()
 
@@ -59,7 +60,7 @@ function showNextNotification() {
 	currentAnimationTimeout = null
 	const allButtons = buttons.slice()
 	const overlayRect = {
-		top: px(0),
+		top: Styles.get().isUsingBottomNavigation() ? px(32) : px(0),
 		left: px(0),
 		right: px(0),
 	}
@@ -74,7 +75,7 @@ function showNextNotification() {
 		},
 		"slide-top",
 		undefined,
-		"dropdown-shadow center-h notification-overlay",
+		`dropdown-shadow center-h notification-overlay ${Styles.get().isUsingBottomNavigation() ? "border-radius-8" : "border-radius-bottom-8"}`,
 	)
 
 	const closeAndOpenNext = () => {
