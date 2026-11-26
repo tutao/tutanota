@@ -115,6 +115,11 @@ export interface EventWrapperFlags {
 	 * Rendered with reduced opacity, borders, and limited interactions.
 	 */
 	isGhost?: boolean
+	/**
+	 * Declined from a user invitation event.
+	 * Rendered with reduced opacity, borders, and limited interactions.
+	 */
+	isDeclined?: boolean
 
 	/**
 	 * Emphasized event to draw attention.

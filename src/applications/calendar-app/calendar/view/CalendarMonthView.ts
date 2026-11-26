@@ -520,9 +520,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				eventWrapper: eventWrapper,
 				startsBefore: isBefore(eventStart, firstDayOfWeek),
 				endsAfter: firstDayOfNextWeek <= eventEnd,
-				backgroundColor: eventWrapper.flags.isGhost ? theme.surface_container_high : normalizedColor,
-				color: eventWrapper.flags.isGhost ? theme.on_surface_variant : colorForBg(normalizedColor),
-				border: eventWrapper.flags.isGhost ? `1px dashed ${theme.outline}` : `1px solid ${normalizedColor}`,
+				backgroundColor: eventWrapper.flags.isGhost || eventWrapper.flags.isDeclined ? theme.surface_container_high : normalizedColor,
+				color: eventWrapper.flags.isGhost || eventWrapper.flags.isDeclined ? theme.on_surface_variant : colorForBg(normalizedColor),
+				border: eventWrapper.flags.isGhost || eventWrapper.flags.isDeclined ? `1px dashed ${theme.outline}` : `1px solid ${normalizedColor}`,
 				height: Styles.get().isDesktopLayout() ? CALENDAR_EVENT_HEIGHT : 19, // Honestly we are not sure why, but for mobile the inner component has a decimal sized border, around 0.6 and ends up rounding the size to 19px
 				showTime: Styles.get().isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,

@@ -28,7 +28,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 
 		let border: string | undefined = undefined
 		let backgroundColor = CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused)
-		if (attrs.event.flags.isGhost) {
+		if (attrs.event.flags.isGhost || attrs.event.flags.isDeclined) {
 			border = attrs.selected ? "1px solid transparent" : `1px dashed ${theme.outline}`
 			backgroundColor = attrs.selected ? theme.surface_container_highest : theme.surface_container_high
 		}
@@ -54,7 +54,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 			[
 				m(".icon.circle.abs", {
 					style: {
-						visibility: attrs.event.flags.isGhost ? "hidden" : undefined,
+						visibility: attrs.event.flags.isGhost || attrs.event.flags.isDeclined ? "hidden" : undefined,
 						backgroundColor: `#${attrs.calendarColor}`,
 					} satisfies Partial<CSSStyleDeclaration>,
 				}),

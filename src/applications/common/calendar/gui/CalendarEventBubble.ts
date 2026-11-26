@@ -161,10 +161,22 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			paddingBottom: "1px",
 		}
 
+		const declinedStyle = {
+			color: theme.on_surface_variant,
+			border: `1px dashed ${theme.outline}`,
+			borderLeft: horizontalOverflowInfo.start ? "none" : undefined,
+			borderRight: horizontalOverflowInfo.end ? "none" : undefined,
+			backgroundColor: theme.surface_container_high,
+			paddingTop: "1px",
+			paddingBottom: "1px",
+			textDecoration: eventWrapper.flags.isDeclined ? "line-through" : "none",
+		}
+
 		return {
 			...defaultStyle,
 			...(eventWrapper.flags?.isFeatured ? featuredEventStyle : {}),
 			...(eventWrapper.flags?.isGhost ? ghostStyle : {}),
+			...(eventWrapper.flags?.isDeclined ? declinedStyle : {}),
 		}
 	}
 
