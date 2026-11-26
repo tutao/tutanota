@@ -20,7 +20,7 @@ android {
 		applicationId = "de.tutao.drive"
 		minSdk = 26
 		targetSdk = 36
-		versionCode = 96
+		versionCode = 97
 		versionName = project.properties["de.tutao.versionName"] as String
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

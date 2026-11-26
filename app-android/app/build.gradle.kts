@@ -19,7 +19,7 @@ android {
 		applicationId = "de.tutao.tutanota"
 		minSdk = 26
 		targetSdk = 36
-		versionCode = 396752
+		versionCode = 396753
 		versionName = project.properties["de.tutao.versionName"] as String
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
