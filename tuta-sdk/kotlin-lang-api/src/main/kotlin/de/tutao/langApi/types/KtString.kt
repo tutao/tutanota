@@ -48,4 +48,24 @@ class KtString(private val inner: String) {
 	operator fun plus(other: KtString): KtString {
 		return KtString(this.inner.plus(other.inner))
 	}
+
+	fun toUpperCase(): KtString {
+		TODO()
+	}
+
+	fun toLowerCase(): KtString {
+		TODO()
+	}
+
+	fun startsWith(substr: KtString): Boolean {
+		TODO()
+	}
+
+	fun endsWith(substr: KtString): Boolean {
+		TODO()
+	}
+
+	fun replaceAll(match: KtString, substitute: KtString): KtString {
+		TODO()
+	}
 }
