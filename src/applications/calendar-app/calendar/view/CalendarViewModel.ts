@@ -102,7 +102,6 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/CalendarSearchUtils"
@@ -215,7 +214,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 *
 	 * We keep track of event separately to avoid races with selecting multiple events shortly one after another.
 	 */
-	private previewedEvent: Stream<{ event: CalendarEvent; model: CalendarPreviewModels | null } | null> = stream(null)
+	public previewedEventAndModel: Stream<{ event: CalendarEvent; model: CalendarPreviewModels } | null> = stream(null)
 	private previewedEventId: IdTuple | null = null
 
 	private _hiddenCalendars: Set<Id>
@@ -266,7 +265,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly createCalendarContactPreviewModel: CalendarContactPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
 		private readonly searchModel: lazyAsync<CalendarSearchModel>,
-		private readonly eventsRepository: CalendarEventsRepository,
+		public readonly eventsRepository: CalendarEventsRepository,
 		private readonly entityClient: EntityClient,
 		eventController: EventController,
 		private readonly progressTracker: ProgressTracker,
@@ -301,7 +300,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		})
 		this.calendarModel.getCalendarInfosStream().map((newInfos) => {
 			this._sendCancelSignal()
-			const event = this.previewedEvent()?.event ?? null
+			const event = this.previewedEventAndModel()?.event ?? null
 			if (event != null) {
 				// redraw if we lost access to the events' list
 				const groupRoots = Array.from(newInfos.values()).map((i) => i.groupRoot)
@@ -322,7 +321,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		calendarInvitationsModel.init()
 
-		this.eventsRepository.getDaysToEvents().map(() => {
+		this.eventsRepository.getDaysToEvents().map((map) => {
+			console.log(`daysToEvents = `, map)
 			this.doRedraw()
 		})
 
@@ -367,21 +367,37 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.abortController = new AbortController()
 	}
 
-	setPreviewedEventId(id: IdTuple | null) {
+	async setPreviewedEventId(id: IdTuple | null) {
 		this.previewedEventId = id
 
-		if (id == null) {
-			return this.updatePreviewedEvent(null)
+		// We're async, so lets just wait until the eventForDays is initialized
+		// await this.eventsRepository.daysToEvents.ready()
+
+		let event: CalendarEvent | null
+		if (id) {
+			const date = this.selectedDate()
+			const eventsOnDayKey = date.getTime()
+			const eventsOnDay = this.eventsForDays.get(eventsOnDayKey)
+			if (eventsOnDay) {
+				const eventWrapper = eventsOnDay.find((ev) => isSameId(ev.event._id, id))
+				if (eventWrapper) {
+					event = eventWrapper.event
+				} else {
+					console.trace(
+						TAG,
+						`No event on day ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} with id=${JSON.stringify(id)}! Removing event preview.`,
+					)
+					event = null
+				}
+			} else {
+				console.trace(TAG, `No events loaded on day ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}! Removing event preview.`)
+				event = null
+			}
+		} else {
+			event = null
 		}
 
-		const date = this.selectedDate().getTime()
-		const eventWrapper = this.eventsForDays.get(date)?.find((ev) => isSameId(ev.event._id, id))
-
-		if (eventWrapper) {
-			return this.updatePreviewedEvent(eventWrapper.event)
-		}
-
-		return Promise.resolve()
+		return await this.updatePreviewedEvent(event)
 	}
 
 	isDaySelectorExpanded(): boolean {
@@ -789,11 +805,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get eventPreviewModel(): CalendarPreviewModels | null {
-		return this.previewedEvent()?.model ?? null
+		return this.previewedEventAndModel()?.model ?? null
 	}
 
 	get previewedEventTuple(): Stream<{ event: CalendarEvent; model: CalendarPreviewModels | null } | null> {
-		return this.previewedEvent.map(identity)
+		return this.previewedEventAndModel.map(identity)
 	}
 
 	/**
@@ -811,7 +827,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 */
 	async updatePreviewedEvent(event: CalendarEvent | null) {
 		if (event == null) {
-			this.previewedEvent(null)
+			this.previewedEventAndModel(null)
 			this.doRedraw()
 		} else {
 			const calendarInfos = await this.calendarModel.getCalendarInfosCreateIfNeeded()
@@ -819,10 +835,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (isBirthdayCalendar(listIdPart(event._id))) {
 				const contactId = birthdayCalendarEventContactId(event._id)
 				if (contactId == null) {
-					console.warn("Invalid birthday event id: ", event._id.join("/"))
-					this.previewedEvent(null)
+					console.warn(TAG, "Invalid birthday event id: ", event._id.join("/"))
+					this.previewedEventAndModel(null)
 					this.doRedraw()
-					return null
+					return
 				}
 				const contact = await this.contactModel.loadContactFromId(contactId)
 				previewModel = await this.createCalendarContactPreviewModel(event, contact, true)
@@ -830,7 +846,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos, [])
 			}
 
-			this.previewedEvent({ event, model: previewModel })
+			this.previewedEventAndModel({ event, model: previewModel })
 			this.doRedraw()
 		}
 	}
@@ -839,10 +855,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
-				const previewedEvent = this.previewedEvent()
-				if (previewedEvent != null && isUpdateFor(previewedEvent.event, update)) {
+				const previewedEventAndModel = this.previewedEventAndModel()
+				if (previewedEventAndModel != null && isUpdateFor(previewedEventAndModel.event, update)) {
 					if (update.operation === OperationType.DELETE) {
-						this.previewedEvent(null)
+						this.previewedEventAndModel(null)
 						this.previewedEventId = null
 						this.doRedraw()
 					} else {
@@ -852,9 +868,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 						} catch (e) {
 							if (e instanceof NotAuthorizedError) {
 								// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
-								console.log("NotAuthorizedError for event in onEntityUpdatesReceived of view", e)
+								console.log(TAG, "NotAuthorizedError for event in onEntityUpdatesReceived of view", e)
 							} else if (e instanceof NotFoundError) {
-								console.log("Not found event in onEntityUpdatesReceived of view", e)
+								console.log(TAG, "Not found event in onEntityUpdatesReceived of view", e)
 							} else {
 								throw e
 							}
@@ -1036,6 +1052,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.syncTracker.removeSyncListener(this.syncListener)
 	}
 }
+
+const TAG = "[" + CalendarViewModel.name + "]"
 
 function updateTemporaryEventWithDiff(eventClone: CalendarEvent, originalEvent: CalendarEvent, mouseDiff: number) {
 	eventClone.startTime = new Date(originalEvent.startTime.getTime() + mouseDiff)

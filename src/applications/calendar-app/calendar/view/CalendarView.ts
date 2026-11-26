@@ -62,7 +62,7 @@ import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewM
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../model/CalendarModel"
-import type Stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { createDropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
@@ -71,9 +71,9 @@ import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView.js"
 import {
 	CalendarViewType,
+	getDateWithSameDayButTimeAtNearestNextHalfHour,
 	getEventWithDefaultTimes,
 	serializeAlarmInterval,
-	getDateWithSameDayButTimeAtNearestNextHalfHour,
 } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout.js"
 import { theme } from "../../../../ui/theme.js"
@@ -91,7 +91,7 @@ import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarConta
 import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
-import { MobileHeader } from "../../../../ui/MobileHeader.js"
+import { MobileHeader, MobileHeaderAttrs } from "../../../../ui/MobileHeader.js"
 import {
 	EventDetailsView,
 	EventDetailsViewAttrs,
@@ -144,7 +144,8 @@ const CalendarViewTypeByValue = reverse(CalendarViewType)
 export class CalendarView extends BaseTopLevelView implements TopLevelView<CalendarViewAttrs> {
 	private readonly sidebarColumn: ViewColumn
 	private readonly contentColumn: ViewColumn
-	private readonly eventDetails?: ViewColumn
+	private eventPreviewColumnForMobile: ViewColumn | null = null
+	private readonly viewSliderColumns: ViewColumn[]
 	private readonly viewSlider: ViewSlider
 	private currentViewType: CalendarViewType
 	private readonly viewModel: CalendarViewModel
@@ -152,11 +153,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	private readonly htmlSanitizer: Promise<HtmlSanitizer>
 	private redrawIntervalId: number | null = null
 	private redrawTimeoutId: number | null = null
+	private headerAttrs: AppHeaderAttrs
+	private eventIdFromUrl: IdTuple | null
 	oncreate: Component["oncreate"]
 	onremove: Component["onremove"]
 
 	constructor({ attrs }: Vnode<CalendarViewAttrs>) {
 		super()
+
+		this.headerAttrs = attrs.header
+		this.eventIdFromUrl = getEventIdFromUrlArgs(attrs.args)
+
 		const userId = elementIdToId(locator.logins.getUserController().user._id)
 
 		this.viewModel = attrs.calendarViewModel
@@ -277,7 +284,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(attrs.header),
+								mobileHeader: () => this.renderMobileHeader(),
 								columnLayout: m(CalendarMonthView, {
 									temporaryEvents: this.viewModel.temporaryEvents,
 									eventsForDays: this.viewModel.eventsForDays,
@@ -304,7 +311,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(attrs.header),
+								mobileHeader: () => this.renderMobileHeader(),
 								columnLayout: m(CalendarTimeBasedView, {
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 1,
@@ -337,7 +344,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(attrs.header),
+								mobileHeader: () => this.renderMobileHeader(),
 								columnLayout: m(CalendarTimeBasedView, {
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 7,
@@ -371,7 +378,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(attrs.header),
+								mobileHeader: () => this.renderMobileHeader(),
 								columnLayout: m(CalendarTimeBasedView, {
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 3,
@@ -405,7 +412,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							return m(BackgroundColumnLayout, {
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
-								mobileHeader: () => this.renderMobileHeader(attrs.header),
+								mobileHeader: () => this.renderMobileHeader(),
 								columnLayout: m(CalendarAgendaView, {
 									selectedDate: this.viewModel.selectedDate(),
 									selectedTime: this.viewModel.agendaViewSelectedTime,
@@ -473,30 +480,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 		)
 
-		const columns = [this.sidebarColumn, this.contentColumn]
+		this.viewSliderColumns = [this.sidebarColumn, this.contentColumn]
 
-		// Adds eventDetails column to show events at agenda view as full page instead of a popover
-		if (!Styles.get().isDesktopLayout()) {
-			this.eventDetails = new ViewColumn(
-				{
-					view: () => this.renderEventDetailsColumn(attrs),
-				},
-				ColumnType.Background,
-				{
-					// We add a really large minWidth and maxWidth to ensure that this is only rendered in
-					// a single column layout. If we would not add the column in a single column layout in the
-					// first place, this would break on screen orientation changes for large mobile devices,
-					// (basically every tablet), because landscape orientation uses the mobileDesktopLayout and
-					// the portrait orientation uses the singleColumnLayout.
-					minWidth: layout_size.only_show_in_single_column_min_max_width,
-					maxWidth: layout_size.only_show_in_single_column_min_max_width,
-				},
-			)
+		const onResize = this.rectifyEventPreviewUiState.bind(this)
 
-			columns.push(this.eventDetails)
-		}
-
-		this.viewSlider = new ViewSlider(columns, windowFacade)
+		this.viewSlider = new ViewSlider(this.viewSliderColumns, windowFacade)
 
 		const shortcuts = this.setupShortcuts()
 
@@ -514,13 +502,28 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				}, timeToNextMinute)
 			}
 			streamListeners.push(
-				this.viewModel.calendarInvitations.map(() => {
-					m.redraw()
+				this.viewModel.calendarInvitations.map(m.redraw),
+				this.viewModel.redraw.map(m.redraw),
+				this.viewModel.previewedEventAndModel.map(m.redraw), // In renderEventPreviewColumn we show progress when this stream is null. Redraw later.
+				this.viewModel.eventsRepository.daysToEvents.map((daysToEvents) => {
+					console.log(TAG, "!!! DaysToEvents updated", daysToEvents)
+					if (this.eventIdFromUrl && daysToEvents.size > 0 && this.viewModel.previewedEventAndModel() === null) {
+						// Eventually this writes a non-null value into the this.viewModel.previewedEventAndModel stream
+						this.viewModel.setPreviewedEventId(this.eventIdFromUrl)
+					}
 				}),
 			)
-			streamListeners.push(this.viewModel.redraw.map(m.redraw))
+
+			// Add column for mobile if needed
+			this.rectifyEventPreviewUiState()
+
 			this.viewSlider.focus(this.contentColumn)
 			this.viewModel.init()
+
+			window.addEventListener("resize", onResize)
+
+			// If there's a previewEventId in the URL onload, go to it
+			this.onNewUrl(attrs.args)
 		}
 
 		this.onremove = () => {
@@ -537,13 +540,112 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				listener.end(true)
 			}
 			this.viewModel.deinit()
+
+			window.removeEventListener("resize", onResize)
 		}
 
 		deviceConfig.getLastSyncStream().map(redraw)
 	}
 
-	private renderEventDetailsColumn(attrs: CalendarViewAttrs) {
-		const isEventDetailsColumnVisible = this.viewSlider.focusedColumn === this.eventDetails
+	private rectifyEventPreviewUiState() {
+		const isDesktopLayout = Styles.get().isDesktopLayout()
+		const isMobileLayout = !isDesktopLayout
+
+		// Ensure mobile and desktop layouts have the correct viewSlider columns
+		if (isMobileLayout) {
+			if (this.viewSliderColumns.length === 2) {
+				console.info(TAG, "Creating event preview column for the mobile layout.")
+
+				// Adds eventDetails column to show events at agenda view as full page instead of a popover
+				this.eventPreviewColumnForMobile = new ViewColumn(
+					{
+						view: () => this.renderEventPreviewColumn(),
+					},
+					ColumnType.Background,
+					{
+						// We add a really large minWidth and maxWidth to ensure that this is only rendered in
+						// a single column layout. If we would not add the column in a single column layout in the
+						// first place, this would break on screen orientation changes for large mobile devices,
+						// (basically every tablet), because landscape orientation uses the mobileDesktopLayout and
+						// the portrait orientation uses the singleColumnLayout.
+						minWidth: layout_size.only_show_in_single_column_min_max_width,
+						maxWidth: layout_size.only_show_in_single_column_min_max_width,
+					},
+				)
+
+				this.viewSliderColumns.push(this.eventPreviewColumnForMobile)
+			} else if (this.viewSliderColumns.length === 3) {
+				if (!this.eventPreviewColumnForMobile) {
+					throw new ProgrammingError(`viewSlider has 3 columns, but event preview column not defined!`)
+				}
+			} else {
+				throw new ProgrammingError(`Unexpected number of viewSlider columns. Expected 2 or 3, got ${this.viewSliderColumns.length}!`)
+			}
+		}
+		if (isDesktopLayout) {
+			if (this.viewSlider.focusedColumn === this.eventPreviewColumnForMobile) {
+				console.info(TAG, "The event preview column for mobile was focused. Switching focus to the main column while switching to the desktop layout.")
+				this.viewSlider.focus(this.viewSlider.getMainColumn())
+			}
+
+			if (this.viewSliderColumns.length === 3) {
+				console.info(TAG, "Removing event preview column that is only used in the mobile layout.")
+				this.viewSliderColumns.pop()
+				this.eventPreviewColumnForMobile = null
+			} else if (this.viewSliderColumns.length === 2) {
+				if (this.eventPreviewColumnForMobile) {
+					throw new ProgrammingError(`viewSlider has 2 columns, but event preview column for mobile is defined!`)
+				}
+			} else {
+				throw new ProgrammingError(`Unexpected number of viewSlider columns. Expected 2 or 3, got ${this.viewSliderColumns.length}!`)
+			}
+		}
+		// 	const eventPreviewModel = this.viewModel.eventPreviewModel
+		//
+		// 	let shouldUpdatePreviewedEvent: boolean
+		// 	if (eventPreviewModel) {
+		// 		if (isSameIdTuple(eventPreviewModel.calendarEvent._id, this.eventIdFromUrl)) {
+		// 			shouldUpdatePreviewedEvent = false
+		// 		} else {
+		// 			console.info(
+		// 				TAG,
+		// 				`Event ID from URL = ${JSON.stringify(this.eventIdFromUrl)} does not match previewed event ID = ${JSON.stringify(eventPreviewModel.calendarEvent._id)}: attempting to change previewed event.`,
+		// 			)
+		// 			shouldUpdatePreviewedEvent = true
+		// 		}
+		// 	} else {
+		// 		console.info(TAG, "Event ID in URL but missing event preview model: attempting to create model.")
+		// 		shouldUpdatePreviewedEvent = true
+		// 	}
+		//
+		// 	if (shouldUpdatePreviewedEvent) {
+		// 		this.viewModel.setPreviewedEventId(this.eventIdFromUrl).then(() => {
+		// 			if (this.viewModel.eventPreviewModel) {
+		// 				this.rectifyEventPreviewUiState()
+		// 			} else {
+		// 				console.warn(TAG, `Failed to create event preview model for event ID from URL = ${JSON.stringify(this.eventIdFromUrl)}: exiting event preview!`)
+		// 				this.exitEventDetails()
+		// 			}
+		// 		})
+		// 		// Exit early, because this function will be re-called after setPreviewedEventId succeeds
+		// 		return
+		// 	}
+		// }
+
+		// // Focus the event preview column on mobile if needed
+		// if (isMobileLayout && this.eventPreviewColumnForMobile) {
+		// 	if (this.viewSlider.focusedColumn !== this.eventPreviewColumnForMobile) {
+		// 		const shouldFocusEventPreviewColumn = this.viewModel.eventPreviewModel != null
+		// 		if (shouldFocusEventPreviewColumn) {
+		// 			console.info(TAG, `Focusing event preview column for event ${JSON.stringify(this.viewModel.eventPreviewModel.calendarEvent._id)}.`)
+		// 			this.viewSlider.focus(this.eventPreviewColumnForMobile)
+		// 		}
+		// 	}
+		// }
+	}
+
+	private renderEventPreviewColumn() {
+		const isEventDetailsColumnVisible = this.viewSlider.focusedColumn === this.eventPreviewColumnForMobile
 		if (!isEventDetailsColumnVisible) {
 			return null
 		}
@@ -556,7 +658,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		if (!this.viewModel.eventPreviewModel) {
 			if (calendarLocator.syncTracker) {
 				if (calendarLocator.syncTracker.isSyncDone) {
-					this.exitEventDetails()
+					this.exitEventPreview()
 					return null
 				}
 			} else {
@@ -566,14 +668,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			}
 		}
 
-		if (!this.viewModel.eventPreviewModel) {
-			return m(".flex-center.items-center.full-height", progressIcon())
-		}
-
 		const children: Array<Children> = []
-		if (this.viewModel.eventPreviewModel instanceof CalendarContactPreviewViewModel) {
+		if (!this.viewModel.eventPreviewModel) {
+			children.push(m(".flex-center.items-center.full-height", progressIcon()))
+		} else if (this.viewModel.eventPreviewModel instanceof CalendarContactPreviewViewModel) {
 			const id = this.viewModel.eventPreviewModel.calendarEvent._id
-			const idParts = id[1].split("#")
 
 			const contactId = birthdayCalendarEventContactId(id)
 			if (contactId == null) {
@@ -586,15 +685,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 
 		const header = m(MobileHeader, {
-			...attrs.header,
-			backAction: this.exitEventDetails.bind(this),
+			...this.headerAttrs,
+			backAction: this.exitEventPreview.bind(this),
 			columnType: "other",
 			title: "agenda_label",
 			actions: Styles.get().isSingleColumnLayout() ? this.renderEventDetailsActions() : null,
 			multicolumnActions: () => [],
 			primaryAction: () => null,
 			useBackButton: true,
-		})
+		} satisfies MobileHeaderAttrs)
 
 		return m(BackgroundColumnLayout, {
 			backgroundColor: theme.surface_container,
@@ -619,9 +718,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				m(EventDetailsView, {
 					eventPreviewModel: this.viewModel.eventPreviewModel,
 					editCallback: () => {
-						this.exitEventDetails()
+						this.exitEventPreview()
 					},
-					deleteCallback: () => this.exitEventDetails(),
+					deleteCallback: () => this.exitEventPreview(),
 				} satisfies EventDetailsViewAttrs),
 			),
 		)
@@ -688,11 +787,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private renderMobileHeader(header: AppHeaderAttrs) {
+	private renderMobileHeader() {
 		const isExpandable =
 			!Styles.get().isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.THREE_DAY
 		return m(CalendarMobileHeader, {
-			...header,
+			...this.headerAttrs,
 			viewType: this.currentViewType,
 			viewSlider: this.viewSlider,
 			showExpandIcon: isExpandable,
@@ -1144,6 +1243,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	view({ attrs }: Vnode<CalendarViewAttrs>): Children {
+		this.headerAttrs = attrs.header
+		this.eventIdFromUrl = getEventIdFromUrlArgs(attrs.args)
+
 		return m(
 			".main-view" + (EnvProvider.get().isAndroidApp() && Styles.get().isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
 			m(this.viewSlider, {
@@ -1157,7 +1259,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							},
 							shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
 						}),
-					...attrs.header,
+					...this.headerAttrs,
 					buttons: renderHeaderButtons(),
 				}),
 				bottomNav: attrs.bottomNav?.(),
@@ -1165,12 +1267,25 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		)
 	}
 
-	onNewUrl(args: Record<string, any>) {
+	onNewUrl(args: TopLevelAttrs["args"]) {
+		const newEventId = getEventIdFromUrlArgs(args)
+		// prettier-ignore
+		if (
+			newEventId &&
+			newEventId !== this.eventIdFromUrl &&
+			this.eventPreviewColumnForMobile &&
+			!Styles.get().isDesktopLayout()
+		) {
+			console.info(TAG, `Focusing event preview column (even if event is still loading!)`) // for event ${JSON.stringify(eventAndModelOrNull.model.calendarEvent._id)}.`)
+			this.viewSlider.focus(this.eventPreviewColumnForMobile)
+		} else {
+			this.viewSlider.focus(this.viewSlider.getMainColumn())
+		}
+
 		if (!args.view) {
 			this.setUrl(this.currentViewType, this.viewModel.selectedDate(), true)
 		} else {
 			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
-			const eventIdParam = args.eventId
 			const urlDateParam = args.date
 
 			if (urlDateParam) {
@@ -1186,28 +1301,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				if (this.viewModel.selectedDate().getTime() !== date.getTime()) {
 					this.viewModel.selectedDate(date)
 					m.redraw()
-				}
-
-				if (eventIdParam && (Styles.get().isDesktopLayout() || this.eventDetails)) {
-					try {
-						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
-						locator.logins.waitForPartialLogin().then(() => {
-							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
-								if (!Styles.get().isDesktopLayout() && this.eventDetails && this.viewSlider.focusedColumn !== this.eventDetails) {
-									this.viewSlider.focus(this.eventDetails)
-								}
-							})
-						})
-					} catch (e) {
-						this.viewSlider.focus(this.viewSlider.getMainColumn())
-						console.warn("Failed to open event", eventIdParam)
-					}
-				} else if (!eventIdParam && this.viewSlider.focusedColumn === this.eventDetails) {
-					console.warn("Focusing event column without eventId")
-					// If the URL does not contain an event ID but we are displaying the event details column, then
-					// we're in an invalid state. We recover from this invalid state by switching back to the
-					// agenda column, to make the application state match the URL.
-					this.viewSlider.focus(this.viewSlider.getMainColumn())
 				}
 			}
 		}
@@ -1367,15 +1460,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return daysHaveEvents(this.viewModel.getEventsOnDaysToRender([date]))
 	}
 
-	private exitEventDetails() {
+	private exitEventPreview() {
 		this.viewModel.setPreviewedEventId(null) // Make sure there is no event to show
 		this.viewSlider.focus(this.viewSlider.getMainColumn())
 		this.setUrl(this.currentViewType, this.viewModel.selectedDate())
 	}
 
 	handleBackButton() {
-		if (this.viewSlider.focusedColumn === this.eventDetails) {
-			this.exitEventDetails()
+		if (this.viewSlider.focusedColumn === this.eventPreviewColumnForMobile) {
+			this.exitEventPreview()
 			return true
 		}
 
@@ -1485,5 +1578,25 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				getTimeZone(),
 			)
 		}
+	}
+}
+
+const TAG = "[" + CalendarView.name + "]"
+
+function getEventIdFromUrlArgs(urlArgs: TopLevelAttrs["args"]): IdTuple | null {
+	if (typeof urlArgs.eventId === "string") {
+		const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(String(urlArgs.eventId))).split("/")
+		if (decodedEventId.length !== 2) {
+			console.warn(TAG, `More than 1 slash in decodedEventId=${decodedEventId} in URL: ignoring event ID!`)
+			return null
+		}
+		{
+			return decodedEventId as unknown as IdTuple
+		}
+	} else if (urlArgs.eventId) {
+		console.warn(TAG, `Event ID object from URL = "${JSON.stringify(urlArgs.eventId)}" is not a string: ignoring event ID!`)
+		return null
+	} else {
+		return null
 	}
 }

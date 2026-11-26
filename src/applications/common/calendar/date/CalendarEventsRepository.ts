@@ -68,7 +68,7 @@ interface ContactWrapper {
 export class CalendarEventsRepository {
 	/** timestamps of the beginning of months that we already loaded */
 	private readonly loadedMonths: Map<number, string[]> = new Map() // First day of the month at midnight -> CalendarID
-	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
+	public daysToEvents: Stream<DaysToEvents>
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
 	/** number of the month (zero indexed) to birthday data */
 	private monthsToBirthdayEvents: Map<number, BirthdayEventRegistry[]> = new Map()
@@ -83,6 +83,8 @@ export class CalendarEventsRepository {
 		private readonly contactModel: ContactModel,
 		private readonly logins: LoginController,
 	) {
+		this.daysToEvents = stream(new Map())
+
 		eventController.addEntityUpdatesListener({
 			id: "CalendarEventsRepository",
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
@@ -103,6 +105,11 @@ export class CalendarEventsRepository {
 		})
 	}
 
+	// waitForDayToLoad(date: Date): Promise<void> {
+	//
+	// }
+
+	// FIXME: Delete getter
 	getDaysToEvents(): Stream<DaysToEvents> {
 		return this.daysToEvents
 	}
