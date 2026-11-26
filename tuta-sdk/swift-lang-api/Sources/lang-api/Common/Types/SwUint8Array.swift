@@ -9,20 +9,20 @@ public class SwUint8Array: @unchecked Sendable {
     return SwInt(self.inner.count)
   }
 
-  public subscript(index: SwInt) -> Nullable<UInt8> {
+  public subscript(index: SwInt) -> Nullable<SwInt> {
     get {
       let actualIndex = self.inner.startIndex + index.inner
       guard self.inner.indices.contains(actualIndex) else {
         return nil
       }
-      return self.inner[actualIndex]
+      return SwInt(Int(self.inner[actualIndex]))
     }
     set(newValue) {
       let actualIndex = self.inner.startIndex + index.inner
       guard self.inner.indices.contains(actualIndex) else {
         return
       }
-      self.inner[actualIndex] = newValue ?? 0
+      self.inner[actualIndex] = UInt8(newValue?.inner ?? 0)
       return
     }
   }

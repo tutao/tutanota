@@ -49,11 +49,11 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     return SwString(String(decoding: [unit], as: UTF16.self))
   }
 
-  public func charCodeAt(_ index: SwInt) -> Nullable<SwInt> {
+  public func charCodeAt(_ index: SwInt) -> SwDouble {
     guard let unit = self.codeUnit(at: index.inner) else {
-      return nil
+      return SwDouble(Double.nan)
     }
-    return SwInt(Int(unit))
+    return SwDouble(Double(Int(unit)))
   }
 
   public func codePointAt(_ index: SwInt) -> Nullable<SwInt> {
@@ -176,20 +176,28 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     return SwString(String(repeating: self.inner, count: count.inner))
   }
 
-  public func replace(_ pattern: SwRegex, _ replacement: SwString) -> SwString {
-    return SwString(pattern.replace(in: self.inner, with: replacement.inner))
+  public func replace(_ pattern: SwRegExp, _ replacement: SwString) -> SwString {
+    if replacement.includes(SwString("$")) {
+      fatalError("RegExp replacement patterns ($) are not supported")
+    }
+    if pattern.global {
+      return SwString(pattern.replaceAll(in: self.inner, with: replacement.inner))
+    } else {
+      return SwString(pattern.replace(in: self.inner, with: replacement.inner))
+    }
   }
 
   public func replace(_ pattern: SwString, _ replacement: SwString) -> SwString {
-    guard let range = self.inner.range(of: pattern.inner) else {
-      return self
-    }
-    return SwString(self.inner.replacingCharacters(in: range, with: replacement.inner))
+    return self.replace(SwRegExp(SwRegExp.escape(pattern)), replacement)
   }
 
-  // public func replaceAll(_ f: SwString, _ with: SwString) -> SwString { }
+  public func replaceAll(_ pattern: SwRegExp, _ replacement: SwString) -> SwString {
+    return self.replace(pattern, replacement)
+  }
 
-  // public func replaceAll(_ f: SwRegex, _ with: SwString) -> SwString { }
+  public func replaceAll(_ pattern: SwString, _ replacement: SwString) -> SwString {
+    return self.replace(SwRegExp(SwRegExp.escape(pattern), SwString("g")), replacement)
+  }
 
   // search()
 
@@ -201,18 +209,31 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     return SwString(String(self.utf16[startIndex..<endIndex]) ?? "")
   }
 
-  // public func split(_ separator: SwString, _ limit: SwInt? = nil) -> SwArray<SwString> { }
-
-  // public func startsWith(_ substring: SwString)  -> Bool { }
-
-  public func substring(_ start: SwInt, _ end: Nullable<SwInt> = nil) -> SwString {
-    let nsString = self.inner as NSString
-    let from = max(0, min(Int(start.asPrimitive()), nsString.length))
-    let to = end.map { max(0, min(Int($0.asPrimitive()), nsString.length)) } ?? nsString.length
-    guard from < to else {
-      return SwString("")
+  public func split(_ separator: SwString, _ limit: SwInt = SwInt(-1)) -> SwArray<SwString> {
+    guard limit != SwInt(0) else {
+      return SwArray()
     }
-    return SwString(nsString.substring(with: NSRange(location: from, length: to - from)))
+    let limit = max(limit, SwInt(-1))
+    let index = self.indexOf(separator)
+    guard index >= SwInt(0) else {
+      return SwArray([self])
+    }
+    let before = self.substring(SwInt(0), index)
+    let rest = self.substring(index + separator.length)
+    return SwArray([before] + rest.split(separator, limit - SwInt(1)))
+  }
+
+  public func startsWith(_ substring: SwString) -> Bool {
+    return self.indexOf(substring) == SwInt(0)
+  }
+
+  public func substring(_ indexStart: SwInt, _ indexEnd: Nullable<SwInt> = nil) -> SwString {
+    let indexStart = min(max(indexStart, SwInt(0)), self.length)
+    let indexEnd = indexEnd != nil ? min(max(indexEnd!, SwInt(0)), self.length) : self.length
+    let start = min(indexStart, indexEnd)
+    let end = max(indexStart, indexEnd)
+
+    return self.slice(start, end)
   }
 
   // toLocaleLowerCase()
@@ -273,8 +294,8 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
   // I don't even know what the signature should be
   // public static func raw()
 
-  public static func + (_ left: SwString, _ right: SwString) -> SwString {
-    return SwString(left.inner + right.inner)
+  public static func + (_ left: SwString, _ right: any ToString) -> SwString {
+    return SwString(left.inner + right.toString().inner)
   }
 
   public static func == (lhs: SwString, rhs: SwString) -> Bool {

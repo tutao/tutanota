@@ -11,7 +11,7 @@ public final class SwMap<K: Hashable, V>: @unchecked Sendable {
     storage[key] = value
   }
 
-  public func get_notTheKeyword(_ key: K) -> V? {
+  public func get_notTheKeyword(_ key: K) -> Nullable<V> {
     storage[key]
   }
 

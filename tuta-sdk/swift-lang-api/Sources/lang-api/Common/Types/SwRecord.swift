@@ -5,7 +5,7 @@ public final class SwRecord<K: Hashable, V>: @unchecked Sendable {
     self.inner = map
   }
 
-  public subscript(key: K) -> V? {
+  public subscript(key: K) -> Nullable<V> {
     get {
       return self.inner[key]
     }

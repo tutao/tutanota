@@ -28,7 +28,7 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     return SwArray(items)
   }
 
-  public subscript(_ index: SwInt) -> T {
+  public subscript(_ index: SwInt) -> Nullable<T> {
     get {
       fatalError("not yet implemented!")
     }
