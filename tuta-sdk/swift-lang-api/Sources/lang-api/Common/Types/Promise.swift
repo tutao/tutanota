@@ -3,11 +3,6 @@ public protocol PromiseProtocol {
   func await() async throws -> Value
 }
 
-/// A JS-like promise, backed by a `Task`.
-///
-/// The body of a transpiled async function runs inside `Promise.async` (`return Promise.async { () async throws -> T in ... }`),
-/// and `await p` is transpiled to `try await p.await()`. Functions returning a promise are not `async` themselves,
-/// so they can be called from synchronous code (e.g. `ids.map(...)`), just like in JS.
 public final class Promise<T: Sendable>: Sendable, PromiseProtocol {
   public typealias Value = T
   private let task: Task<T, Error>
@@ -16,13 +11,15 @@ public final class Promise<T: Sendable>: Sendable, PromiseProtocol {
     self.task = task
   }
 
-  public init<P: PromiseProtocol>(_ asyncFunc: @Sendable @escaping () async throws -> P)
-  where P.Value == T {
-    self.task = Task { try await asyncFunc().await() }
+  public convenience init(_ asyncFunc: @Sendable @escaping () async throws -> Promise<T>) {
+    self.init(task: Task { return try await asyncFunc().await() })
   }
 
-  public init(_ asyncFunc: @Sendable @escaping () async throws -> T) {
-    self.task = Task { try await asyncFunc() }
+  public convenience init(_ syncFunction: @Sendable @escaping () throws -> T) {
+    self.init(task: Task { return try syncFunction() })
+  }
+  public convenience init(_ value: T) {
+    self.init(task: Task { return value })
   }
 
   @discardableResult
@@ -30,40 +27,65 @@ public final class Promise<T: Sendable>: Sendable, PromiseProtocol {
     return try await task.value
   }
 
-  public func then<P: PromiseProtocol>(_ action: @Sendable @escaping (T) throws -> P) throws
-    -> Promise<P.Value>
+  public func then<P: Sendable>(_ asyncAction: @Sendable @escaping (T) async throws -> Promise<P>)
+    throws -> Promise<P>
   {
-    return Promise<P.Value> { try action(try await self.await()) }
+    return Promise<P>(
+      task: Task {
+        let res = try await self.await()
+        return try await asyncAction(res).await()
+      })
   }
 
-  public func then<R>(_ action: @Sendable @escaping (T) throws -> R) throws -> Promise<R> {
-    return Promise<R> { try action(try await self.await()) }
+  public func then<P: Sendable>(_ syncAction: @Sendable @escaping (T) throws -> P)
+    throws -> Promise<P>
+  {
+      fatalError()
   }
 
-  public func `catch`<R>(_ action: @escaping (TutanotaError) throws -> R) throws -> Promise<R> {
+
+  public func `catch`(_ action: @Sendable @escaping (TutanotaError) async throws -> Promise<T>) throws -> Promise<T>
+  {
     fatalError("not implemented")
   }
 
-  public func finally(_ action: @Sendable @escaping () throws -> Void) throws -> Promise<T> {
-    return Promise({ () async throws -> T in
+  public func `catch`(_ action: @Sendable @escaping (TutanotaError) throws -> T) throws -> Promise<T>
+  {
+    fatalError("not implemented")
+  }
+
+  public func finally(_ action: @Sendable @escaping () async throws -> Promise<Void>) throws -> Promise<T> {
+    return Promise({
       let value: T
       do {
         value = try await self.await()
       } catch {
-        try action()
+        let _ = try await action()
         throw error
       }
-      try action()
-      return value
+
+      let _ =  try await action()
+      return Promise.resolve(value)
     })
   }
 
-  public static func resolve(_ value: T) -> Promise<T.Value> where T: PromiseProtocol {
-    return Promise<T.Value> { value }
+  public func finally(_ action: @Sendable @escaping () throws -> Void) throws -> Promise<T> {
+    return Promise({ () async throws in
+      let value: T
+      do {
+        value = try await self.await()
+      } catch {
+        let _ = try action()
+        throw error
+      }
+
+      let _ =  try action()
+      return Promise.resolve(value)
+    })
   }
 
   public static func resolve(_ value: T) -> Promise<T> {
-    return Promise(task: Task { value })
+    return Promise<T> { value }
   }
 }
 
