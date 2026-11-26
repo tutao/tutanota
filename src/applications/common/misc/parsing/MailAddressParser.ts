@@ -75,13 +75,19 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 				break
 			}
 
+			// not a standard mailto parameter, and various desktops do different things here
 			case "attach":
+			case "attachment":
 				if (result.attach == null) result.attach = []
-				result.attach.push(paramValue)
+				if (!paramValue.startsWith("file://")) {
+					result.attach.push(`file://${paramValue}`)
+				} else {
+					result.attach.push(paramValue)
+				}
 				break
 
 			default:
-				console.warn("unexpected mailto param, ignoring")
+				console.warn(`unexpected mailto param ${paramName}", ignoring`)
 		}
 	}
 

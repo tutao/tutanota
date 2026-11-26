@@ -58,17 +58,25 @@ o.spec("MailAddressParser", function () {
 		])
 	})
 
-	o("parseMailtoUrl with attachments", function () {
+	o.test("parseMailtoUrl with URL attachments", () => {
 		let { attach, body } = parseMailtoUrl(
-			"mailto:a@b.c?attach=file:///home/user/cat.jpg&body=hello%20world&attach=file:///home/user/dog%20man.jpg&attach=/home/user/pig.jpg",
+			"mailto:a@b.c?attach=file:///home/user/cat.jpg&body=hello%20world&attachment=file:///home/user/dog%20man.jpg&attachment=file:///home/user/pig.jpg",
 		)
-		o(attach!).deepEquals(["file:///home/user/cat.jpg", "file:///home/user/dog man.jpg", "/home/user/pig.jpg"])
-		o(body).equals("hello world")
+		o.check(attach!).deepEquals(["file:///home/user/cat.jpg", "file:///home/user/dog man.jpg", "file:///home/user/pig.jpg"])
+		o.check(body).equals("hello world")
+	})
+
+	o.test("parseMailtoUrl with path attachments", () => {
+		let { attach, body } = parseMailtoUrl(
+			"mailto:a@b.c?attach=/home/user/cat.jpg&body=hello%20world&attachment=/home/user/dog%20man.jpg&attachment=/home/user/pig.jpg",
+		)
+		o.check(attach!).deepEquals(["file:///home/user/cat.jpg", "file:///home/user/dog man.jpg", "file:///home/user/pig.jpg"])
+		o.check(body).equals("hello world")
 	})
 
 	o("parseMailtoUrl with empty params", function () {
 		let { attach, body, recipients } = parseMailtoUrl("mailto:?attach=&body=&bcc=")
-		o(attach!).deepEquals([""])
+		o(attach!).deepEquals(["file://"])
 		o(recipients).deepEquals({
 			to: undefined,
 			cc: undefined,
