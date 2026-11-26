@@ -7,11 +7,11 @@ public final class SwMap<K: Hashable, V>: @unchecked Sendable {
     storage.count
   }
 
-  public func set(_ key: K, _ value: V) {
+  public func set_notTheKeyword(_ key: K, _ value: V) {
     storage[key] = value
   }
 
-  public func get(_ key: K) -> V? {
+  public func get_notTheKeyword(_ key: K) -> V? {
     storage[key]
   }
 
