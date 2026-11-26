@@ -14,6 +14,8 @@ import {
 	AccountingInfoTypeRef,
 	CloseSessionService_POST,
 	Customer,
+	CustomerGroupRoot,
+	CustomerGroupRootTypeRef,
 	CustomerInfo,
 	CustomerInfoTypeRef,
 	CustomerProperties,
@@ -63,6 +65,7 @@ export class UserController {
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private customer: Customer | null,
+		private customerGroupRoot: CustomerGroupRoot | null,
 	) {
 		this.planConfig = null
 	}
@@ -128,6 +131,10 @@ export class UserController {
 	 */
 	getCustomer(): Customer | null {
 		return this.customer
+	}
+
+	getCustomerGroupRoot(): CustomerGroupRoot | null {
+		return this.customerGroupRoot
 	}
 
 	async loadCustomerInfo(): Promise<CustomerInfo> {
@@ -255,6 +262,8 @@ export class UserController {
 			} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				// offline cache might still be outdated, so we're playing it safe with WriteOnly
 				this.customer = await this.reloadCustomer(CacheMode.WriteOnly).catch(() => this.customer)
+			} else if (isUpdateForTypeRef(CustomerGroupRootTypeRef, update)) {
+				this.customerGroupRoot = await this.entityClient.load(CustomerGroupRootTypeRef, idToElementId(update.instanceId))
 			}
 		}
 	}
@@ -420,6 +429,10 @@ export async function initUserController({
 		// External users is not allowed to load Customer
 		isInternalUser(user) ? entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(user.customer))) : null,
 	])
+	let customerGroupRoot: CustomerGroupRoot | null = null
+	if (customer !== null) {
+		customerGroupRoot = await entityClient.load(CustomerGroupRootTypeRef, idToElementId(assertNotNull(customer._ownerGroup)))
+	}
 	return new UserController(
 		user,
 		userGroupInfo,
@@ -432,5 +445,6 @@ export async function initUserController({
 		entityClient,
 		locator.serviceExecutor,
 		customer,
+		customerGroupRoot,
 	)
 }
