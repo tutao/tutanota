@@ -14,6 +14,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { locator } from "../api/main/CommonLocator"
 import type { PaymentDetailsModel } from "./PaymentDetailsModel"
+import { updatePaymentData } from "./utils/PaymentUtils"
 import {
 	externalStorePlanName,
 	getPreconditionFailedPaymentMsg,
@@ -22,7 +23,10 @@ import {
 	waitUntilCustomerInfoPlanTypeIsCorrect,
 } from "./utils/SubscriptionUtils"
 
-type SubscriptionCheckoutData = Pick<PaymentDetailsModel, "options" | "paymentData" | "customer" | "upgradeType"> & { targetPlanType: PlanType }
+type SubscriptionCheckoutData = Pick<
+	PaymentDetailsModel,
+	"options" | "paymentData" | "invoiceData" | "accountingInfo" | "customer" | "price" | "upgradeType"
+> & { targetPlanType: PlanType }
 
 export async function upgrade(data: SubscriptionCheckoutData, referralCode: string | null = null): Promise<boolean> {
 	if (isExternalPaymentMethod(data.paymentData.paymentMethod)) {
@@ -45,8 +49,24 @@ async function upgradeWithTuta(data: SubscriptionCheckoutData, referralCode: str
 	})
 
 	try {
-		await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.execute(SwitchAccountTypeService_POST, serviceData, null))
-		return true
+		return await showProgressDialog(
+			"pleaseWait_msg",
+			(async () => {
+				const saved = await updatePaymentData(
+					data.options.paymentInterval(),
+					data.invoiceData,
+					{ paymentMethod: data.paymentData.paymentMethod, creditCardData: null },
+					data.invoiceData.country,
+					data.upgradeType === UpgradeType.Signup,
+					data.price?.rawPrice ?? null,
+					assertNotNull(data.accountingInfo),
+				)
+				if (!saved) return false
+
+				await locator.serviceExecutor.execute(SwitchAccountTypeService_POST, serviceData, null)
+				return true
+			})(),
+		)
 	} catch (e) {
 		const signupMessage = data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""
 		if (e instanceof PreconditionFailedError) {

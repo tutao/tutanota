@@ -60,7 +60,6 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					data.updatePrice()
 					SignupFlowUsageTestController.completeStage(SignupFlowStage.SELECT_PLAN, data.targetPlanType, data.options.paymentInterval())
 					SignupFlowUsageTestController.completeStage(SignupFlowStage.CREATE_ACCOUNT, data.targetPlanType, data.options.paymentInterval())
-					await locator.customerFacade.changePaymentInterval(assertNotNull(ctx.viewModel.accountingInfo), data.options.paymentInterval())
 				},
 				onConfirm: async () => {
 					if (isExternalPaymentMethod(data.paymentData.paymentMethod) && !locator.logins.isUserLoggedIn()) {

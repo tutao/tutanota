@@ -14,8 +14,6 @@ import { ButtonType } from "../../../ui/base/Button"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { Styles } from "../../../ui/styles"
 import { DefaultAnimationTime } from "../../../ui/animation/Animations"
-import { locator } from "../api/main/CommonLocator"
-import { assertNotNull } from "@tutao/utils"
 
 export interface UpgradeViewAttrs {
 	viewModel: UpgradeViewModel
@@ -119,7 +117,6 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 				},
 				onPaymentIntervalChanged: async () => {
 					ctx.viewModel.updatePrice()
-					await locator.customerFacade.changePaymentInterval(assertNotNull(ctx.viewModel.accountingInfo), ctx.viewModel.options.paymentInterval())
 				},
 				onConfirm: async () => (ctx.viewModel.upgradeSuccessful = await upgrade(ctx.viewModel)),
 			}),
