@@ -15,9 +15,6 @@ public final class Promise<T: Sendable>: Sendable, PromiseProtocol {
     self.init(task: Task { return try await asyncFunc().await() })
   }
 
-  public convenience init(_ syncFunction: @Sendable @escaping () throws -> T) {
-    self.init(task: Task { return try syncFunction() })
-  }
   public convenience init(_ value: T) {
     self.init(task: Task { return value })
   }

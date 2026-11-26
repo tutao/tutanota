@@ -10,13 +10,24 @@ class Promise<T> private constructor(private val task: Deferred<T>) {
 
 	constructor(asyncFunc: suspend () -> Promise<T>) : this(GlobalScope.async { asyncFunc().await() })
 
-	constructor(syncFunction: () -> T) : this(GlobalScope.async { syncFunction() })
-
 	constructor(value: T) : this(GlobalScope.async { value })
+
+
+	companion object {
+		fun <T> resolve(value: T): Promise<T> {
+			return Promise(value)
+		}
+
+		fun resolve(): Promise<Unit> {
+			return resolve(Unit)
+		}
+	}
+
 
 	suspend fun await(): T {
 		return task.await()
 	}
+
 
 	fun <P> then(asyncAction: suspend (T) -> Promise<P>): Promise<P> {
 		return Promise(GlobalScope.async {
@@ -67,13 +78,5 @@ class Promise<T> private constructor(private val task: Deferred<T>) {
 		})
 	}
 
-	companion object {
-		fun <T> resolve(value: T): Promise<T> {
-			return Promise(value)
-		}
 
-		fun resolve(): Promise<Unit> {
-			return resolve(Unit)
-		}
-	}
 }
