@@ -52,14 +52,6 @@ class KtInt(private val inner: Int) {
 	operator fun times(other: KtDouble): KtDouble {
 		return other.times(this)
 	}
-
-	operator fun plusAssign(other: KtInt) {
-		TODO()
-	}
-
-	operator fun minusAssign(other: KtInt) {
-		TODO()
-	}
 }
 
 class KtDouble(private val inner: Double) {

@@ -136,11 +136,4 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 	}
 }
 
-class KtList<T>(private val inner: List<T>) {
-	companion object {
-		fun <T> from(vararg items: T): KtList<T> {
-			return null!!
-		}
-
-	}
-}
+typealias KtList<T> = KtArray<T>

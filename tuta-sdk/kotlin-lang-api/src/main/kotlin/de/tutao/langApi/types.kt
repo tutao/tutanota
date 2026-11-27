@@ -3,7 +3,7 @@ package de.tutao.langApi
 typealias Never = Nothing
 typealias TsMath = de.tutao.langApi.types.KtMath
 
-typealias TsRegex = de.tutao.langApi.types.KtRegex
+typealias TsRegex = de.tutao.langApi.types.KtRegExp
 
 typealias TsObject = de.tutao.langApi.types.KtObject
 

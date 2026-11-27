@@ -16,10 +16,6 @@ class KtObject {
 			return list
 		}
 
-		fun <T> freeze(list: TsList<T>): TsList<T> {
-			return list
-		}
-
 		fun <T> freeze(list: KtArray<T>): TsList<T> {
 			return list as TsList<T>
 		}

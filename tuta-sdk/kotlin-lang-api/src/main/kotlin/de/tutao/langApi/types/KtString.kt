@@ -61,7 +61,7 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun match(other: KtRegex): KtString? {
+	fun match(other: KtRegExp): KtString? {
 		TODO()
 	}
 
@@ -73,7 +73,7 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun replace(pattern: KtRegex, replacement: KtString): KtString {
+	fun replace(pattern: KtRegExp, replacement: KtString): KtString {
 		TODO()
 	}
 
@@ -81,7 +81,7 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun replaceAll(pattern: KtRegex, replacement: KtString): KtString {
+	fun replaceAll(pattern: KtRegExp, replacement: KtString): KtString {
 		TODO()
 	}
 

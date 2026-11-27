@@ -36,9 +36,9 @@ class Promise<T> private constructor(private val task: Deferred<T>) {
 		})
 	}
 
-	fun <P> then(syncAction: (T) -> P): Promise<P> {
-		TODO("not implemented")
-	}
+//	fun <P> then(syncAction: (T) -> P): Promise<P> {
+//		TODO("not implemented")
+//	}
 
 	fun `catch`(action: suspend (TutanotaError) -> Promise<T>): Promise<T> {
 		TODO("not implemented")

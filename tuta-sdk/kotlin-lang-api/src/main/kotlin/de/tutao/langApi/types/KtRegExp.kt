@@ -2,7 +2,7 @@ package de.tutao.langApi.types
 
 import de.tutao.langApi.TsString
 
-class KtRegex(val regex: String, val flags: String = "") {
+class KtRegExp(val regex: String, val flags: String = "") {
 	constructor(pattern: KtString, flags: KtString = KtString("")) : this(pattern.asPrimitive(), flags.asPrimitive())
 
 	val source: KtString
