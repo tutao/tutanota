@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { MigrationData } from "./AddMigrationWizard.js"
 import { EnvProvider } from "@tutao/app-env"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
-import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection.js"
+import { TitledCard, TitledCardAttrs } from "../../../../ui/TitledCard.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -28,16 +28,16 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
 		return m(".mt-24", [
-			m(TitleSection, {
+			m(TitledCard, {
 				icon: Icons.MailFilled,
 				iconOptions: { color: theme.on_surface_variant },
 				subTitle: lang.getTranslationText("migrationImapCredentials_title"),
 				title: "",
-				style: {
+				contentStyle: {
 					marginTop: px(size.spacing_16),
 					borderRadius: px(size.radius_16),
 				},
-			} as TitleSectionAttrs),
+			} as TitledCardAttrs),
 			m(".mt-16"),
 			m(TextField, {
 				label: "migrationAccountUsername_label",

@@ -5,7 +5,7 @@ import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
 import { MailboxMigrationController, MailboxMigrationUiSession } from "./MailboxMigrationController.js"
 import { mailLocator } from "../../mailLocator.js"
 import { theme } from "../../../../ui/theme"
-import { TitleSection } from "../../../../ui/TitleSection.js"
+import { TitledCard } from "../../../../ui/TitledCard.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -74,7 +74,7 @@ class MigrationSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderTitleSection(): Children {
 		return m("", [
-			m(TitleSection, {
+			m(TitledCard, {
 				icon: Icons.DownloadFilled,
 				title: lang.getTranslationText("migration_title"),
 				subTitle: lang.getTranslationText("migrationInfo_msg"),

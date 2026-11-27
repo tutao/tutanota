@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
@@ -83,7 +83,7 @@ interface DeleteMailSetDialogAttrs {
 class DeleteMailSetDialog implements Component<DeleteMailSetDialogAttrs> {
 	view({ attrs }: Vnode<DeleteMailSetDialogAttrs>) {
 		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: "",
 				subTitle: lang.getTranslation(
 					attrs.messageType === "spam"
@@ -136,7 +136,7 @@ interface InspectAffectedInboxRulesDialogAttrs {
 class InspectAffectedInboxRulesDialog implements Component<InspectAffectedInboxRulesDialogAttrs> {
 	view({ attrs }: Vnode<InspectAffectedInboxRulesDialogAttrs>) {
 		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: "",
 				subTitle: lang.getTranslation("invalidateInboxRulesUsingDeletedMailSet_msg", { "{1}": attrs.mailSetName }).text,
 				icon: Icons.ExclamationOutline,

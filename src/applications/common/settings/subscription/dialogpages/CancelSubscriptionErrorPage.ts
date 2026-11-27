@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { InfoLink, lang } from "../../../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
@@ -14,13 +14,13 @@ export class CancelSubscriptionErrorPage implements Component<CancelSubscription
 		return m(
 			".flex.col.mt-16.mb-16",
 			vnode.attrs.data.sourcePage === "cancelSubscriptionPage"
-				? m(TitleSection, {
+				? m(TitledCard, {
 						title: lang.getTranslationText("subscriptionSettingsErrorPageCancel_title"),
 						subTitle: this.handleErrorMessage(vnode.attrs),
 						icon: Icons.FailureFilled,
 						iconOptions: { color: theme.error },
 					})
-				: m(TitleSection, {
+				: m(TitledCard, {
 						title: lang.getTranslationText("subscriptionSettingsErrorPageRevoke_title"),
 						subTitle: this.handleErrorMessage(vnode.attrs),
 						icon: Icons.FailureFilled,

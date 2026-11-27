@@ -66,7 +66,7 @@ import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { theme } from "../../../../ui/theme"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { px } from "../../../../ui/size"
 import { SubscriptionStateCard, SubscriptionStateCardAttrs, SubscriptionStatus } from "../../subscription/components/SubscriptionStateCard"
 import { SubscriptionPaidFeaturesCard } from "../../subscription/components/SubscriptionPaidFeaturesCard"
@@ -142,7 +142,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				[
 					m(
 						".flex.col.gap-32",
-						m(TitleSection, {
+						m(TitledCard, {
 							icon: Icons.TrophyOutline,
 							title: lang.getTranslationText("adminSubscription_label"),
 							subTitle: lang.getTranslationText("subscriptionSettingsSubtitle_label"),

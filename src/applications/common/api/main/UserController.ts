@@ -150,7 +150,7 @@ export class UserController {
 			const planServiceGetOut = await this.serviceExecutor.execute(PlanService_GET, NULL_ENTITY, null)
 			this.planConfig = planServiceGetOut.config
 		}
-		return downcast(this.planConfig)
+		return assertNotNull(this.planConfig)
 	}
 
 	isLegacyPlan(type: PlanType): boolean {
@@ -255,6 +255,8 @@ export class UserController {
 			} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				// offline cache might still be outdated, so we're playing it safe with WriteOnly
 				this.customer = await this.reloadCustomer(CacheMode.WriteOnly).catch(() => this.customer)
+			} else if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+				this.planConfig = null
 			}
 		}
 	}

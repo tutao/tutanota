@@ -1,13 +1,13 @@
 import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header"
-import m, { Children, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
-import { layout_size } from "../../../../ui/size"
+import { layout_size, px, size } from "../../../../ui/size"
 import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../ui/theme"
@@ -42,8 +42,6 @@ import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFa
 import Stream from "mithril/stream"
 import { isNotEmpty, isNotNull, lazyAsync } from "@tutao/utils"
 import { PickedDestinationAction } from "./DriveItemPicker"
-import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
-import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader"
 import { MobileActionAttrs, MobileActionBar } from "../../../../ui/MobileActionBar"
@@ -52,7 +50,6 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../../ui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
-import { NewPaidPlans } from "../../../../entities/sys/Utils"
 import { DriveFile, DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
@@ -62,7 +59,11 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { DriveFileShareDialog } from "./DriveFileShareDialog"
 import { wholeListSelected } from "../../../common/misc/ListModel"
 import { showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
-import { pureComponent } from "../../../../ui/base/PureComponent"
+import { TitledCard } from "../../../../ui/TitledCard"
+import { Checkbox, CheckboxAttrs } from "../../../../ui/base/Checkbox"
+import { PrimaryButton, PrimaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons"
+import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
+import { HighestTierPlans } from "../../../../entities/sys/Utils"
 
 export type MailFileSender = (item: DriveFile) => unknown
 
@@ -204,18 +205,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	/** init is called every time the view is opened */
 	private async init() {
 		await this.driveViewModel.init()
-		if (!(await this.driveViewModel.currentPlanSupportsDrive())) {
-			// wait for the upgrade dialog
-			await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.DRIVE, this.driveViewModel.loginController.getUserController(), NewPaidPlans)
-			// it could be that we are doing the check too soon but generally it should work
-			if (!(await this.driveViewModel.currentPlanSupportsDrive())) {
-				// if the upgrade didn't happen still bounce back to mail
-				m.route.set(MAIL_PREFIX)
-			} else {
-				// otherwise re-initialize
-				await this.driveViewModel.init()
-				this.driveViewModel.navigateToRootFolder()
-			}
+		if (this.driveViewModel.state.type === "done") {
+			this.driveViewModel.navigateToRootFolder()
 		}
 	}
 
@@ -240,12 +231,16 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						...attrs.header,
 						buttons: renderHeaderButtons(),
 						searchBar: () => {
-							return m(DriveQuickSearchBar, {
-								loadResults: async (searchQuery) => await this.driveViewModel.getSearchResult(searchQuery),
-								selectResult: (searchQuery, driveItem) => {
-									this.driveViewModel.selectSearchResult(searchQuery, driveItem)
-								},
-							})
+							if (this.driveViewModel.state.type === "done") {
+								return m(DriveQuickSearchBar, {
+									loadResults: async (searchQuery) => await this.driveViewModel.getSearchResult(searchQuery),
+									selectResult: (searchQuery, driveItem) => {
+										this.driveViewModel.selectSearchResult(searchQuery, driveItem)
+									},
+								})
+							} else {
+								return null
+							}
 						},
 					}),
 					bottomNav:
@@ -328,6 +323,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return new ViewColumn(
 			{
 				view: () => {
+					if (this.driveViewModel.state.type === "noDrive") {
+						return m(".height-100p.surface-container-background")
+					}
 					return [
 						m(FolderColumnView, {
 							drawer: drawerAttrs,
@@ -426,7 +424,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						case "loading":
 							return null
 						case "noDrive":
-							return m(OnboardingView)
+							return m(OnboardingView, {
+								type: this.driveViewModel.state.planIncludesDrive ? "enroll" : "upgrade",
+								onCreateDrive: () => this.driveViewModel.createDrive(),
+								onUpgrade: () => this.onUpgrade(),
+							})
 						case "done":
 							break
 					}
@@ -459,6 +461,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				maxWidth: layout_size.second_col_max_width + layout_size.third_col_max_width,
 			},
 		)
+	}
+
+	private async onUpgrade() {
+		// wait for the upgrade dialog
+		await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.DRIVE, this.driveViewModel.loginController.getUserController(), HighestTierPlans)
 	}
 
 	private renderFab(): Children {
@@ -700,7 +707,73 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 }
 
-const OnboardingView = pureComponent(() => {
-	// FIXME
-	return m("", "You aren't ongeboarded yet!")
-})
+interface OnboardingViewAttrs {
+	type: "upgrade" | "enroll"
+	onCreateDrive: () => unknown
+	onUpgrade: () => unknown
+}
+
+class OnboardingView implements ClassComponent<OnboardingViewAttrs> {
+	private isDisclaimerAccepted: boolean = false
+
+	// To ensure that the button cannot be clicked multiple times in the same session
+	private isSubmitted: boolean = false
+
+	view({ attrs }: Vnode<OnboardingViewAttrs>): Children {
+		return m(
+			".height-100p.flex.justify-center.items-center.surface-container-background",
+			m(
+				TitledCard,
+				{
+					icon: Icons.DriveOutline,
+					title: "Drive is in Beta", // FIXME
+					subTitle: null,
+					classes: ["dialog-width-m"],
+					style: {
+						padding: px(size.spacing_24),
+					},
+				},
+				attrs.type === "enroll"
+					? [
+							// FIXME
+							m("p", "You are eligible to try out Drive. While it is still in Beta, not all features might be available."),
+							m("p", "If you want to proceed, check the box below."),
+							m(Checkbox, {
+								label: () => "I understood. I am a big boy.",
+								checked: this.isDisclaimerAccepted,
+								onChecked: (newValue) => {
+									this.isDisclaimerAccepted = newValue
+								},
+							} satisfies CheckboxAttrs),
+							m(
+								".mt-24.flex.row.justify-end",
+								m(PrimaryButton, {
+									label: lang.makeTranslation("", "Go to Drive"), // FIXME
+									onclick: () => {
+										this.isSubmitted = true
+										attrs.onCreateDrive()
+									},
+									width: "flex",
+									disabled: this.isSubmitted || !this.isDisclaimerAccepted,
+								} satisfies PrimaryButtonAttrs),
+							),
+						]
+					: [
+							// FIXME translate
+							m("p", "Your plan is not eligible for Drive."),
+							m("p", "To try out Drive Beta you need to upgrade your plan."),
+							m(
+								".mt-24.flex.row.justify-end",
+								m(PrimaryButton, {
+									label: lang.makeTranslation("", "Upgrade plan"), // FIXME
+									onclick: () => {
+										attrs.onUpgrade()
+									},
+									width: "flex",
+								} satisfies PrimaryButtonAttrs),
+							),
+						],
+			),
+		)
+	}
+}

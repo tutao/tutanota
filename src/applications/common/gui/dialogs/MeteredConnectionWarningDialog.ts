@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { theme } from "../../../../ui/theme"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
@@ -49,7 +49,7 @@ interface MeteredConnectionWarningDialogAttrs {
 class MeteredConnectionWarningDialog implements Component<MeteredConnectionWarningDialogAttrs> {
 	view({ attrs }: Vnode<MeteredConnectionWarningDialogAttrs>) {
 		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: lang.getTranslationText("meteredConnectionWarning_label"),
 				subTitle: [
 					m(
@@ -60,7 +60,7 @@ class MeteredConnectionWarningDialog implements Component<MeteredConnectionWarni
 				],
 				icon: Icons.InfoOutline,
 				iconOptions: { color: theme.primary },
-				style: { backgroundColor: theme.surface },
+				contentStyle: { backgroundColor: theme.surface },
 			}),
 			m(".flex.row.gap-8", [
 				m(SecondaryButton, {

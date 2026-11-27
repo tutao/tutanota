@@ -6,7 +6,7 @@ import { Thunk } from "@tutao/utils"
 import { AllIcons, progressIcon } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../ui/theme.js"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { windowFacade } from "../../misc/WindowFacade"
 import { showUserSatisfactionDialog } from "../../ratings/UserSatisfactionDialog"
 import { locator } from "../../api/main/CommonLocator"
@@ -67,7 +67,7 @@ export class SupportLandingPage implements Component<Props> {
 						m("div", m(".flex-center", progressIcon()), m("p.m-0.mt-8", lang.getTranslationText("loading_msg"))),
 					)
 				: m("", [
-						m(TitleSection, {
+						m(TitledCard, {
 							icon: Icons.ChatbubbleOutline,
 							title: lang.get("supportStartPage_title"),
 							subTitle: lang.get("supportStartPage_msg"),

@@ -3,27 +3,27 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Card } from "./base/Card"
 import { rem, size } from "./size"
 
-export type TitleSectionAttrs = {
+export type TitledCardAttrs = {
+	classes?: string[]
 	icon?: AllIcons
 	iconOptions?: { color: string; class?: string }
 	customIcon?: Children
 	title: string
 	subTitle: Children
 	style?: Record<string, any>
+	contentStyle?: Record<string, any>
 }
 
-export class TitleSection implements Component<TitleSectionAttrs> {
-	view({ attrs }: Vnode<TitleSectionAttrs>): Children {
-		return m(
-			Card,
-			{},
+export class TitledCard implements Component<TitledCardAttrs> {
+	view({ attrs, children }: Vnode<TitledCardAttrs>): Children {
+		return m(Card, { classes: attrs.classes, style: attrs.style }, [
 			m(
 				"",
 				{
 					style: {
 						paddingTop: "8px",
 						paddingBottom: "8px",
-						...attrs.style,
+						...attrs.contentStyle,
 					},
 				},
 				m(
@@ -52,6 +52,7 @@ export class TitleSection implements Component<TitleSectionAttrs> {
 				),
 				m(".center.smaller.text-preline", attrs.subTitle),
 			),
-		)
+			children,
+		])
 	}
 }

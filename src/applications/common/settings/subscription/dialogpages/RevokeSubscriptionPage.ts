@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { lang } from "../../../../../ui/utils/LanguageViewModel"
 import { Card } from "../../../../../ui/base/Card"
@@ -21,7 +21,7 @@ export class RevokeSubscriptionPage implements Component<RevokeSubscriptionPageA
 	view(vnode: Vnode<RevokeSubscriptionPageAttrs>): Children {
 		return m(
 			".flex.col.gap-16.mt-16.mb-16",
-			m(TitleSection, {
+			m(TitledCard, {
 				icon: Icons.TrophyOutline,
 				title: lang.getTranslationText("subscriptionStateCardRevoke_action"),
 				subTitle: "",

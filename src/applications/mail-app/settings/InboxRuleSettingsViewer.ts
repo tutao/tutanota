@@ -18,7 +18,7 @@ import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { ButtonType } from "../../../ui/base/Button"
 import { Dialog } from "../../../ui/base/Dialog"
 import { theme } from "../../../ui/theme"
-import { TitleSection } from "../../../ui/TitleSection"
+import { TitledCard } from "../../../ui/TitledCard"
 import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
 import { getMailSetName } from "../mail/model/MailUtils"
@@ -107,7 +107,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 				[
 					m(
 						inboxRuleSectionClasses,
-						m(TitleSection, {
+						m(TitledCard, {
 							icon: Icons.FunnelOutline,
 							title: lang.getTranslationText("inboxRuleManagement_label"),
 							subTitle: m.trust(lang.getTranslationText("inboxRuleManagement_text")),
@@ -566,7 +566,7 @@ export async function applyRuleWithProgress(rules: Array<ExpandedInboxRule>, inb
 				},
 			],
 		},
-		TitleSection,
+		TitledCard,
 		{
 			icon: Icons.Checkmark,
 			title: lang.getTranslationText("inboxRulesAppliedSuccessfully_msg"),

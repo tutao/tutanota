@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../../../ui/utils/LanguageViewModel"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { FingerprintRow } from "../FingerprintRow"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
@@ -14,7 +14,7 @@ export class VerificationResultPage implements Component<VerificationResultPageA
 
 		return m(
 			"section.flex.flex-column.mt-16",
-			m(TitleSection, {
+			m(TitledCard, {
 				title: lang.get("keyManagement.contactVerificationConfirmationTitle_label"),
 				subTitle: lang.get("keyManagement.contactVerificationConfirmation_label"),
 				icon: Icons.SuccessOutline,

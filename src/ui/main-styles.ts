@@ -2611,6 +2611,9 @@ export class MainStyles {
 				".list-checkbox": {
 					opacity: "0.4",
 				},
+				".surface-container-background": {
+					background: `${theme.surface_container}`,
+				},
 				".alternate-background": {
 					background: `${theme.surface_container} !important`,
 				},
@@ -3557,7 +3560,7 @@ export class MainStyles {
 				".event-banner-grid-guest": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title title" 
+							"sidebar title title"
 							"sidebar middle timeoverview";
 							`,
 					"grid-template-columns": "110px 2fr 3fr;",
@@ -3568,7 +3571,7 @@ export class MainStyles {
 				".event-banner-grid-guest-mobile": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title" 
+							"sidebar title"
 							"sidebar middle"
 							"sidebar timeoverview";
 							`,
@@ -3578,8 +3581,8 @@ export class MainStyles {
 				".event-banner-grid-organizer": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title" 
-							"sidebar middle"							
+							"sidebar title"
+							"sidebar middle"
 							`,
 					"grid-template-columns": "110px 1fr;",
 					"grid-template-rows": "auto 1fr;",

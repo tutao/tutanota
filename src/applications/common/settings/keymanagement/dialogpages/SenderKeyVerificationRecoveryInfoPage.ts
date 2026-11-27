@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { lang } from "../../../../../ui/utils/LanguageViewModel"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { PrimaryButton } from "../../../../../ui/base/buttons/VariantButtons.js"
 import { theme } from "../../../../../ui/theme"
@@ -27,7 +27,7 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 				: lang.get("keyVerificationErrorGeneric_msg")
 
 		return m(".pt-16.pb-16.flex.col.gap-16", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title,
 				subTitle,
 				icon: Icons.BrokenShieldFilled,

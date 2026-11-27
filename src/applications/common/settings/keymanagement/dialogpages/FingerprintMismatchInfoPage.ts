@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { lang } from "../../../../../ui/utils/LanguageViewModel"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
 import { Card } from "../../../../../ui/base/Card"
@@ -36,7 +36,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 		}
 
 		return m(".pt-16.pb-16.flex.col.gap-16", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title,
 				subTitle: m.trust(subTitle),
 				icon: Icons.FailureOutline,

@@ -5,7 +5,7 @@ import { getCategoryIntroduction, getCategoryName, getTopicIssue, SupportDialogS
 import { Thunk } from "@tutao/utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { AllIcons } from "../../../../ui/base/Icon"
 
 type Props = {
@@ -26,7 +26,7 @@ export class SupportCategoryPage implements Component<Props> {
 		const currentlySelectedCategory = selectedCategory()
 
 		return m(".pt-16.pb-16.flex.col", [
-			m(TitleSection, {
+			m(TitledCard, {
 				icon: currentlySelectedCategory?.icon as AllIcons,
 				title: getCategoryName(currentlySelectedCategory!, languageTag),
 				subTitle: getCategoryIntroduction(currentlySelectedCategory!, languageTag),

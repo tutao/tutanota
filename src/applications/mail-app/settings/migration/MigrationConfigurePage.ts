@@ -10,7 +10,7 @@ import { createManageLabelServiceLabelData, MailSet, MailSetTypeRef } from "@tut
 import { mailLocator } from "../../mailLocator"
 import { assertNotNull, promiseMap } from "@tutao/utils"
 import { isValidCSSHexColor } from "../../../../ui/base/Color"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { px, size } from "../../../../ui/size"
 import { Switch } from "../../../../ui/base/Switch"
 import { IconButton } from "../../../../ui/base/IconButton"
@@ -119,10 +119,10 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
 			m(
 				".mt-16",
-				m(TitleSection, {
+				m(TitledCard, {
 					...this.titleSectionParams,
 					title: "",
-					style: {
+					contentStyle: {
 						borderRadius: px(size.radius_16),
 					},
 				}),

@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Thunk } from "@tutao/utils"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { lang } from "../../../../../ui/utils/LanguageViewModel"
 import { PrimaryButton } from "../../../../../ui/base/buttons/VariantButtons"
@@ -15,7 +15,7 @@ export class CancelSubscriptionOptionPage implements Component<CancelSubscriptio
 	view(vnode: Vnode<CancelSubscriptionOptionPageAttrs>): Children {
 		return m(
 			".flex.col.gap-16.mt-16.mb-16.pb-24",
-			m(TitleSection, {
+			m(TitledCard, {
 				icon: Icons.TrophyOutline,
 				title: lang.getTranslationText("subscriptionStateCardCancel_action"),
 				subTitle: lang.getTranslationText("subscriptionSettingOptionPage_subtitle"),

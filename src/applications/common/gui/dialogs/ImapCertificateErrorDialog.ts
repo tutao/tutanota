@@ -1,5 +1,5 @@
 import { ContentWithOptionsDialog } from "../../../../ui/dialogs/ContentWithOptionsDialog"
-import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
+import { TitledCard, TitledCardAttrs } from "../../../../ui/TitledCard"
 import { px, size } from "../../../../ui/size"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar.js"
@@ -56,16 +56,16 @@ export function showImapCertificateErrorDialog(): Promise<"ignore" | "upload" | 
 									subActionClick: () => closeAction("ignore"),
 								},
 								m(".mt-24", [
-									m(TitleSection, {
+									m(TitledCard, {
 										icon: Icons.SyncProblem,
 										iconOptions: { color: theme.error },
 										subTitle: lang.getTranslationText("migrationCertificateError_msg"),
 										title: "",
-										style: {
+										contentStyle: {
 											marginTop: px(size.spacing_16),
 											borderRadius: px(size.radius_16),
 										},
-									} as TitleSectionAttrs),
+									} as TitledCardAttrs),
 								]),
 							),
 						),

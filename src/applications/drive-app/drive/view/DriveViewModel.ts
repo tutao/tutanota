@@ -49,6 +49,7 @@ import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 import { DuplicateFilesDialogDecision, showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
+import { AccountingInfoTypeRef } from "@tutao/entities/sys"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -88,7 +89,7 @@ export interface DriveStorage {
 	totalBytes: number
 }
 
-type DriveLoadingState = { type: "init" } | { type: "loading" } | { type: "done"; roots: DriveRootFolders } | { type: "noDrive" }
+type DriveLoadingState = { type: "init" } | { type: "loading" } | { type: "done"; roots: DriveRootFolders } | { type: "noDrive"; planIncludesDrive: boolean }
 
 export class DriveViewModel {
 	public readonly userMailAddress: string
@@ -183,9 +184,9 @@ export class DriveViewModel {
 	}
 
 	private async loadRoots(cacheMode: "withNetwork" | "cached"): Promise<DriveLoadingState> {
-		const maybeRoots = await this.driveFacade.loadRootFolders("cached")
+		const maybeRoots = await this.driveFacade.loadRootFolders(cacheMode)
 		if (isNull(maybeRoots)) {
-			return { type: "noDrive" }
+			return { type: "noDrive", planIncludesDrive: await this.currentPlanSupportsDrive() }
 		} else {
 			return { type: "done", roots: maybeRoots }
 		}
@@ -193,6 +194,15 @@ export class DriveViewModel {
 
 	public waitForInit(): Promise<void> {
 		return this.initialized.promise
+	}
+
+	/**
+	 * Enrolls a user into Drive, creates a group root, sets state.
+	 */
+	public async createDrive(): Promise<void> {
+		const roots = await this.driveFacade.createGroupRoot()
+		this.#state = { type: "done", roots }
+		this.navigateToRootFolder()
 	}
 
 	public async currentPlanSupportsDrive(): Promise<boolean> {
@@ -264,6 +274,18 @@ export class DriveViewModel {
 					this.listModel.updateLoadedItem(item)
 				}
 				this.refreshStorage()
+			} else if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+				// FIXME: after an upgrade we are trying to figure out if the new plan supports drive
+				//   it doesn't seem like listening for AccountingInfo works, it is updated before (?) the plan has
+				//   actually been switched. Figure out what to listen for instead.
+				// listen for plan changes if there's no drive to show the correct onboarding view
+				if (this.state.type === "noDrive") {
+					const supportsDriveNow = await this.currentPlanSupportsDrive()
+					if (this.state.type === "noDrive") {
+						this.#state = { type: "noDrive", planIncludesDrive: supportsDriveNow }
+						this.updateUi()
+					}
+				}
 			}
 		}
 	}

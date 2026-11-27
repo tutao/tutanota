@@ -7,10 +7,10 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import {
 	getServerMigrationConfigForProvider,
-	MigrationAuthMethod,
 	MailboxMigrationProvider,
+	MigrationAuthMethod,
 } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs.js"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { px, size } from "../../../../ui/size"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
@@ -75,9 +75,9 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
 		return m(".mt-24", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: "",
-				style: {
+				contentStyle: {
 					marginTop: px(size.spacing_16),
 					borderRadius: px(size.radius_16),
 				},

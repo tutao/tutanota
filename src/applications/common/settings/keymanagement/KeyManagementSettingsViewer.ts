@@ -9,7 +9,7 @@ import { KeyVerificationFacade, TrustedIdentity } from "../../../../platform-kit
 import { showKeyVerificationDialog } from "./KeyVerificationDialog"
 import { DesktopSystemFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { UsageTestController } from "@tutao/usagetests"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { Card } from "../../../../ui/base/Card"
 import { renderFingerprintAsQrCode } from "./FingerprintRenderers"
 import { MenuTitle } from "../../../../ui/titles/MenuTitle"
@@ -23,7 +23,7 @@ import { lazy, Versioned } from "../../../../platform-kit/utils"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { IdentityKeyCreator } from "../../../../platform-kit/base/base-crypto/IdentityKeyCreator"
-import { isSameId, isSameSingleId } from "../../../../platform-kit/meta"
+import { isSameSingleId } from "../../../../platform-kit/meta"
 import { SigningPublicKey } from "../../../../platform-kit/crypto/encryption/Ed25519"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupTypeRef } from "@tutao/entities/sys"
@@ -122,7 +122,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					},
 				},
 				[
-					m(TitleSection, {
+					m(TitledCard, {
 						icon: Icons.KeyOutline,
 						title: lang.get("keyManagement.keyVerification_label"),
 						subTitle: lang.get("keyManagement.keyVerification_subtitle_label"),

@@ -5,7 +5,7 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../../ui/base/Dialo
 import { ButtonType } from "../../../../ui/base/Button.js"
 import { theme } from "../../../../ui/theme"
 import { ContentWithOptionsDialog } from "../../../../ui/dialogs/ContentWithOptionsDialog"
-import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
+import { TitledCard, TitledCardAttrs } from "../../../../ui/TitledCard"
 import { px, size } from "../../../../ui/size"
 import { TextField } from "../../../../ui/base/TextField"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -133,16 +133,16 @@ export function showUpdateMigrationCredentialsDialog(
 function renderContent(viewModel: UpdateMigrationCredentialsDialogViewModel) {
 	const isOAuth = viewModel.provider !== MailboxMigrationProvider.Other
 	return m(".mt-24", [
-		m(TitleSection, {
+		m(TitledCard, {
 			icon: Icons.SyncProblem,
 			iconOptions: { color: theme.error },
 			subTitle: lang.getTranslationText("migrationUpdateCredentialsInfo_msg"),
 			title: "",
-			style: {
+			contentStyle: {
 				marginTop: px(size.spacing_16),
 				borderRadius: px(size.radius_16),
 			},
-		} as TitleSectionAttrs),
+		} as TitledCardAttrs),
 		m(".mt-16"),
 		m(TextField, {
 			label: "migrationAccountUsername_label",

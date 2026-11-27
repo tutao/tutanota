@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { lang } from "../../../../../ui/utils/LanguageViewModel"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
 import { Card } from "../../../../../ui/base/Card"
@@ -19,7 +19,7 @@ export class RecipientKeyVerificationRecoveryRejectPage implements Component<Ver
 		const contactMailAddress = vnode.attrs.contactMailAddress
 
 		return m(".pt-16.pb-16.flex.col.gap-16", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title,
 				subTitle: "",
 				icon: Icons.ExclamationOutline,

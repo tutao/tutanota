@@ -11,7 +11,7 @@ import { Icon, IconSize } from "../../../../../ui/base/Icon"
 import { theme } from "../../../../../ui/theme"
 import { debounce } from "../../../../../platform-kit/utils"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { FingerprintRow } from "../FingerprintRow"
 import { IdentityKeyVerificationMethod } from "../../../../../platform-kit/app-env"
 
@@ -33,7 +33,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 		const publicIdentity = model.getPublicIdentity()
 
 		return m(".pt-16.pb-16.flex.col.gap-16", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: lang.get("keyManagement.textVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
 			}),

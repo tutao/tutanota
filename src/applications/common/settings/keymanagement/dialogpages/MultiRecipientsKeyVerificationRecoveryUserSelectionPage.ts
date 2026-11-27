@@ -6,7 +6,7 @@ import { ResolvableRecipient } from "../../../api/main/RecipientsModel"
 import { PrimaryButton } from "../../../../../ui/base/buttons/VariantButtons.js"
 import { ExternalLink } from "../../../../../ui/base/ExternalLink"
 import { Card } from "../../../../../ui/base/Card"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
 import { type RadioSelectorOption } from "../../../../../ui/base/RadioSelectorItem"
@@ -33,7 +33,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 		const selectableRecipients = this.makeRecipientOptions(vnode.attrs.model.getUnverifiedRecipients())
 
 		return m(".pt-16.pb-16.flex.col.gap-16", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title,
 				subTitle: "",
 				icon: Icons.BrokenShieldFilled,
@@ -75,7 +75,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 		const message = lang.get("keyManagement.reverifyRecipientsCompleted_msg")
 
 		return m(".pt-16.pb-16.flex.col.gap-16", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title,
 				subTitle: "",
 				icon: Icons.SuccessOutline,

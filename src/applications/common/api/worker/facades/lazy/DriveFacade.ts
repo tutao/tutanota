@@ -454,7 +454,8 @@ export class DriveFacade {
 		return { fileGroupId, fileGroupKey }
 	}
 
-	private async createGroupRoot(fileGroupId: Id): Promise<DriveGroupRoot> {
+	public async createGroupRoot(): Promise<DriveGroupRoot> {
+		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
 		const rootFolderSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const trashFolderSessionKey = this.symmetricCipherUtils.aes256RandomKey()

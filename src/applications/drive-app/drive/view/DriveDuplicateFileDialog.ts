@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { Dialog } from "../../../../ui/base/Dialog"
@@ -69,7 +69,7 @@ class DriveDuplicateFileDialog implements Component<DriveDuplicateFileDialogAttr
 	private applyToAll: boolean = false
 	view(vnode: Vnode<DriveDuplicateFileDialogAttrs>) {
 		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: lang.getTranslationText("conflictDetected_label"),
 				subTitle: [m(".normal-font-size", lang.getTranslation("duplicateFileName_msg", { "{fileName}": vnode.attrs.fileName }).text)],
 				icon: Icons.DocumentOutline,

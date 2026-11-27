@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { TitleSection } from "../../../../ui/TitleSection"
+import { TitledCard } from "../../../../ui/TitledCard"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { Card } from "../../../../ui/base/Card"
@@ -62,7 +62,7 @@ interface OverwriteRemoteDraftDialogAttrs {
 class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteRemoteDraftDialogAttrs>) {
 		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: lang.getTranslationText("conflictDetected_label"),
 				subTitle: [
 					m(".normal-font-size", lang.getTranslationText("remoteDraftVersion_msg")),
@@ -70,7 +70,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 				],
 				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.error },
-				style: { backgroundColor: theme.surface },
+				contentStyle: { backgroundColor: theme.surface },
 			}),
 			m(
 				Card,
@@ -153,12 +153,12 @@ interface OverwriteDraftDialogAttrs {
 class OverwriteDraftDialog implements Component<OverwriteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteDraftDialogAttrs>) {
 		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: lang.getTranslationText("confirmCreateNewDraftOverAutosavedDraft_msg"),
 				subTitle: null,
 				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.error },
-				style: { backgroundColor: theme.surface },
+				contentStyle: { backgroundColor: theme.surface },
 			}),
 			m(PrimaryButton, {
 				class: "flex-center row center-vertically",

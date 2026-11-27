@@ -3,7 +3,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { MigrationData } from "./AddMigrationWizard"
 import { mailLocator } from "../../mailLocator"
-import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
+import { TitledCard, TitledCardAttrs } from "../../../../ui/TitledCard"
 import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
@@ -25,7 +25,7 @@ EnvProvider.assertMainOrNode()
 
 export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 	private shouldDisableNextButton: boolean = false
-	private titleSectionParams: Partial<TitleSectionAttrs> = {
+	private titleSectionParams: Partial<TitledCardAttrs> = {
 		icon: Icons.MailFilled,
 		iconOptions: { color: theme.on_surface_variant },
 	}
@@ -66,11 +66,11 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 			getTranslationForMigrationProvider(mailboxMigrationProvider, businessUse, vnode.attrs.data.isExchange),
 		)
 		return m(".mt-24", [
-			m(TitleSection, {
+			m(TitledCard, {
 				...this.titleSectionParams,
 				subTitle: lang.getTranslation("migrationIntroductionInfo_msg", { "{provider}": providerTranslationText }).text,
 				title: "",
-				style: {
+				contentStyle: {
 					marginTop: px(size.spacing_16),
 					borderRadius: px(size.radius_16),
 				},

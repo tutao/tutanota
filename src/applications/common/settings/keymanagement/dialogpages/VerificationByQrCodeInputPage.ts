@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../../../ui/utils/LanguageViewModel"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import type { QRCode } from "jsqr"
-import { TitleSection } from "../../../../../ui/TitleSection"
+import { TitledCard } from "../../../../../ui/TitledCard"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../../gui/QrCodeScanner"
 import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "../../../../../platform-kit/app-env"
 
@@ -20,7 +20,7 @@ type VerificationByQrCodePageAttrs = {
 export class VerificationByQrCodeInputPage implements Component<VerificationByQrCodePageAttrs> {
 	view(vnode: Vnode<VerificationByQrCodePageAttrs>): Children {
 		return m(".pt-16.pb-16.flex.col.gap-16", [
-			m(TitleSection, {
+			m(TitledCard, {
 				title: lang.get("keyManagement.qrVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByQrCodeScan_label"),
 			}),
