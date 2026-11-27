@@ -45,7 +45,7 @@ export interface EntityRestInterface {
 	 */
 	loadMultiple<T extends PersistentEntity>(
 		typeRef: TypeRef<T>,
-		listId: Id | null,
+		listId: Nullable<Id>,
 		elementIds: Array<Id>,
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider>,
 		loadOptions: EntityRestClientLoadOptions,
@@ -60,12 +60,12 @@ export interface EntityRestInterface {
 		instance: T,
 		extraHeaders: Nullable<Dict>,
 		options: Nullable<EntityRestClientSetupOptions>,
-	): Promise<Id | null>
+	): Promise<Nullable<Id>>
 
 	/**
 	 * Creates multiple elements on the server. Entities are encrypted before they are sent.
 	 */
-	setupMultiple<T extends PersistentEntity>(listId: Id | null, instances: ReadonlyArray<T>): Promise<Array<Id>>
+	setupMultiple<T extends PersistentEntity>(listId: Nullable<Id>, instances: ReadonlyArray<T>): Promise<Array<Id>>
 
 	/**
 	 * Modifies a single element on the server. Entities are encrypted before they are sent.
@@ -108,7 +108,7 @@ export interface EntityRestCache extends EntityRestInterface {
 	/**
 	 * Fetch the time since last time we downloaded event batches.
 	 */
-	timeSinceLastSyncMs(): Promise<number | null>
+	timeSinceLastSyncMs(): Promise<Nullable<number>>
 
 	/**
 	 * Detect if out of sync based on stored "lastUpdateTime" and the current server time
@@ -118,7 +118,7 @@ export interface EntityRestCache extends EntityRestInterface {
 	/**
 	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
 	 */
-	deleteFromCacheIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void>
+	deleteFromCacheIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementId: Id): Promise<void>
 	/**
 	 * Updates the cache with the given missed entity updates. Groups the entity updates by typeRef, and uses cacheStorage.putMultiple to update the cache.
 	 * This is used because IPC is slow on Desktop and Android, and syncing takes longer if putMultiple is not used and the items are put to cache one-by-one.

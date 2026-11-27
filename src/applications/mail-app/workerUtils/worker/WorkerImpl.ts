@@ -45,7 +45,6 @@ import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-cr
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { errorToObj } from "../../../../platform-kit/utils"
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
@@ -55,6 +54,7 @@ import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { MailboxImporter } from "../migration/MailboxImporter"
+import { errorToObj } from "../../../../app-kit/native-bridge/shared/ErrorUtils"
 
 EnvProvider.assertWorkerOrNode()
 

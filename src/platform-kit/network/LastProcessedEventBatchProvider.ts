@@ -1,5 +1,7 @@
+import { Nullable } from "@tutao/lang-api"
+
 export interface LastProcessedEventBatchProvider {
-	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null>
+	getLastEntityEventBatchForGroup(groupId: Id): Promise<Nullable<Id>>
 
 	/**
 	 * Saves the batch id of the most recently processed batch manually.

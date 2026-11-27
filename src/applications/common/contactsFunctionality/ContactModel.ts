@@ -1,6 +1,6 @@
 import { EnvProvider, ShareCapability } from "@tutao/app-env"
 import { elementIdPart, EntityIdEncoding, getEtId, idToElementId, listIdPart, sortCompareById } from "@tutao/meta"
-import { assertNotNull, cleanMailAddress, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
+import { assertNotNull, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../../../platform-kit/network/EntityClient.js"
@@ -22,6 +22,7 @@ import {
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
 import { hasCapabilityOnGroup, isSharedGroupOwner } from "../../../entities/sys/Utils"
+import { cleanMailAddress } from "../../../ui/utils/FormatUtils"
 
 EnvProvider.assertMainOrNode()
 

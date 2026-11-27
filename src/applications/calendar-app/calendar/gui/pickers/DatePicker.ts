@@ -7,7 +7,7 @@ import { theme } from "../../../../../ui/theme.js"
 
 import { LegacyTextField } from "../../../../../ui/base/LegacyTextField"
 import { AriaPopupType } from "../../../../../ui/AriaUtils"
-import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "../../../../../platform-kit/utils"
+import { getStartOfDay, isSameDayOfDate, NBSP } from "../../../../../platform-kit/utils"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
 import { parseDate } from "../../../../common/misc/DateParser.js"
@@ -17,6 +17,7 @@ import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHand
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 import { TabIndex } from "@tutao/app-env"
 import { Singletons } from "../../../../../platform-kit/singletons/singleton"
+import { memoized } from "../../../../../ui/utils/memoized"
 
 // TODO(gg): Remove this option. Auto-detect available space and flip above/below position automatically. Write it as a
 // general Popover/Modal component. IntersectionObserver/ResizeObserver are overkill, viewport and getClientBoundingRect

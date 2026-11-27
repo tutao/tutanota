@@ -1,5 +1,6 @@
-import { convertTextToHtml, isMailAddress, isNotNull } from "@tutao/utils"
+import { isNotNull } from "@tutao/utils"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
+import { convertTextToHtml, isMailAddress } from "../../../../ui/utils/FormatUtils"
 
 export type ParsedMailto = {
 	recipients: {

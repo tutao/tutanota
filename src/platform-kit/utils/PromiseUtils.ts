@@ -1,8 +1,8 @@
-import { isNull } from "@tutao/lang-api"
+import { isNull, Nullable } from "@tutao/lang-api"
 
 export { pMap as promiseMap } from "./PromiseMap.js"
 
-export function delay(ms: number): Promise<void> {
+export async function delay(ms: number): Promise<void> {
 	if (Number.isNaN(ms) || ms < 0) {
 		throw new Error(`Invalid delay: ${ms}`)
 	}
@@ -27,10 +27,10 @@ export function delay(ms: number): Promise<void> {
  * See https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide
  */
 export class MicrotaskBouncer {
-	private evictTimestamp: number | null = null
+	private evictTimestamp: Nullable<number> = null
 
 	// Next macrotask that the microtasks are allowed to run in.
-	private nextMacrotaskPromise: Promise<void> | null = null
+	private nextMacrotaskPromise: Nullable<Promise<void>> = null
 
 	/**
 	 * Create a new bouncer
@@ -45,7 +45,7 @@ export class MicrotaskBouncer {
 	/**
 	 * If the time slice is over, return a promise that yields to any queued macrotask(s).
 	 */
-	bounce(): Promise<void> {
+	async bounce(): Promise<void> {
 		const now = this.dateProvider()
 
 		if (isNull(this.evictTimestamp)) {
@@ -79,7 +79,7 @@ export class MicrotaskBouncer {
  * Pass to Promise.then to perform an action while forwarding on the result
  * @param action
  */
-export function tap<T>(action: (arg0: T) => unknown): (arg0: T) => T {
+export function tap<T, R>(action: (arg0: T) => R): (arg0: T) => T {
 	return function (value) {
 		action(value)
 		return value

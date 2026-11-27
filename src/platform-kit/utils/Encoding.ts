@@ -1,6 +1,7 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
-import { TypeChecks } from "../app-env/TsTypeChecks.js"
+import { TypeChecks } from "@tutao/lang-api"
 import { isNotNull, isNull, Nullable } from "./Utils.js"
+import { Base64, Base64Ext, Base64Url, Hex } from "@tutao/lang-api"
 
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array<ArrayBuffer>): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
@@ -163,7 +164,7 @@ export function _stringToUtf8Uint8ArrayLegacy(str: string): Uint8Array<ArrayBuff
 
 const REPLACEMENT_CHAR = "\uFFFD"
 
-export function _replaceLoneSurrogates(s: string | null): string {
+export function _replaceLoneSurrogates(s: Nullable<string>): string {
 	if (isNull(s)) {
 		return ""
 	}
@@ -208,6 +209,7 @@ interface IDecoder {
 }
 
 class LegacyEncoderDecoder implements IEncoder, IDecoder {
+	constructor() {}
 	encode(str: string): Uint8Array<ArrayBuffer> {
 		return _stringToUtf8Uint8ArrayLegacy(str)
 	}
@@ -430,7 +432,7 @@ export function byteArraysToBytes(byteArrays: Array<Uint8Array<ArrayBuffer>>): U
  * @return list of byte arrays
  */
 export function bytesToByteArrays(encodedByteArrays: Uint8Array<ArrayBuffer>, expectedByteArrays: number): Array<Uint8Array<ArrayBuffer>> {
-	const byteArrays = new Array<Uint8Array<ArrayBuffer>>()
+	const byteArrays: Array<Uint8Array<ArrayBuffer>> = []
 	let index = 0
 	while (index < encodedByteArrays.length) {
 		const readResult = readByteArray(encodedByteArrays, index)

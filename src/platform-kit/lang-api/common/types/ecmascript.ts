@@ -40,4 +40,13 @@ function tsStructuredClone<T>(arg: T): T {
 	return structuredClone(arg)
 }
 
+export type TsIterator<T> = Iterator<T, T, T>
+export type TsIterable<T> = Iterable<T, T, T>
+
+export const TsIterator = {
+	fromIterable<T>(iterable: TsIterable<T>): TsIterator<T> {
+		return iterable[Symbol.iterator]()
+	},
+}
+
 export { tsStructuredClone as structuredClone }

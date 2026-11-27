@@ -1,4 +1,4 @@
-import { startsWith } from "./index"
+import { startsWith } from "@tutao/utils"
 import { isNull } from "@tutao/lang-api"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+_]+"

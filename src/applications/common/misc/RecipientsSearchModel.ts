@@ -1,6 +1,6 @@
 import { RecipientsModel } from "../api/main/RecipientsModel.js"
 import { ContactListInfo, ContactModel } from "../contactsFunctionality/ContactModel.js"
-import { isMailAddress } from "../../../platform-kit/utils/FormatUtils.js"
+import { isMailAddress } from "../../../ui/utils/FormatUtils.js"
 import { ofClass } from "@tutao/utils"
 import { DbError } from "../api/common/error/DbError.js"
 import { locator } from "../api/main/CommonLocator.js"

@@ -1,10 +1,10 @@
 import { ExpandedInboxRule, InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
-import { isDomainName, isRegularExpression } from "@tutao/utils"
 import type { SelectorItemList } from "../../../../ui/base/DropDownSelector"
-import { InboxRuleConditionType, InboxRuleActionType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
+import { InboxRuleActionType, InboxRuleConditionType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { EnvProvider } from "../../../../platform-kit/app-env"
+import { isDomainName, isRegularExpression } from "../../../../ui/utils/FormatUtils"
 
 EnvProvider.assertMainOrNode()
 

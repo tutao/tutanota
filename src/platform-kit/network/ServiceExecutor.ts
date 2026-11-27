@@ -79,9 +79,9 @@ export class ServiceExecutor implements IServiceExecutor {
 	}
 
 	private async encryptDataIfNeeded<In extends DataTransferEntity, Out extends DataTransferEntity>(
-		requestEntity: Entity | null,
+		requestEntity: Nullable<Entity>,
 		service: ServiceDefinition<In, Out>,
-		params: ExtraServiceParams | null,
+		params: Nullable<ExtraServiceParams>,
 	): Promise<Nullable<OutgoingServerJson>> {
 		const requestTypeRef = service.requestTypeRef
 		if (isNotNull(requestTypeRef)) {

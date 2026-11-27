@@ -1,5 +1,5 @@
 import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, HkdfKeyDerivationDomains, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, isNotNull, KeyVersion } from "@tutao/utils"
+import { assertNotNull, isNotNull, KeyVersion, Nullable } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "@tutao/entities/sys"
@@ -11,8 +11,8 @@ import { isNull } from "../../utils/Utils"
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade extends LoggedInUserProvider {
-	private user: User | null = null
-	private accessToken: string | null = null
+	private user: Nullable<User> = null
+	private accessToken: Nullable<string> = null
 	private leaderStatus!: WebsocketLeaderStatus
 	private defaultSymmetricEncryptionScheme: SymmetricEncryptionScheme = SymmetricEncryptionScheme.AesCbc
 
@@ -39,11 +39,11 @@ export class UserFacade extends LoggedInUserProvider {
 	// 1. Access token is set
 	// 2. User is set
 	// 3. UserGroupKey is unlocked
-	setAccessToken(accessToken: string | null): void {
+	setAccessToken(accessToken: Nullable<string>): void {
 		this.accessToken = accessToken
 	}
 
-	getAccessToken(): string | null {
+	getAccessToken(): Nullable<string> {
 		return this.accessToken
 	}
 

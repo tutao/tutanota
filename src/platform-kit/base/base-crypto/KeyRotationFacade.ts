@@ -137,7 +137,7 @@ export enum MultiAdminGroupKeyAdminActionPath {
 export type PendingKeyRotation = {
 	//If we rotate the admin group we always want to rotate the user group for the admin user.
 	// Therefore, we do not need to save two different key rotations for this case.
-	adminOrUserGroupKeyRotation: KeyRotation | null
+	adminOrUserGroupKeyRotation: Nullable<KeyRotation>
 	teamOrCustomerGroupKeyRotations: Array<KeyRotation>
 	userAreaGroupsKeyRotations: Array<KeyRotation>
 }
@@ -149,20 +149,20 @@ type PreparedUserAreaGroupKeyRotation = {
 
 type GeneratedGroupKeys = {
 	symGroupKey: VersionedAes256Key
-	encryptedKeyPair: EncryptedPqKeyPairs | null
+	encryptedKeyPair: Nullable<EncryptedPqKeyPairs>
 }
 
 type EncryptedGroupKeys = {
 	newGroupKeyEncCurrentGroupKey: VersionedEncryptedKey
-	keyPair: EncryptedPqKeyPairs | null
-	adminGroupKeyEncNewGroupKey: VersionedEncryptedKey | null
+	keyPair: Nullable<EncryptedPqKeyPairs>
+	adminGroupKeyEncNewGroupKey: Nullable<VersionedEncryptedKey>
 }
 
 type EncryptedUserGroupKeys = {
 	newUserGroupKeyEncCurrentGroupKey: VersionedEncryptedKey
 	passphraseKeyEncNewUserGroupKey: VersionedEncryptedKey
 	keyPair: KeyPair
-	recoverCodeData: RecoverCodeData | null
+	recoverCodeData: Nullable<RecoverCodeData>
 	newAdminGroupKeyEncNewUserGroupKey: VersionedEncryptedKey
 	distributionKeyEncNewUserGroupKey: Uint8Array<ArrayBuffer>
 	authVerifier: Uint8Array<ArrayBuffer>
@@ -258,7 +258,7 @@ export class KeyRotationFacade {
 	 * Processes the internal list of @PendingKeyRotation. Key rotations and (if existent) password keys are deleted after processing.
 	 * @VisibleForTesting
 	 */
-	async processPendingKeyRotation(pendingKeyRotations: PendingKeyRotation, user: User, pwKey: Aes256Key | null): Promise<void> {
+	async processPendingKeyRotation(pendingKeyRotations: PendingKeyRotation, user: User, pwKey: Nullable<Aes256Key>): Promise<void> {
 		// first admin, then user and then user area
 		const adminOrUserGroupKeyRotationWasExecuted = pendingKeyRotations.adminOrUserGroupKeyRotation != null
 		if (isNotNull(pendingKeyRotations.adminOrUserGroupKeyRotation) && isNotNull(pwKey)) {
@@ -665,8 +665,8 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async reencryptRecoverCodeIfExists(user: User, passphraseKey: AesKey, newUserGroupKeys: GeneratedGroupKeys): Promise<RecoverCodeData | null> {
-		let recoverCodeData: RecoverCodeData | null = null
+	private async reencryptRecoverCodeIfExists(user: User, passphraseKey: AesKey, newUserGroupKeys: GeneratedGroupKeys): Promise<Nullable<RecoverCodeData>> {
+		let recoverCodeData: Nullable<RecoverCodeData> = null
 		if (isNotNull(user.auth?.recoverCode)) {
 			const recoverCodeFacade = await this.recoverCodeFacade()
 			const recoverCode = await recoverCodeFacade.getRawRecoverCode(passphraseKey)
@@ -872,7 +872,7 @@ export class KeyRotationFacade {
 	/**
 	 * Not all groups have key pairs, but if they do we need to rotate them as well.
 	 */
-	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedAndPlaintextPqKeyPairs | null> {
+	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<Nullable<EncryptedAndPlaintextPqKeyPairs>> {
 		if (isNotNull(groupToRotate.currentKeys)) {
 			return this.generateAndEncryptPqKeyPairs(newSymmetricGroupKey)
 		} else {
@@ -958,9 +958,9 @@ export class KeyRotationFacade {
 		)
 		const recoverCodeData = await this.reencryptRecoverCodeIfExists(user, pwKey, newUserGroupKeys)
 
-		let pubAdminGroupEncUserGroupKey: null | PubEncKeyData = null
-		let adminGroupEncUserGroupKey: null | Uint8Array<ArrayBuffer> = null
-		let userGroupEncAdminGroupKey: null | Uint8Array<ArrayBuffer> = null
+		let pubAdminGroupEncUserGroupKey: Nullable<PubEncKeyData> = null
+		let adminGroupEncUserGroupKey: Nullable<Uint8Array<ArrayBuffer>> = null
+		let userGroupEncAdminGroupKey: Nullable<Uint8Array<ArrayBuffer>> = null
 		let adminGroupKeyVersion: NumberString
 		//optionally decrypt new admin group key
 		if (isNotNull(userGroupKeyRotation.distEncAdminGroupSymKey)) {
@@ -1420,7 +1420,7 @@ function hasNonQuantumSafeKeys(...keys: AesKey[]): boolean {
 	return keys.some((key) => !isQuantumSafe(key))
 }
 
-function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
+function makeKeyPair(keyPair: Nullable<EncryptedPqKeyPairs>): Nullable<KeyPair> {
 	if (isNull(keyPair)) {
 		return null
 	} else {

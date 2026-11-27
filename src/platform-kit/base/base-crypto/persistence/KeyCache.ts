@@ -1,4 +1,4 @@
-import { getFromMap, isNotNull, neverNull } from "@tutao/utils"
+import { getFromMap, isNotNull, neverNull, Nullable } from "@tutao/utils"
 import { Aes256Key, cryptoUtils, VersionedKey } from "@tutao/crypto"
 import { User } from "@tutao/entities/sys"
 
@@ -9,9 +9,9 @@ export class KeyCache {
 	private currentGroupKeys: Map<Id, Promise<VersionedKey>> = new Map<Id, Promise<VersionedKey>>()
 	// the user group key is password encrypted and stored on a special membership
 	// also it is used to decrypt the rest of the keys therefore it requires some special handling
-	private currentUserGroupKey: VersionedKey | null = null
+	private currentUserGroupKey: Nullable<VersionedKey> = null
 	// the new user group key will be re-encrypted with this key to distribute the rotated user group key without asking for the password
-	private userDistKey: Aes256Key | null = null
+	private userDistKey: Nullable<Aes256Key> = null
 
 	setCurrentUserGroupKey(newUserGroupKey: VersionedKey): void {
 		if (isNotNull(this.currentUserGroupKey) && this.currentUserGroupKey.version > newUserGroupKey.version) {
@@ -23,7 +23,7 @@ export class KeyCache {
 		this.currentUserGroupKey = newUserGroupKey
 	}
 
-	getCurrentUserGroupKey(): VersionedKey | null {
+	getCurrentUserGroupKey(): Nullable<VersionedKey> {
 		return this.currentUserGroupKey
 	}
 
@@ -31,7 +31,7 @@ export class KeyCache {
 		this.userDistKey = userDistKey
 	}
 
-	getUserDistKey(): Aes256Key | null {
+	getUserDistKey(): Nullable<Aes256Key> {
 		return this.userDistKey
 	}
 

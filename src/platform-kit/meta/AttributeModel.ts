@@ -1,4 +1,4 @@
-import { assertNotNull } from "@tutao/utils"
+import { assertNotNull, Nullable } from "@tutao/utils"
 import { ModelValue, TypeModel } from "./EntityTypes"
 import { AppName } from "./TypeRef.js"
 import { ProgrammingError } from "@tutao/app-env"
@@ -19,7 +19,7 @@ export class AttributeModel {
 		drive: new Map(),
 	}
 
-	private static getResolvedAttributeId(typeModel: TypeModel, attrName: AttributeName): AttributeId | null {
+	private static getResolvedAttributeId(typeModel: TypeModel, attrName: AttributeName): Nullable<AttributeId> {
 		const typeIdMap = AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
 		if (isNull(typeIdMap)) {
 			throw new ProgrammingError(`Unknown type: ${typeModel.app}/${typeModel.name}`)
@@ -51,7 +51,7 @@ export class AttributeModel {
 		return AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)?.has(attributeName) ?? false
 	}
 
-	public static getAttributeId(typeModel: TypeModel, attributeName: AttributeName): AttributeId | null {
+	public static getAttributeId(typeModel: TypeModel, attributeName: AttributeName): Nullable<AttributeId> {
 		if (AttributeModel.isKnownAttribute(typeModel, attributeName)) {
 			return assertNotNull(AttributeModel.getResolvedAttributeId(typeModel, attributeName))
 		}

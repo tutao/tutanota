@@ -30,7 +30,6 @@ import {
 	isNotEmpty,
 	isNotNull,
 	isValidDate,
-	memoized,
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/utils"
@@ -54,6 +53,7 @@ import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/cale
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
+import { memoized } from "../../../../ui/utils/memoized"
 
 export type CalendarTimeRange = {
 	start: number

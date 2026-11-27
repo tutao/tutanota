@@ -1,8 +1,9 @@
-import { downcast, DurationFormatStub, lazy, typedEntries } from "../../platform-kit/utils"
+import { downcast, lazy, typedEntries } from "../../platform-kit/utils"
 import type { TranslationKeyType } from "./TranslationKey"
 import { getWhitelabelCustomizations } from "./WhitelabelUtils"
 import { EnvProvider } from "../../platform-kit/app-env"
 import { WhitelabelCustomizations } from "../WhitelabelCustomizations"
+import { DurationFormatStub } from "./FormatUtils"
 
 /**
  * A translation key is a string that maps to a translation text.

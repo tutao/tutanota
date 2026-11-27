@@ -1,4 +1,4 @@
-import { isNull, lazy } from "./Utils.js"
+import { isNull, lazy, Nullable } from "./Utils.js"
 
 /**
  * Returns a string which contains the given number padded with 0s.
@@ -89,7 +89,7 @@ export function localeCompare(a: string, b: string): number {
 	return a.localeCompare(b)
 }
 
-export function byteLength(str: string | null): number {
+export function byteLength(str: Nullable<string>): number {
 	if (isNull(str)) return 0
 	// returns the byte length of an utf8 string
 	let s = str.length

@@ -3,7 +3,6 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { ButtonType } from "../../../../ui/base/Button.js"
-import { isMailAddress } from "../../../../platform-kit/utils"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -20,6 +19,7 @@ import { getDefaultSender } from "../../../common/mailFunctionality/SharedMailUt
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailMethod } from "../../../../entities/tutanota/Utils"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { isMailAddress } from "../../../../ui/utils/FormatUtils"
 
 type PressContact = {
 	email: string

@@ -5,18 +5,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import Stream from "mithril/stream"
 import { SearchCategoryType, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
-import {
-	assertNotNull,
-	DateProvider,
-	debounce,
-	getEndOfDay,
-	getStartOfDay,
-	isEmpty,
-	isNotNull,
-	isSameDayOfDate,
-	memoizedWithHiddenArgument,
-	onceAsync,
-} from "@tutao/utils"
+import { assertNotNull, DateProvider, debounce, getEndOfDay, getStartOfDay, isEmpty, isNotNull, isSameDayOfDate, onceAsync } from "@tutao/utils"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { CancelledError, TutanotaConstants } from "@tutao/app-env"
 import { elementIdToId, getElementId, isSameIdTuple, isSameSingleId } from "@tutao/meta"
@@ -57,6 +46,7 @@ import { MailSearchModel } from "../model/MailSearchModel"
 import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 import { MailIndexingAbortReason } from "../../workerUtils/index/MailIndexer"
 import { Singletons } from "../../../../platform-kit/singletons/singleton"
+import { memoizedWithHiddenArgument } from "../../../../ui/utils/memoized"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {

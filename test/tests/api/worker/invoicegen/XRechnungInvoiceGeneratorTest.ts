@@ -6,10 +6,10 @@ import {
 	XRechnungInvoiceGenerator,
 } from "../../../../../src/applications/common/api/worker/invoicegen/XRechnungInvoiceGenerator.js"
 
-import { InvoiceItemType, InvoiceType, InvoicePaymentMethod, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
+import { InvoiceItemType, InvoicePaymentMethod, InvoiceType, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
 
 import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "@tutao/entities/sys"
-import { urlEncodeHtmlTags } from "../../../../../src/platform-kit/utils"
+import { urlEncodeHtmlTags } from "../../../../../src/ui/utils/FormatUtils"
 
 o.spec("XRechnungInvoiceGenerator", function () {
 	function checkResult(generated: Uint8Array<ArrayBuffer>, expected: string) {

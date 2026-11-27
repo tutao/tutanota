@@ -1,5 +1,5 @@
 import { Entity } from "./EntityTypes"
-import { isNull } from "../utils/Utils"
+import { isNull, Nullable } from "../utils/Utils"
 
 export type AppName = string
 
@@ -24,7 +24,7 @@ export class TypeRef<T extends Entity> {
 	 * Field that is never set. Used to make two TypeRefs incompatible (they are structurally compared otherwise).
 	 * Cannot be private.
 	 */
-	readonly phantom: T | null = null
+	readonly phantom: Nullable<T> = null
 
 	constructor(app: AppName, typeId: number) {
 		this.app = app

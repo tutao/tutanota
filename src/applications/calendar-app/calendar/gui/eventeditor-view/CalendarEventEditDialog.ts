@@ -11,7 +11,7 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../../ui/base/Button.js"
 import { ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
-import { assertNotNull, convertTextToHtml, newPromise, noOp, Thunk } from "../../../../../platform-kit/utils"
+import { assertNotNull, newPromise, noOp, Thunk } from "../../../../../platform-kit/utils"
 import type { HtmlEditor } from "../../../../../ui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventEditView, EditorPages } from "./CalendarEventEditView.js"
@@ -28,6 +28,7 @@ import { getTimeFormatForUser } from "../../../../common/api/common/utils/UserUt
 import { PosRect } from "../../../../../ui/utils/PosRect"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 import { Singletons } from "../../../../../platform-kit/singletons/singleton"
+import { convertTextToHtml } from "../../../../../ui/utils/FormatUtils"
 
 const enum ConfirmationResult {
 	Cancel,

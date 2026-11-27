@@ -5,18 +5,7 @@ import Stream from "mithril/stream"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailModel } from "./MailModel"
-import {
-	assertNotNull,
-	findAllAndRemove,
-	first,
-	insertIntoSortedArray,
-	isEmpty,
-	isNotNull,
-	last,
-	mapWithout,
-	memoizedWithHiddenArgument,
-	settledThen,
-} from "@tutao/utils"
+import { assertNotNull, findAllAndRemove, first, insertIntoSortedArray, isEmpty, isNotNull, last, mapWithout, settledThen } from "@tutao/utils"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
@@ -36,6 +25,7 @@ import {
 	OperationType,
 } from "../../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { memoizedWithHiddenArgument } from "../../../../ui/utils/memoized"
 
 /**
  * Organizes mails into conversations and handles state upkeep.

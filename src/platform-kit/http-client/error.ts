@@ -71,7 +71,7 @@ export class RequestTimeoutError extends HttpClientError {
 export class PreconditionFailedError extends HttpClientError {
 	static CODE: number = 412
 
-	constructor(msg: string, reason: string | null) {
+	constructor(msg: string, reason: Nullable<string>) {
 		super("PreconditionFailedError", msg, reason)
 	}
 }
@@ -206,7 +206,7 @@ export class SuspensionError extends HttpClientError {
 	constructor(
 		message: string,
 		// milliseconds to wait
-		suspensionTime: string | null,
+		suspensionTime: Nullable<string>,
 	) {
 		super("SuspensionError", message, suspensionTime)
 

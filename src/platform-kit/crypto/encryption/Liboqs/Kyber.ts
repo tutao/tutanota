@@ -1,5 +1,5 @@
 import { KyberEncapsulation, KyberKeyPair, KyberPrivateKey, KyberPublicKey } from "./KyberKeyPair.js"
-import { callWebAssemblyFunctionWithArguments, mutableSecureFree, Ptr, secureFree, WASMExports } from "@tutao/utils"
+import { callWebAssemblyFunctionWithArguments, mutableSecureFree, Nullable, Ptr, secureFree, WASMExports } from "@tutao/utils"
 import { Randomizer } from "../../random/Randomizer"
 import { CryptoError } from "@tutao/crypto/error"
 import { number, string, uint8array } from "../../../utils/WebAssemblyArgument"
@@ -30,7 +30,7 @@ export interface LibOQSExports extends WASMExports {
 
 	TUTA_KEM_decaps(kem: KemPtr, shared_secret: Ptr, ciphertext: Ptr, secret_key: Ptr): number
 
-	OQS_KEM_free(kem: KemPtr | null): void
+	OQS_KEM_free(kem: Nullable<KemPtr>): void
 
 	OQS_KEM_new(methodName: Ptr): Ptr
 }

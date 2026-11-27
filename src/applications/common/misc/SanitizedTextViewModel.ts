@@ -1,6 +1,7 @@
 import type { HtmlSanitizer } from "./HtmlSanitizer.js"
-import { convertTextToHtml, noOp } from "../../../platform-kit/utils"
+import { noOp } from "../../../platform-kit/utils"
 import { prepareCalendarDescription } from "../api/common/utils/CommonCalendarUtils.js"
+import { convertTextToHtml } from "../../../ui/utils/FormatUtils"
 
 export class SanitizedTextViewModel {
 	private sanitizedText: string | null = null

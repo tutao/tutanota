@@ -1,7 +1,7 @@
-import { downcast } from "@tutao/utils"
+import { downcast, Nullable } from "@tutao/utils"
 import { TypeRef } from "./TypeRef.js"
 
-export function getAsEnumValue<K extends keyof any, V>(enumValues: Record<K, V>, value: string): V | null {
+export function getAsEnumValue<K extends keyof any, V>(enumValues: Record<K, V>, value: string): Nullable<V> {
 	for (const key of Object.getOwnPropertyNames(enumValues)) {
 		// @ts-ignore
 		const enumValue = enumValues[key]

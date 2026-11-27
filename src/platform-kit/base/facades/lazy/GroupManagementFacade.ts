@@ -1,5 +1,5 @@
 import { EnvProvider } from "@tutao/app-env"
-import { freshVersioned, getFirstOrThrow, isNotNull, neverNull } from "@tutao/utils"
+import { freshVersioned, getFirstOrThrow, isNotNull, neverNull, Nullable } from "@tutao/utils"
 import { CounterFacade } from "../../../network/CounterFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
@@ -116,7 +116,7 @@ export class GroupManagementFacade {
 		const userGroup = await this.entityClient.load(GroupTypeRef, idToElementId(this.userFacade.getUserGroupId()))
 		const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
-		let adminGroupKey: VersionedKey | null = null
+		let adminGroupKey: Nullable<VersionedKey> = null
 
 		if (this.userFacade.getAllGroupIds().indexOf(adminGroupId) !== -1) {
 			// getGroupKey throws an error if user is not member of that group - so check first
@@ -210,7 +210,7 @@ export class GroupManagementFacade {
 		keyPair: PQKeyPairs,
 		groupKey: AesKey,
 		groupInfoSessionKey: AesKey,
-		adminGroupId: Id | null,
+		adminGroupId: Nullable<Id>,
 		adminGroupKey: VersionedKey,
 		ownerGroupKey: VersionedKey,
 	): InternalGroupData {

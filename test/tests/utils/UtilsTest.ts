@@ -2,6 +2,7 @@ import o, { verify } from "@tutao/otest"
 import { arrayEquals, deepEqual, deepMemoized, memoized } from "../../../src/platform-kit/utils"
 import { func, matchers, when } from "testdouble"
 import { clone } from "../../../src/platform-kit/meta"
+import { memoized } from "../../../src/ui/utils/memoized"
 
 o.spec("utils", function () {
 	o("deep clone an instance", function () {

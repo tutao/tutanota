@@ -1,6 +1,7 @@
 import { lang } from "./LanguageViewModel"
-import { cleanMailAddress, isSameDay, isSameDayOfDate, pad } from "@tutao/utils"
+import { isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
+import { cleanMailAddress } from "./FormatUtils"
 
 EnvProvider.assertMainOrNodeBoot()
 

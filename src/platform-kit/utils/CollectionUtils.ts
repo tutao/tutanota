@@ -1,4 +1,4 @@
-import { identity, isNull } from "./Utils.js"
+import { identity, isNull, Nullable } from "./Utils.js"
 
 /**
  * Everything that is in both array1 and array2
@@ -21,22 +21,22 @@ export function setEquals<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): boolea
 }
 
 export function setMap<T, R>(set: ReadonlySet<T>, mapper: (item: T) => R): Set<R> {
-	const result = new Set<R>()
+	const result: Set<R> = new Set()
 	for (const item of set) {
 		result.add(mapper(item))
 	}
 	return result
 }
 
-export function min<T extends Iterable<number>>(set: T): number | null {
+export function min<T extends Iterable<number>>(set: T): Nullable<number> {
 	return minBy(set, identity)
 }
 
 export type MinByResult<T> = { item: T; value: number }
 export type MaxByResult<T> = { item: T; value: number }
 
-export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
-	let min: MinByResult<E> | null = null
+export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): Nullable<E> {
+	let min: Nullable<MinByResult<E>> = null
 	for (const item of collection) {
 		const value = selector(item)
 		if (isNull(min) || value < min.value) {
@@ -46,12 +46,12 @@ export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: 
 	return min?.item ?? null
 }
 
-export function max<T extends Iterable<number>>(set: T): number | null {
+export function max<T extends Iterable<number>>(set: T): Nullable<number> {
 	return maxBy(set, identity)
 }
 
-export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
-	let max: MaxByResult<E> | null = null
+export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): Nullable<E> {
+	let max: Nullable<MaxByResult<E>> = null
 	for (const item of collection) {
 		const value = selector(item)
 		if (isNull(max) || value > max.value) {
@@ -70,7 +70,7 @@ export function setAddAll<T>(set: Set<T>, toAdd: Iterable<T>): void {
 /**
  * Returns an element of the {@param collection} if it satisfies {@param selector} or {@code null} otherwise.
  */
-export function findBy<T>(collection: Iterable<T>, selector: (item: T) => boolean): T | null {
+export function findBy<T>(collection: Iterable<T>, selector: (item: T) => boolean): Nullable<T> {
 	for (const item of collection) {
 		if (selector(item)) {
 			return item
@@ -103,15 +103,16 @@ export type TrisectionResult<T> = {
  * @param after the map that's representing the current contents.
  * @returns arrays containing the kept, added, and deleted values.
  */
-export function trisectingDiff<T>(before: ReadonlyMap<unknown, T>, after: ReadonlyMap<unknown, T>): TrisectionResult<T> {
-	const kept: Array<T> = []
-	const added: Array<T> = []
-	const deleted: Array<T> = []
+export function trisectingDiff<K, V>(before: ReadonlyMap<K, V>, after: ReadonlyMap<K, V>): TrisectionResult<V> {
+	const kept: Array<V> = []
+	const added: Array<V> = []
+	const deleted: Array<V> = []
 
 	const beforeScratch = new Map(before)
 	const afterScratch = new Map(after)
 
-	for (const [k, v] of beforeScratch.entries()) {
+	for (const keyAndValue of beforeScratch.entries()) {
+		const [k, v] = keyAndValue
 		beforeScratch.delete(k)
 		if (afterScratch.has(k)) {
 			afterScratch.delete(k)
@@ -132,7 +133,7 @@ export function trisectingDiff<T>(before: ReadonlyMap<unknown, T>, after: Readon
  * return a new set containing every item from {@param set1} that isn't in {@param set2}
  */
 export function setDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Set<T> {
-	const result = new Set<T>()
+	const result: Set<T> = new Set()
 	for (const item of set1) {
 		if (!set2.has(item)) {
 			result.add(item)
@@ -156,7 +157,7 @@ export function collectionSum(collection: Iterable<number>): number {
  * Return a new collection with only unique members of {@param collection} when mapping each via {@param discriminator}
  */
 export function collectionUniqueBy<T>(collection: Iterable<T>, discriminator: (item: T) => string): ArrayIterator<T> {
-	const map = new Map()
+	const map: Map<string, T> = new Map()
 	for (const item of collection) {
 		map.set(discriminator(item), item)
 	}

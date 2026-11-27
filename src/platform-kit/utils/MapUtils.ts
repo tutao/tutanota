@@ -4,10 +4,11 @@ import { isNull, neverNull, Nullable } from "./Utils.js"
  * Merges multiple maps into a single map with lists of values.
  * @param maps
  */
-export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
-	return maps.reduce((mergedMap: Map<string, T[]>, map: Map<string, T>) => {
+export function mergeMaps<T>(maps: Array<Map<string, T>>): Map<string, Array<T>> {
+	return maps.reduce((mergedMap: Map<string, Array<T>>, map: Map<string, T>) => {
 		// merge same key of multiple attributes
-		for (const [key, value] of map.entries()) {
+		for (const keyAndValue of map.entries()) {
+			const [key, value] = keyAndValue
 			if (mergedMap.has(key)) {
 				neverNull(mergedMap.get(key)).push(value)
 			} else {
@@ -69,8 +70,9 @@ export function deleteMapEntry<K, V>(map: ReadonlyMap<K, V>, key: K): Map<K, V> 
  * Convert values of {@param map} using {@param mapper} like {@link Array.prototype.map},
  */
 export function mapMap<K, V, R>(map: ReadonlyMap<K, V>, mapper: (value: V) => R): Map<K, R> {
-	const resultMap = new Map<K, R>()
-	for (const [key, oldValue] of map) {
+	const resultMap: Map<K, R> = new Map()
+	for (const keyAndOldValue of map) {
+		const [key, oldValue] = keyAndOldValue
 		const newValue = mapper(oldValue)
 		resultMap.set(key, newValue)
 	}

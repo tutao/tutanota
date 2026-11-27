@@ -20,7 +20,7 @@ import type { SelectorItemList } from "../../../ui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
-import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/utils"
+import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/utils"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer.js"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
 import { SegmentControl } from "../../../ui/base/SegmentControl.js"
@@ -33,6 +33,7 @@ import { UpgradePromptType } from "@tutao/app-env"
 import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
 
 import { insertInlineImageB64ClickHandler } from "../mailFunctionality/SharedMailUtils.js"
+import { memoized } from "../../../ui/utils/memoized"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined

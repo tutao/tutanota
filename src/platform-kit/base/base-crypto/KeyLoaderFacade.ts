@@ -138,7 +138,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 
 	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey, forTypeId: TypeId): Promise<AsymmetricKeyPair> {
 		const keyPairGroupId = elementIdToId(group._id)
-		let keyPair: KeyPair | null
+		let keyPair: Nullable<KeyPair>
 		let symGroupKey: VersionedKey
 		console.log(
 			`KeyLoaderFacade - loadKeyPairImpl for group:${group._id}. group.groupKeyVersion:${group.groupKeyVersion}, requestedVersion: ${requestedVersion}, currentGroupKey.version:${currentGroupKey.version}, forTypeId:${forTypeId}`,
@@ -232,7 +232,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		}
 	}
 
-	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: VersionedKey): AsymmetricKeyPair {
+	private validateAndDecryptKeyPair(keyPair: Nullable<KeyPair>, groupId: Id, groupKey: VersionedKey): AsymmetricKeyPair {
 		if (isNull(keyPair)) {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}

@@ -7,7 +7,7 @@ import m from "mithril"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
-import { convertTextToHtml, downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
+import { downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { Mode, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
@@ -22,6 +22,7 @@ import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/Client
 import { ErrorInfo, errorToString } from "../../../platform-kit/utils/ErrorInfo"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { Singletons } from "../../../platform-kit/singletons/singleton"
+import { convertTextToHtml } from "../../../ui/utils/FormatUtils"
 
 type FeedbackContent = {
 	message: string

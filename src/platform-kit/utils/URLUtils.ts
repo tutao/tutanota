@@ -1,6 +1,6 @@
 import { Nullable } from "./Utils"
 
-export function parseUrl(link: string): URL | null {
+export function parseUrl(link: string): Nullable<URL> {
 	try {
 		return new URL(link)
 	} catch (e) {

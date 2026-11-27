@@ -1,5 +1,6 @@
 import { Group, User } from "@tutao/entities/sys"
 import { PersistentEntity, TypeRef } from "@tutao/meta"
+import { Nullable } from "@tutao/lang-api"
 
 export type UserAndGroup = { user: User; group: Group }
 
@@ -26,5 +27,5 @@ export interface CacheManager {
 	/**
 	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
 	 */
-	deleteFromCacheIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void>
+	deleteFromCacheIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementId: Id): Promise<void>
 }

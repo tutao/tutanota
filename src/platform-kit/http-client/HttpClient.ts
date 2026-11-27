@@ -1,19 +1,19 @@
 import { HttpResponse, RestBody } from "./HttpResponse"
 import { HttpMethod, MediaType, ProgressListener } from "./HttpTypes"
-import { TsString } from "@tutao/lang-api"
+import { Nullable, TsString } from "@tutao/lang-api"
 
 export interface HttpClient {
 	request(
 		url: string,
 		method: HttpMethod,
-		body: RestBody | null,
+		body: Nullable<RestBody>,
 		headers: Dict,
-		responseType: MediaType | null,
+		responseType: Nullable<MediaType>,
 		timeout: number,
-		abortSignal: AbortSignal | null,
-		noCORS: boolean | null,
-		uploadProgressListener: ProgressListener | null,
-		downloadProgressListener: ProgressListener | null,
+		abortSignal: Nullable<AbortSignal>,
+		noCORS: Nullable<boolean>,
+		uploadProgressListener: Nullable<ProgressListener>,
+		downloadProgressListener: Nullable<ProgressListener>,
 	): Promise<HttpResponse>
 }
 

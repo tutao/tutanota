@@ -146,13 +146,13 @@ export class InstancePipeline {
 	 * @param sk The session key, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sk: AesKey | null): Promise<T> {
+	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sk: Nullable<AesKey>): Promise<T> {
 		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sk)
 	}
 
 	async decryptAndMapEncryptedInstance<T extends Entity>(
 		encryptedParsedInstance: EncryptedParsedInstance,
-		sessionKey: AesKey | null,
+		sessionKey: Nullable<AesKey>,
 		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<T> {

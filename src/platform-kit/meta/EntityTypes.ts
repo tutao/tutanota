@@ -147,12 +147,12 @@ export type TypeModel = {
 // decouples from sys entities
 export interface IBucketKey extends AggregatedEntity {
 	bucketEncSessionKeys: IInstanceSessionsKey[]
-	keyGroup: Id | null
-	pubEncBucketKey: null | Uint8Array<ArrayBuffer>
-	groupEncBucketKey: null | Uint8Array<ArrayBuffer>
+	keyGroup: Nullable<Id>
+	pubEncBucketKey: Nullable<Uint8Array<ArrayBuffer>>
+	groupEncBucketKey: Nullable<Uint8Array<ArrayBuffer>>
 	protocolVersion: NumberString
 	recipientKeyVersion: NumberString
-	senderKeyVersion: null | NumberString
+	senderKeyVersion: Nullable<NumberString>
 	isAdapter: false
 	_permissions: null
 	_ownerGroup: null
@@ -167,9 +167,9 @@ export interface IInstanceSessionsKey extends AggregatedEntity {
 	instanceList: Id
 	instanceId: Id
 	symEncSessionKey: Uint8Array<ArrayBuffer>
-	encryptionAuthStatus: null | Uint8Array<ArrayBuffer>
+	encryptionAuthStatus: Nullable<Uint8Array<ArrayBuffer>>
 	symKeyVersion: NumberString
-	keyVerificationState: null | Uint8Array<ArrayBuffer>
+	keyVerificationState: Nullable<Uint8Array<ArrayBuffer>>
 	typeInfo: ITypeInfo
 	isAdapter: false
 	_permissions: null

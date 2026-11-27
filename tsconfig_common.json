@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"rootDir": "src",
-		"lib": ["es2023", "webworker", "dom"],
+		"lib": ["es2025", "webworker", "dom"],
 		"types": ["node"],
 		"allowJs": true,
 		"checkJs": false,

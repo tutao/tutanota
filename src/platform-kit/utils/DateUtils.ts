@@ -5,19 +5,19 @@
  */
 
 import { TimeConstants } from "@tutao/app-env"
-import { isNotNull, isNull } from "./Utils"
+import { isNotNull, isNull, Nullable } from "./Utils"
 
 /**
  * The minimum length of a calendar year.
  *
  * This should not be used for calculating duration since leap years (which are 97/400 of all years) have 366 days.
  */
-export const YEAR_IN_MILLIS = TimeConstants.daysToMillis(365)
+export const YEAR_IN_MILLIS: number = TimeConstants.daysToMillis(365)
 
 /**
  * dates from before 1970 have negative timestamps and are currently considered edge cases
  */
-export const TIMESTAMP_ZERO_YEAR = 0
+export const TIMESTAMP_ZERO_YEAR: number = 0
 
 /**
  * Provides a date representing the beginning of the next day of the given date in local time.
@@ -95,7 +95,7 @@ export function incrementMonth(d: Date, byValue: number): Date {
 	return date
 }
 
-export function isSameDayOfDate(date1: Date | null, date2: Date | null): boolean {
+export function isSameDayOfDate(date1: Nullable<Date>, date2: Nullable<Date>): boolean {
 	return (
 		(isNull(date1) && isNull(date2)) ||
 		(isNotNull(date1) &&

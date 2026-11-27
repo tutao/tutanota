@@ -155,7 +155,7 @@ export type InitCacheOptions = {
 export type ResumeSessionResult = {
 	state: ResumeSessionState
 	asyncResumeCompleted: Promise<void> | null
-	data: ResumeSessionResultData | null
+	data: Nullable<ResumeSessionResultData>
 }
 
 export enum AsyncLoginStateOptions {

@@ -3,13 +3,14 @@ import type { LoginController } from "./LoginController.js"
 import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
 import type { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { getContactDisplayName } from "../../contactsFunctionality/ContactUtils.js"
-import { BoundedExecutor, cleanMailAddress, LazyLoaded } from "@tutao/utils"
+import { BoundedExecutor, LazyLoaded } from "@tutao/utils"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { EncryptionKeyVerificationState, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
 import { KeyVerificationMismatchError } from "../../../../platform-kit/network/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { PartialRecipient, Recipient, RecipientType } from "../../../../entities/tutanota/Utils"
+import { cleanMailAddress } from "../../../../ui/utils/FormatUtils"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type

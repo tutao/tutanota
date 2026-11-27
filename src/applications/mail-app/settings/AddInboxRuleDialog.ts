@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { assertNotNull, isDomainName, isEmpty, isMailAddress, isNotNull, isRegularExpression } from "@tutao/utils"
+import { assertNotNull, isEmpty, isNotNull } from "@tutao/utils"
 import { clone, elementIdPart, isSameId, isSameIdTuple } from "@tutao/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
@@ -45,6 +45,7 @@ import { prependParentLabelNamesToLabel } from "../mail/view/MailSetTreeUtils"
 import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import { isDomainName, isMailAddress, isRegularExpression } from "../../../ui/utils/FormatUtils"
 
 EnvProvider.assertMainOrNode()
 

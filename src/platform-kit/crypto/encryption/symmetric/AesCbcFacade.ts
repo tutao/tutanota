@@ -1,7 +1,7 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { bitArrayToUint8Array, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
-import { concat, isNotNull } from "@tutao/utils"
+import { concat, isNotNull, Nullable } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
 import { AesCbcSubKeys, AesCbcThenHmacSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
@@ -125,7 +125,7 @@ export class AesCbcFacade {
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement,
 		verifyHmac: (key: AesKey, data: Uint8Array<ArrayBuffer>, tag: MacTag) => T,
-	): T | null {
+	): Nullable<T> {
 		this.tryToEnforceAuthentication(subKeys, parsedCiphertext.cipherVersion, authenticationEnforcement)
 		if (parsedCiphertext.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac && subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 			if (!(parsedCiphertext instanceof ParsedCiphertextAesCbcThenHmac) || !(subKeys instanceof AesCbcThenHmacSubKeys)) {

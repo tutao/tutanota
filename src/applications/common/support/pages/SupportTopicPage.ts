@@ -3,7 +3,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
-import { convertTextToHtml, makeSingleUse, noOp, Thunk } from "@tutao/utils"
+import { makeSingleUse, noOp, Thunk } from "@tutao/utils"
 import { Card } from "../../../../ui/base/Card.js"
 import { theme } from "../../../../ui/theme.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
@@ -16,6 +16,7 @@ import { fastTrackAction } from "../../misc/ApprovalNeededMessageDialog"
 import { ApprovalStatus } from "@tutao/app-env"
 import { SupportTopic } from "@tutao/entities/tutanota"
 import { getCustomerApprovalStatus } from "../../subscription/utils/SubscriptionUtils"
+import { convertTextToHtml } from "../../../../ui/utils/FormatUtils"
 
 type Props = {
 	data: SupportDialogState

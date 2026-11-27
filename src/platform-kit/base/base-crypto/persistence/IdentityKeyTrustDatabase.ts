@@ -1,4 +1,4 @@
-import { Versioned } from "@tutao/utils"
+import { Nullable, Versioned } from "@tutao/utils"
 import { SigningPublicKey } from "@tutao/crypto"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 
@@ -30,5 +30,5 @@ export interface IdentityKeyTrustDatabase {
 	 *
 	 * @param mailAddress
 	 */
-	getTrustedEntry(mailAddress: string): Promise<TrustDBEntry | null>
+	getTrustedEntry(mailAddress: string): Promise<Nullable<TrustDBEntry>>
 }

@@ -11,7 +11,7 @@ export class EntityAdapter implements Entity {
 	private constructor(
 		public readonly typeModel: ServerTypeModel,
 		private readonly encryptedParsedInstance: EncryptedParsedInstance,
-		readonly bucketKey: BucketKey | null,
+		readonly bucketKey: Nullable<BucketKey>,
 	) {}
 
 	static async fromEncryptedParsedInstance(
@@ -42,7 +42,7 @@ export class EntityAdapter implements Entity {
 		return new TypeRef(this.typeModel.app, this.typeModel.id)
 	}
 
-	get _ownerEncSessionKey(): null | Uint8Array<ArrayBuffer> {
+	get _ownerEncSessionKey(): Nullable<Uint8Array<ArrayBuffer>> {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("_ownerEncSessionKey")?.getNullWhenNull()?.asByteArray() ?? null
 	}
 

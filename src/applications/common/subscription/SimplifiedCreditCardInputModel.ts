@@ -1,6 +1,6 @@
 import { LanguageViewModel, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import type { CCViewModel } from "./utils/PaymentUtils"
-import { isValidCreditCardNumber } from "../../../platform-kit/utils/FormatUtils.js"
+import { isValidCreditCardNumber } from "../../../ui/utils/FormatUtils.js"
 import { typedValues } from "@tutao/utils"
 import { createCreditCard, CreditCard } from "@tutao/entities/sys"
 

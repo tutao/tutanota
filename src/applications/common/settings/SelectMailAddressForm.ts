@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { isMailAddress } from "../../../platform-kit/utils/FormatUtils.js"
+import { isMailAddress } from "../../../ui/utils/FormatUtils.js"
 import { AccessDeactivatedError } from "@tutao/rest-client/error"
 import { formatMailAddressFromParts } from "../../../ui/utils/Formatter.js"
 import { Icon } from "../../../ui/base/Icon.js"

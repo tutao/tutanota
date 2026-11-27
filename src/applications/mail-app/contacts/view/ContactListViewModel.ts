@@ -2,7 +2,7 @@ import { ListElementListModel } from "../../../common/misc/ListElementListModel.
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { arrayEquals, assertNotNull, debounce, lazy, lazyMemoized, memoized } from "../../../../platform-kit/utils"
+import { arrayEquals, assertNotNull, debounce, lazy, lazyMemoized } from "../../../../platform-kit/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -24,12 +24,13 @@ import {
 import { GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { elementIdToId, isSameSingleId } from "../../../../platform-kit/meta"
+import { memoized } from "../../../../ui/utils/memoized"
 
 export class ContactListViewModel {
 	private selectedContactList: Id | null = null

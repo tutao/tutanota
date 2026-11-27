@@ -1,6 +1,6 @@
 import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
-import { assertNotNull, LazyLoaded, memoized, noOp } from "../../../../platform-kit/utils"
+import { assertNotNull, LazyLoaded, noOp } from "../../../../platform-kit/utils"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../../../ui/base/Icon.js"
@@ -26,6 +26,7 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { memoized } from "../../../../ui/utils/memoized"
 
 EnvProvider.assertMainOrNode()
 const className = "group-list"

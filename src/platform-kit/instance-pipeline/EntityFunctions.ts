@@ -24,7 +24,7 @@ export type ApplicationVersionSum = number
 export type ApplicationVersion = number
 export type ServerTypeReferenceResolver = (typeRef: TypeRef<any>) => Promise<ServerTypeModel>
 export type ClientTypeReferenceResolver = (typeRef: TypeRef<any>) => Promise<ClientTypeModel>
-export type ServerTypeFetcher = (expectedHash: string | null) => Promise<ApplicationTypesGetOut>
+export type ServerTypeFetcher = (expectedHash: Nullable<string>) => Promise<ApplicationTypesGetOut>
 export type NamedClientModel = { app: AppName; clientModel: Record<string, ClientTypeModel>; modelInfo: ModelInfo }
 
 export type ModelInfo = { version: ApplicationVersion }
@@ -118,7 +118,7 @@ type ParsedModel = {
 }
 
 export class ServerModelInfo {
-	private static instance: ServerModelInfo | null
+	private static instance: Nullable<ServerModelInfo>
 	public typeModels: ServerModels | null = null
 	private applicationTypesHash: ApplicationTypesHash | null = null
 

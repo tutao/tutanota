@@ -1,4 +1,4 @@
-import { newPromise, once, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import { newPromise, Nullable, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import { isNotNull, isNull, TypeChecks } from "@tutao/lang-api"
 import { HttpClient, HttpUtils } from "./HttpClient"
 import { HttpMethod, MediaType, ProgressListener, XhrError } from "./HttpTypes"
@@ -7,6 +7,17 @@ import { CancelledError, EnvProvider } from "@tutao/app-env"
 import { ConnectionError } from "./error"
 
 const TAG = "[HttpClient]"
+
+/** Make a version of {@param fn} that will be called at most once. */
+function once(fn: (...args: any[]) => void): (...args: any[]) => void {
+	let called = false
+	return (...args) => {
+		if (!called) {
+			called = true
+			fn(...args)
+		}
+	}
+}
 
 /**
  * Uses XmlHttpRequest as there is still no support for tracking
@@ -30,14 +41,14 @@ export class HttpClientJavascript implements HttpClient {
 	async request(
 		url: string,
 		method: HttpMethod,
-		body: RestBody | null,
+		body: Nullable<RestBody>,
 		headers: Dict,
-		responseType: MediaType | null,
+		responseType: Nullable<MediaType>,
 		timeout: number,
-		abortSignal: AbortSignal | null,
-		noCORS: boolean | null,
-		uploadProgressListener: ProgressListener | null,
-		downloadProgressListener: ProgressListener | null,
+		abortSignal: Nullable<AbortSignal>,
+		noCORS: Nullable<boolean>,
+		uploadProgressListener: Nullable<ProgressListener>,
+		downloadProgressListener: Nullable<ProgressListener>,
 	): Promise<HttpResponse> {
 		url = HttpUtils.rewriteSchemeForIos(url, this.isIosApp)
 
@@ -57,7 +68,7 @@ export class HttpClientJavascript implements HttpClient {
 			xhr.responseType = responseType === MediaType.Json || responseType === MediaType.Text ? "text" : "arraybuffer"
 
 			// We time out reqeuests if there is no progress for some time
-			let requestTimeoutTimeoutID: TimeoutID | null = null
+			let requestTimeoutTimeoutID: Nullable<TimeoutID> = null
 			const abortOnTimeout = (): void => {
 				console.log(TAG, `${id}: ${String(new Date())} aborting ${requestTimeoutTimeoutID}`)
 				xhr.abort()
@@ -102,7 +113,7 @@ export class HttpClientJavascript implements HttpClient {
 
 					cancelTimeoutTimer()
 
-					let responseBody: RestBody | null = null
+					let responseBody: Nullable<RestBody> = null
 					let responseHeaders = parseResponseHeaders(xhr)
 					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 						if (responseType === MediaType.Json || responseType === MediaType.Text) {

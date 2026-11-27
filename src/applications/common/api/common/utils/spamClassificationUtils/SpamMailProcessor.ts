@@ -169,7 +169,7 @@ export class SpamMailProcessor {
 		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${authStatus}`
 	}
 
-	private extractCompressedVectorParts(vector: Uint8Array): {
+	private extractCompressedVectorParts(vector: Uint8Array<ArrayBuffer>): {
 		compressedVectorizedMail: Uint8Array
 		compressedServerClassificationData: Uint8Array
 	} {

@@ -64,6 +64,7 @@ import {
 import { Country, CountryType, getByAbbreviation } from "../../../../gui/CountryList"
 import { idToElementId, NULL_ENTITY } from "@tutao/meta"
 import { InvoiceData } from "../../../../subscription/utils/PaymentUtils"
+import { urlEncodeHtmlTags } from "../../../../../../ui/utils/FormatUtils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -448,7 +449,7 @@ export class CustomerFacade {
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		const invoiceData = await this.serviceExecutor.execute(InvoiceDataService_GET, createInvoiceDataGetIn({ invoiceNumber }), null)
 		const { XRechnungInvoiceGenerator } = await import("../../invoicegen/XRechnungInvoiceGenerator.js")
-		const { urlEncodeHtmlTags } = await import("../../../../../../platform-kit/utils")
+		const { urlEncodeHtmlTags } = await import("../../../../../../ui/utils/FormatUtils.js")
 		const xRechnungGenerator = new XRechnungInvoiceGenerator(
 			invoiceData,
 			invoiceNumber,

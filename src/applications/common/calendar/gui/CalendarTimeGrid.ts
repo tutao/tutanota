@@ -1,12 +1,13 @@
 import m, { Child, ClassComponent, Vnode } from "mithril"
 import { Time } from "../Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/utils"
+import { getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/utils"
 import { elementIdPart } from "@tutao/meta"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { CalendarEventBubbleDragProperties, EventBubbleInteractions } from "./CalendarEventBubble"
 import { CellActionHandler } from "./CalendarTimeCell"
 import { CalendarDayColumn, CalendarDayColumnAttrs } from "./CalendarDayColumn"
+import { deepMemoized } from "../../../../ui/utils/memoized"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4

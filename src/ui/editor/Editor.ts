@@ -1,11 +1,12 @@
 import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import { defer, first, isMailAddress, isNotNull } from "../../platform-kit/utils"
+import { defer, first, isNotNull } from "../../platform-kit/utils"
 import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { TabIndex } from "../../platform-kit/app-env"
 import { LegacyTextFieldType } from "../base/LegacyTextField.js"
 import { HTML_EDITOR_LINE_HEIGHT } from "./HtmlEditor.js"
+import { isMailAddress } from "../utils/FormatUtils"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type ImagePasteEvent = CustomEvent<{ clipboardData: DataTransfer }>

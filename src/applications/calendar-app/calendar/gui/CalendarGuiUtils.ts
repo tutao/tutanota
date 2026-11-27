@@ -10,7 +10,6 @@ import {
 	assert,
 	assertNotNull,
 	clamp,
-	cleanMailAddress,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
@@ -39,7 +38,7 @@ import {
 	getWeekNumber,
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { EndType, EnvProvider, RepeatPeriod, ShareCapability, TimeConstants, TutanotaConstants, Weekday, WeekStart } from "@tutao/app-env"
+import { EndType, RepeatPeriod, ShareCapability, TimeConstants, TutanotaConstants, Weekday, WeekStart } from "@tutao/app-env"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import { Duration } from "luxon"
@@ -70,6 +69,7 @@ import { IcsCalendarEvent } from "../export/CalendarParser"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { pureComponent } from "../../../../ui/base/PureComponent"
 import { Singletons } from "../../../../platform-kit/singletons/singleton"
+import { cleanMailAddress } from "../../../../ui/utils/FormatUtils"
 
 export interface IntervalOption {
 	value: number

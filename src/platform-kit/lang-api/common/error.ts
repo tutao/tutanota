@@ -65,7 +65,7 @@ export interface TutanotaErrorWithData<Data> {
 /** @TSwUncheckedSendable TutanotaError is TSUncheckedSendable and ProgrammingError does not introduce any new fields */
 export class ProgrammingError extends TutanotaError {
 	public readonly errorData: Readonly<Nullable<never>> = null
-	constructor(m: string | null = null) {
+	constructor(m: Nullable<string> = null) {
 		super("ProgrammingError", m ?? "Unknown programming error")
 	}
 }

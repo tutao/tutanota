@@ -1,4 +1,4 @@
-import { lazyAsync, neverNull } from "./Utils.js"
+import { lazyAsync, neverNull, Nullable } from "./Utils.js"
 
 enum LoadState {
 	NotLoaded,
@@ -13,8 +13,8 @@ enum LoadState {
 
 export class LazyLoaded<T> {
 	private state: LoadState = LoadState.NotLoaded
-	private promise: Promise<T> | null = null
-	private value: T | null = null
+	private promise: Nullable<Promise<T>> = null
+	private value: Nullable<T> = null
 
 	/**
 	 * @param loadFunction The function that actually loads the object as soon as getAsync() is called the first time.
@@ -22,7 +22,7 @@ export class LazyLoaded<T> {
 	 */
 	constructor(
 		private readonly loadFunction: lazyAsync<T>,
-		private defaultValue: T | null = null,
+		private defaultValue: Nullable<T> = null,
 	) {}
 
 	/**
@@ -51,7 +51,7 @@ export class LazyLoaded<T> {
 	/**
 	 * Loads the object if it is not loaded yet. May be called in parallel and takes care that the load function is only called once.
 	 */
-	getAsync(): Promise<T> {
+	async getAsync(): Promise<T> {
 		switch (this.state) {
 			case LoadState.NotLoaded: {
 				const loadingPromise = this.loadFunction().then(
@@ -79,7 +79,7 @@ export class LazyLoaded<T> {
 	/**
 	 * Returns null if the object is not loaded yet.
 	 */
-	getSync(): T | null {
+	getSync(): Nullable<T> {
 		return this.state === LoadState.Loaded ? this.value : this.defaultValue
 	}
 

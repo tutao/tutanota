@@ -38,7 +38,7 @@ export function freshVersioned<T>(object: T): Versioned<T> {
 	return { object, version: 0 }
 }
 
-export async function asyncFind<T>(array: ReadonlyArray<T>, finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<T | null> {
+export async function asyncFind<T>(array: ReadonlyArray<T>, finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<Nullable<T>> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
 
@@ -52,8 +52,8 @@ export async function asyncFind<T>(array: ReadonlyArray<T>, finder: (item: T, in
 
 export async function asyncFindAndMap<T, R>(
 	array: ReadonlyArray<T>,
-	finder: (item: T, index: number, arrayLength: number) => Promise<R | null>,
-): Promise<R | null> {
+	finder: (item: T, index: number, arrayLength: number) => Promise<Nullable<R>>,
+): Promise<Nullable<R>> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
 		const mapped = await finder(item, i, array.length)
@@ -182,7 +182,7 @@ export function filterInt(value: string): number {
 	}
 }
 
-export function nanToNull(number: number): number | null {
+export function nanToNull(number: number): Nullable<number> {
 	if (isNaN(number)) {
 		return null
 	} else {
@@ -209,7 +209,7 @@ export function insideRect(point: Positioned, rect: Sized): boolean {
 /**
  * If val is non null, returns the result of val passed to action, else null
  */
-export function mapNullable<T, U>(val: T | null, action: (arg0: NonNullable<T>) => U | null): U | null {
+export function mapNullable<T, U>(val: Nullable<T>, action: (arg0: NonNullable<T>) => Nullable<U>): Nullable<U> {
 	if (isNotNull(val)) {
 		const result = action(val)
 
@@ -271,7 +271,7 @@ export function assertValidURL(url: string): Nullable<URL> {
  * To avoid this, we handle resize events in a `requestAnimationFrame` making sure to cancel any pending requests
  */
 export function createResizeObserver(cb: ResizeObserverCallback): ResizeObserver {
-	let afRequestId: number | null = null
+	let afRequestId: Nullable<number> = null
 
 	return new ResizeObserver((entries, observer) => {
 		if (isNotNull(afRequestId)) {

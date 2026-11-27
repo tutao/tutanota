@@ -63,7 +63,7 @@ export class SyncMetrics {
 	}
 
 	getSumup(category: Category): Sumup {
-		let measurement: Sumup | null = this.metrics.get(category) ?? null
+		let measurement: Nullable<Sumup> = this.metrics.get(category) ?? null
 		if (isNull(measurement)) {
 			measurement = new Sumup()
 			this.metrics.set(category, measurement)

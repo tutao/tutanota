@@ -1,3 +1,5 @@
+import { Nullable } from "@tutao/lang-api"
+
 export enum AsyncResultStateOptions {
 	Pending,
 	Complete,
@@ -6,9 +8,9 @@ export enum AsyncResultStateOptions {
 
 type AsyncResultState<T> = {
 	state: AsyncResultStateOptions
-	promise: Promise<T> | null
-	result: T | null
-	error: any | null
+	promise: Nullable<Promise<T>>
+	result: Nullable<T>
+	error: Nullable<Error>
 }
 
 /**
@@ -46,7 +48,7 @@ function complete<T>(result: T): AsyncResultState<T> {
 	}
 }
 
-function failure<T>(error: any): AsyncResultState<T> {
+function failure<T>(error: Nullable<Error>): AsyncResultState<T> {
 	return {
 		state: AsyncResultStateOptions.Failure,
 		promise: null,

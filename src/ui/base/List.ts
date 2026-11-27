@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { createResizeObserver, debounce, memoized, numberRange } from "../../platform-kit/utils"
+import { createResizeObserver, debounce, numberRange } from "../../platform-kit/utils"
 import { component_size, font_size, getBaseFontSizePX, px, size } from "../size.js"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { ProgrammingError, TabIndex } from "../../platform-kit/app-env"
@@ -14,6 +14,7 @@ import { Keys } from "../utils/KeyboardKeys"
 import { DropdownButtonAttrs } from "./Dropdown"
 import { contextDropdown } from "./GuiUtils"
 import { Singletons } from "../../platform-kit/singletons/singleton"
+import { memoized } from "../utils/memoized"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>

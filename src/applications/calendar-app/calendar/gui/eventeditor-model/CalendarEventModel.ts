@@ -78,7 +78,7 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
+import { arrayEqualsWithPredicate, assertNotNull, identity, lazy, Require } from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -104,6 +104,7 @@ import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { NotFoundError, PayloadTooLargeError } from "@tutao/rest-client/error"
 import { clone, IDENTITY_FIELDS, TECHNICAL_FIELDS } from "@tutao/meta"
 import { PluginManager } from "../../../../../plugin-kit/plugin-manager/PluginManager"
+import { cleanMailAddress } from "../../../../../ui/utils/FormatUtils"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {

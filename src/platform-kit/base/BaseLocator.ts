@@ -233,7 +233,7 @@ export async function createBaseLocator({
 
 	// Declared before serverModelInfo because it's captured by the lazy callback
 	let applicationTypesFacade: ApplicationTypesFacade
-	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash: string | null) =>
+	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash: Nullable<string>) =>
 		applicationTypesFacade.getServerApplicationTypesJson(expectedHash),
 	)
 	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)

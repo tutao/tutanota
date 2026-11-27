@@ -19,9 +19,9 @@ export type EnvType = {
 	timeout: number
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
-	clientName: TsString | null
+	clientName: Nullable<TsString>
 	integrationPlatform: Nullable<IntegrationPlatformName>
-	shadowDomAppRoot: string | null
+	shadowDomAppRoot: Nullable<string>
 }
 
 export const enum PaymentSetup {
@@ -116,7 +116,7 @@ export class EnvProvider {
 		return this.env.networkDebugging
 	}
 
-	public getClientName(): TsString | null {
+	public getClientName(): Nullable<TsString> {
 		return this.env.clientName
 	}
 

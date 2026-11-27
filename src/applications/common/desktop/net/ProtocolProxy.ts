@@ -2,10 +2,11 @@ import path from "node:path"
 import fs from "node:fs"
 import { log } from "../DesktopLog.js"
 import { Session } from "electron"
-import { errorToObj, lazyMemoized } from "@tutao/utils"
+import { lazyMemoized } from "@tutao/utils"
 import { getMimeTypeForFile } from "../files/DesktopFileFacade.js"
 import { convertHeaders, customFetch, FetchImpl, toGlobalResponse, UndiciRequestInit } from "./NetAgent"
 import { pathToFileURL } from "node:url"
+import { errorToObj } from "../../../../app-kit/native-bridge/shared/ErrorUtils"
 
 const TAG = "[ProtocolProxy]"
 

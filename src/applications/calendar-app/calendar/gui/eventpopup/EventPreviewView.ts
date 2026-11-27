@@ -22,7 +22,7 @@ import {
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { EndType, RepeatPeriod, UpgradePromptType } from "@tutao/app-env"
-import { cleanMailAddress, downcast, isEmpty, memoized } from "@tutao/utils"
+import { downcast, isEmpty } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { formatDateWithMonth } from "../../../../../ui/utils/Formatter.js"
@@ -39,6 +39,8 @@ import { highlightTextInQueryAsChildren } from "../../../../../ui/TextHighlightV
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../../ui/base/ExpandableTextArea.js"
 import { hasError } from "@tutao/meta"
 import { formatEventDuration, shouldShowTimeZones } from "../DateTimeTextFormatterUtils"
+import { memoized } from "../../../../../ui/utils/memoized"
+import { cleanMailAddress } from "../../../../../ui/utils/FormatUtils"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel

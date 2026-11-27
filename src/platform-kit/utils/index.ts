@@ -166,16 +166,13 @@ export { mod, clamp } from "./MathUtils.js"
 export { renderCsv, renderCsvBody, renderCsvHeader } from "./Csv.js"
 
 export { tokenize } from "./Tokenizer.js"
-export { memoizedWithHiddenArgument, memoized, deepMemoized, lazyMemoized } from "./memoized.js"
+export { lazyMemoized } from "./lazyMemoized.js"
 
 export { parseUrl, getUrlDomain } from "./URLUtils.js"
-export * from "./ErrorUtils.js"
 export * from "./SyncMetrics.js"
 export * from "./DateProvider.js"
-export * from "./FormatUtils.js"
 export { type DeepEquals } from "./Utils"
-export * from "./memoized.js"
-
+export * from "./lazyMemoized.js"
 export { secureFree } from "./WebAssemblyArgument"
 export { mutableSecureFree } from "./WebAssemblyArgument"
 export { mutable } from "./WebAssemblyArgument"

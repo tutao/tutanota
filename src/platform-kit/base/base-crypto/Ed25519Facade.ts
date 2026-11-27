@@ -16,7 +16,7 @@ import {
 	signWithEd25519,
 	verifyEd25519Signature,
 } from "@tutao/crypto"
-import { isNotNull, LazyLoaded } from "@tutao/utils"
+import { isNotNull, LazyLoaded, Nullable } from "@tutao/utils"
 import { IPCEd25519PublicKey } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519PublicKey"
 import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { IPCEd25519PrivateKey } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519PrivateKey"
@@ -36,7 +36,7 @@ export interface Ed25519Facade {
  * Implementation of EdDSA based on Ed25519.
  */
 export class WASMEd25519Facade implements Ed25519Facade {
-	constructor(private readonly testWASM: BufferSource | null = null) {}
+	constructor(private readonly testWASM: Nullable<BufferSource> = null) {}
 
 	// loads liboqs WASM
 	private initEd25519: LazyLoaded<void> = new LazyLoaded(async () => {

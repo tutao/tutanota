@@ -103,7 +103,7 @@ export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boole
 	}
 }
 
-export function get_IdValue(typeModel: Nullable<TypeModel> = null): ModelValue | null {
+export function get_IdValue(typeModel: Nullable<TypeModel> = null): Nullable<ModelValue> {
 	if (isNotNull(typeModel)) {
 		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id") ?? null
 	}
@@ -148,7 +148,7 @@ export function sortCompareById<T extends ListElement>(entity1: T, entity2: T, e
  * @param id2
  * @returns True if the ids are the same, false otherwise
  */
-export function isSameId<I extends AnyEntityId>(id1: I | null, id2: I | null): boolean {
+export function isSameId<I extends AnyEntityId>(id1: Nullable<I>, id2: Nullable<I>): boolean {
 	if (id1 === null || id2 === null) {
 		return false
 	} else if (isNotNull(id1[0]) && isNotNull(id2[0])) {
@@ -158,12 +158,12 @@ export function isSameId<I extends AnyEntityId>(id1: I | null, id2: I | null): b
 	}
 }
 
-export function isSameSingleId(id1: Id | null, id2: Id | null): boolean {
+export function isSameSingleId<T extends Nullable<Id>>(id1: T, id2: T): boolean {
 	if (id1 === null || id2 === null) return false
 	return id1 === id2
 }
 
-export function isSameIdTuple(id1: IdTuple | null, id2: IdTuple | null): boolean {
+export function isSameIdTuple(id1: Nullable<IdTuple>, id2: Nullable<IdTuple>): boolean {
 	if (id1 === null || id2 === null) return false
 	else return id1[0] === id2[0] && id1[1] === id2[1]
 }

@@ -6,7 +6,6 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import {
 	assertNotNull,
 	clamp,
-	cleanMailAddress,
 	delay,
 	filterInt,
 	first,
@@ -19,7 +18,7 @@ import {
 	noOp,
 	promiseMap,
 } from "../../../../platform-kit/utils"
-import { CancelledError, EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus, ProgrammingError, TimeConstants } from "../../../../platform-kit/app-env"
+import { CancelledError, EncryptionAuthStatus, MailAuthenticationStatus, ProgrammingError, TimeConstants } from "../../../../platform-kit/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
 import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { DownloadPostProcessing, DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
@@ -84,6 +83,7 @@ import { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../../ui/base/Button"
 import { prependParentLabelNamesToLabel } from "./MailSetTreeUtils"
 import { Singletons } from "../../../../platform-kit/singletons/singleton"
+import { cleanMailAddress } from "../../../../ui/utils/FormatUtils"
 
 const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 

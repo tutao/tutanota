@@ -85,7 +85,7 @@ export class ApplicationTypesFacade {
 	 * hash of that type  model. `expectedHash === null` means that we did not receive one from the server yet, which
 	 * means the one from the FS is fine to use.
 	 */
-	public async getServerApplicationTypesJson(expectedHash: string | null): Promise<ApplicationTypesGetOut> {
+	public async getServerApplicationTypesJson(expectedHash: Nullable<string>): Promise<ApplicationTypesGetOut> {
 		let deferredObject: DeferredObject<ApplicationTypesGetOut> = defer()
 		this.deferredRequests.push(deferredObject)
 		const fileSystemModels = await this.loadStoredTypeModels()
@@ -128,7 +128,7 @@ export class ApplicationTypesFacade {
 
 	// In case we fail to read the application types from the stored json file,
 	// we will request it from the server eagerly.
-	private async loadStoredTypeModels(): Promise<ApplicationTypesGetOut | null> {
+	private async loadStoredTypeModels(): Promise<Nullable<ApplicationTypesGetOut>> {
 		if (isNull(this.serverModelJsonPersistence)) {
 			return null
 		}

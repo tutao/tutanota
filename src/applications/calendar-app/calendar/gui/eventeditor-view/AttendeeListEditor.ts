@@ -27,10 +27,10 @@ import { PasswordInput } from "../../../../common/misc/passwords/PasswordInput.j
 import { Switch } from "../../../../../ui/base/Switch.js"
 import { Divider } from "../../../../../ui/Divider.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils"
-import { cleanMailAddress } from "../../../../../platform-kit/utils"
 import { createEncryptedMailAddress } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, RecipientType } from "../../../../../entities/tutanota/Utils"
 import { AccountType } from "../../../../../entities/sys/Utils"
+import { cleanMailAddress } from "../../../../../ui/utils/FormatUtils"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */

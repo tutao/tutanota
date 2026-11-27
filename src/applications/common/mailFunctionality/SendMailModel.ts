@@ -30,7 +30,6 @@ import {
 import { CustomerPropertiesTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import {
 	assertNotNull,
-	cleanMailAddress,
 	cleanMatch,
 	contains,
 	DateProvider,
@@ -40,7 +39,6 @@ import {
 	downcast,
 	findAndRemove,
 	getFromMap,
-	isMailAddress,
 	LazyLoaded,
 	mapAndFilterNull,
 	neverNull,
@@ -109,6 +107,7 @@ import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"
 import { isDriveEnabled } from "../misc/DriveUtils"
+import { cleanMailAddress, isMailAddress } from "../../../ui/utils/FormatUtils"
 
 EnvProvider.assertMainOrNode()
 

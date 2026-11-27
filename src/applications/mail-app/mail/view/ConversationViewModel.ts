@@ -11,16 +11,7 @@ import {
 } from "../../../../platform-kit/meta"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import {
-	assertNotNull,
-	findLast,
-	findLastIndex,
-	groupBy,
-	makeSingleUse,
-	memoizedWithHiddenArgument,
-	ofClass,
-	settledThen,
-} from "../../../../platform-kit/utils"
+import { assertNotNull, findLast, findLastIndex, groupBy, makeSingleUse, ofClass, settledThen } from "../../../../platform-kit/utils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"
@@ -34,6 +25,7 @@ import { MailModel } from "../model/MailModel.js"
 import { isDraft, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { compareMails } from "../model/MailUtils"
 import { EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { memoizedWithHiddenArgument } from "../../../../ui/utils/memoized"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 

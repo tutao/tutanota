@@ -12,9 +12,9 @@ import { LegacyTextFieldType } from "../../../../ui/base/LegacyTextField"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
-import { isMailAddress } from "@tutao/utils"
 import { IMAP_SSL_PORT, IMAP_UNSAFE_PORT } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { Checkbox } from "../../../../ui/base/Checkbox"
+import { isMailAddress } from "../../../../ui/utils/FormatUtils"
 
 EnvProvider.assertMainOrNode()
 

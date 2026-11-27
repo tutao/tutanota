@@ -1,4 +1,4 @@
-import { errorToObj } from "../../../platform-kit/utils"
+import { errorToObj } from "./ErrorUtils"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>

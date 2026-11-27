@@ -18,7 +18,6 @@ import {
 	Nullable,
 	ofClass,
 	startsWith,
-	urlEncodeHtmlTags,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
@@ -108,7 +107,7 @@ import {
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { EncryptionAuthStatus, EnvProvider, FeatureType, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
+import { EncryptionAuthStatus, FeatureType, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
@@ -118,6 +117,7 @@ import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManag
 import { InboxRuleModel } from "../model/InboxRuleModel"
 import { ExpandedInboxRuleHandler } from "../model/ExpandedInboxRuleHandler"
 import { Singletons } from "../../../../platform-kit/singletons/singleton"
+import { urlEncodeHtmlTags } from "../../../../ui/utils/FormatUtils"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

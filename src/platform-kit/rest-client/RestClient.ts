@@ -44,7 +44,7 @@ export const DEFAULT_REST_CLIENT_OPTIONS: RestClientOptions = {
  */
 export class RestClient implements RestClientInterface {
 	// accurate to within a few seconds, depending on network speed
-	private serverTimeOffsetMs: number | null = null
+	private serverTimeOffsetMs: Nullable<number> = null
 	private responseMiddlewares: Array<RestClientMiddleware> = new Array<RestClientMiddleware>()
 
 	constructor(
@@ -60,7 +60,7 @@ export class RestClient implements RestClientInterface {
 		return this
 	}
 
-	async request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
+	async request(path: string, method: HttpMethod, options: RestClientOptions): Promise<Nullable<any>> {
 		this.checkRequestSizeLimit(path, method, options.body ?? null)
 
 		if (this.suspensionHandler.isSuspended()) {
@@ -195,7 +195,7 @@ export class RestClient implements RestClientInterface {
 	 * Ignores the method because GET requests etc. should not exceed the limits neither.
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
-	private checkRequestSizeLimit(path: string, method: HttpMethod, body: RestBody | null): void {
+	private checkRequestSizeLimit(path: string, method: HttpMethod, body: Nullable<RestBody>): void {
 		if (this.envProvider.isAdminClient()) {
 			return
 		}

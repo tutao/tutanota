@@ -1,11 +1,11 @@
 import type { App } from "electron"
 import type { WindowManager } from "./DesktopWindowManager"
 import type { TimeoutSetter } from "../../../platform-kit/utils"
-import { isMailAddress } from "../../../platform-kit/utils"
 import { log } from "./DesktopLog"
 import { NetExports } from "./ElectronExportTypes"
 import { Server, Socket } from "node:net"
 import path from "node:path"
+import { isMailAddress } from "../../../ui/utils/FormatUtils"
 
 /**
  * this is used to control our administration tool

@@ -4,7 +4,7 @@ import { KdfNonce, keyToUint8Array, uint8ArrayTo256Key, uint8ArrayToKey } from "
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
-import { concat, KeyVersion } from "@tutao/utils"
+import { concat, KeyVersion, Nullable } from "@tutao/utils"
 import {
 	AEAD_FROM_GROUP_KEY_AND_NONCE_DERIVATION_OF_INSTANCE_KEY,
 	AEAD_FROM_INSTANCE_KEY_DERIVATION,
@@ -21,14 +21,14 @@ export abstract class SymmetricSubKeys extends AesKeyOrSubKeys {
 
 	protected constructor(
 		public readonly encryptionKey: AesKey,
-		public readonly authenticationKey: AesKey | null = null,
+		public readonly authenticationKey: Nullable<AesKey> = null,
 	) {
 		super()
 	}
 }
 
 export abstract class AesCbcSubKeys extends SymmetricSubKeys {
-	protected constructor(encryptionKey: AesKey, authenticationKey: AesKey | null = null) {
+	protected constructor(encryptionKey: AesKey, authenticationKey: Nullable<AesKey> = null) {
 		super(encryptionKey, authenticationKey)
 	}
 }

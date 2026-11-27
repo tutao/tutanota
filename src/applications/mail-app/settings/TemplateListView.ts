@@ -6,7 +6,7 @@ import { EnvProvider, ShareCapability } from "../../../platform-kit/app-env"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import type { LoginController } from "../../common/api/main/LoginController"
 import { ListColumnWrapper } from "../../../ui/ListColumnWrapper"
-import { assertNotNull, memoized, noOp } from "../../../platform-kit/utils"
+import { assertNotNull, noOp } from "../../../platform-kit/utils"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../../ui/SelectableRowContainer.js"
 import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
 import Stream from "mithril/stream"
@@ -27,6 +27,7 @@ import { isSameSingleId } from "../../../platform-kit/meta"
 import { EmailTemplate, EmailTemplateTypeRef } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { hasCapabilityOnGroup } from "../../../entities/sys/Utils"
+import { memoized } from "../../../ui/utils/memoized"
 
 EnvProvider.assertMainOrNode()
 

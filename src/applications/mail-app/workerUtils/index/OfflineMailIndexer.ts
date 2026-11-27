@@ -1,7 +1,7 @@
 import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, TutanotaConstants } from "@tutao/app-env"
-import { BlobFacade, ArchiveDownloadResumeParams } from "../../../common/api/worker/facades/lazy/BlobFacade"
+import { ArchiveDownloadResumeParams, BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
 	assertNotNull,
 	collectToMap,
@@ -35,6 +35,7 @@ import {
 	getElementId,
 	idToElementId,
 	isSameId,
+	isSameSingleId,
 	listIdPart,
 	ServerTypeModel,
 	TypeRef,
@@ -218,8 +219,8 @@ export class OfflineMailIndexer implements MailIndexer {
 			.filter((group) => group.indexedTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP)
 			.map((group) => group.groupId)
 
-		const mailGroupsToAdd = difference(mailGroups, indexedMailGroups)
-		const mailGroupsToRemove = difference(indexedMailGroups, mailGroups)
+		const mailGroupsToAdd = difference(mailGroups, indexedMailGroups, isSameSingleId)
+		const mailGroupsToRemove = difference(indexedMailGroups, mailGroups, isSameSingleId)
 
 		console.log(
 			TAG,

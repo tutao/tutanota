@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { tokenize, urlEncodeHtmlTags } from "../../../src/platform-kit/utils"
+import { urlEncodeHtmlTags } from "../../../src/ui/utils/FormatUtils"
 
 o.spec("FormatUtils test", () => {
 	o.test("when called with HTML tags they are replaced with HTML entities", function () {

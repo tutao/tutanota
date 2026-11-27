@@ -1,7 +1,7 @@
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { bytesToEd25519PublicKey, cryptoUtils, PublicKeyIdentifier, PublicKeyIdentifierType, SigningKeyPairType, SigningPublicKey } from "@tutao/crypto"
-import { isNotNull, Versioned } from "@tutao/utils"
+import { isNotNull, Nullable, Versioned } from "@tutao/utils"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade"
@@ -86,7 +86,7 @@ export class PublicIdentityKeyProvider {
 	 *  Loads the public identity key of the mail address from the trust database (if available) or the IdentityKeyService.
 	 * @param pubKeyIdentifier a mail address
 	 */
-	async loadPublicIdentityKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<TrustDBEntry | null> {
+	async loadPublicIdentityKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Nullable<TrustDBEntry>> {
 		if (pubKeyIdentifier.identifierType !== PublicKeyIdentifierType.MAIL_ADDRESS) {
 			// users should load their own identity keys by loading the group not by using the identityKeyService
 			// see this.loadPublicIdentityKeyFromGroup

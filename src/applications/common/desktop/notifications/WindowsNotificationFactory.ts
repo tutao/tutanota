@@ -1,7 +1,8 @@
 import type { Notifier } from "@indutny/simple-windows-notifications"
-import { assertNotNull, lazyNumberRange, noOp, takeFromMap, urlEncodeHtmlTags } from "@tutao/utils"
+import { assertNotNull, lazyNumberRange, noOp, takeFromMap } from "@tutao/utils"
 import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "../DesktopUtils"
 import { Dismisser, NotificationFactory, NotificationParameters } from "./NotificationFactory"
+import { urlEncodeHtmlTags } from "../../../../ui/utils/FormatUtils"
 
 // Maximum notifications we are able to keep track of (to avoid excessive amounts of notifications leaking memory)
 const MAX_NOTIFICATIONS: number = 1000

@@ -137,7 +137,7 @@ export function throttle<F extends (...args: any) => void>(periodMs: number, toT
  */
 export function throttleStart<F extends (...args: any[]) => Promise<any>>(periodMs: number, toThrottle: F): F {
 	let lastArgs: any[] | null = null
-	let scheduledTimeout: TimeoutID | null = null
+	let scheduledTimeout: Nullable<TimeoutID> = null
 	let scheduledDefer: DeferredObject<ReturnType<F>> | null = null
 	return ((...args: any[]) => {
 		if (isNull(scheduledTimeout)) {

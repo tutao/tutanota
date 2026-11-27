@@ -1,5 +1,5 @@
 import { RestBodyType } from "./HttpTypes"
-import { assert, downcast } from "@tutao/utils"
+import { assert, downcast, Nullable } from "@tutao/utils"
 
 export abstract class RestBody {
 	protected constructor(public readonly bodyType: RestBodyType) {}
@@ -21,11 +21,11 @@ export class HttpResponse {
 	constructor(
 		public readonly status: number,
 		public readonly statusText: string,
-		public readonly body: RestBody | null,
+		public readonly body: Nullable<RestBody>,
 		readonly responseHeaders: Map<string, string>,
 	) {}
 
-	getResponseHeader(name: string): string | null {
+	getResponseHeader(name: string): Nullable<string> {
 		return this.responseHeaders.get(name.toLowerCase()) ?? null
 	}
 

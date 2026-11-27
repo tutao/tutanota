@@ -16,7 +16,7 @@ import {
 	DateWrapperParams,
 	RepeatRule,
 } from "@tutao/entities/sys"
-import { filterInt, isMailAddress, neverNull, utf8Uint8ArrayToString } from "@tutao/utils"
+import { filterInt, neverNull, utf8Uint8ArrayToString } from "@tutao/utils"
 import { DateTime, Duration } from "luxon"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
@@ -38,6 +38,7 @@ import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../..
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { availableIANATimeZones, windowsToIANATimeZones } from "../../../common/calendar/TimeZoneData"
+import { isMailAddress } from "../../../../ui/utils/FormatUtils"
 
 const TAG = "[CalendarParser]"
 

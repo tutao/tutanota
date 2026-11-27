@@ -1,11 +1,12 @@
 import { HttpMethod, MediaType, ProgressListener, RestBody } from "@tutao/http-client"
+import { Nullable } from "@tutao/lang-api"
 
 export { type ProgressListener, MediaType, HttpMethod, validateHttpMethod, RestBodyType, RestBody, RestTextBody, RestBinaryBody } from "@tutao/http-client"
 
 /** A read-only view of a completed response, abstracted over the underlying transport (XMLHttpRequest or fetch's Response). */
 export interface InterceptedResponse {
 	url: string
-	getHeader(name: string): string | null
+	getHeader(name: string): Nullable<string>
 }
 
 /**
@@ -17,17 +18,17 @@ export interface RestClientMiddleware {
 }
 
 export interface RestClientOptions {
-	body: RestBody | null
-	responseType: MediaType | null
-	uploadProgressListener: ProgressListener | null
-	downloadProgressListener: ProgressListener | null
-	baseUrl: string | null
-	headers: Dict | null
-	queryParams: Dict | null
-	noCORS: boolean | null
+	body: Nullable<RestBody>
+	responseType: Nullable<MediaType>
+	uploadProgressListener: Nullable<ProgressListener>
+	downloadProgressListener: Nullable<ProgressListener>
+	baseUrl: Nullable<string>
+	headers: Nullable<Dict>
+	queryParams: Nullable<Dict>
+	noCORS: Nullable<boolean>
 	/** Default is to suspend all requests on rate limit. */
-	suspensionBehavior: SuspensionBehavior | null
-	abortSignal: AbortSignal | null
+	suspensionBehavior: Nullable<SuspensionBehavior>
+	abortSignal: Nullable<AbortSignal>
 }
 
 export const enum SuspensionBehavior {
@@ -35,5 +36,5 @@ export const enum SuspensionBehavior {
 	Throw = 1,
 }
 export interface RestClientInterface {
-	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null>
+	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<Nullable<any>>
 }

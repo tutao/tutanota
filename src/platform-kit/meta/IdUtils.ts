@@ -3,7 +3,7 @@ import { idToElementId } from "./EntityUtils"
 import { AnyEntityId } from "./EntityTypes"
 import { isNotNull, Nullable } from "@tutao/utils"
 
-export function collapseId(listId: Id | null, elementId: Id): AnyEntityId {
+export function collapseId(listId: Nullable<Id>, elementId: Id): AnyEntityId {
 	if (isNotNull(listId)) {
 		return [listId, elementId]
 	} else {

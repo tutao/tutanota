@@ -46,13 +46,13 @@ EnvProvider.assertWorkerOrNode()
 
 export type Decapsulated<T extends AesKey> = {
 	decryptedAesKey: T
-	senderIdentityPubKey: X25519PublicKey | null // for authentication: null for rsa only
+	senderIdentityPubKey: Nullable<X25519PublicKey> // for authentication: null for rsa only
 }
 
 export type PubEncSymKey = {
 	pubEncSymKeyBytes: Uint8Array<ArrayBuffer>
 	cryptoProtocolVersion: CryptoProtocolVersion
-	senderKeyVersion: KeyVersion | null
+	senderKeyVersion: Nullable<KeyVersion>
 	recipientKeyVersion: KeyVersion
 }
 
@@ -76,7 +76,7 @@ export class AsymmetricCryptoFacade {
 		private readonly adminKeyLoaderFacade: lazy<AdminKeyLoaderFacade>,
 	) {}
 
-	getSenderEccKey(publicKey: Versioned<PublicKey>): X25519PublicKey | null {
+	getSenderEccKey(publicKey: Versioned<PublicKey>): Nullable<X25519PublicKey> {
 		if (isVersionedPqPublicKey(publicKey)) {
 			return publicKey.object.x25519PublicKey
 		} else if (isVersionedRsaX25519PublicKey(publicKey)) {

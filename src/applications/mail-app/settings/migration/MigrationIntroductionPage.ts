@@ -15,11 +15,11 @@ import { guessServerMigrationParamsFromEmail } from "../../../common/api/common/
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/base/DropDownSelectorNew"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
-import { isMailAddress } from "@tutao/utils"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { createManageLabelServiceLabelData } from "@tutao/entities/tutanota"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { MailboxMigrationProviderUI, toMigrationProviderUI } from "./MigrationProviderSelectionPage"
+import { isMailAddress } from "../../../../ui/utils/FormatUtils"
 
 EnvProvider.assertMainOrNode()
 

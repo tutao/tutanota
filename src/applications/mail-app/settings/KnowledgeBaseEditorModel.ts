@@ -2,7 +2,7 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { deduplicate, LazyLoaded, localeCompare, noOp, ofClass } from "../../../platform-kit/utils"
 import type Stream from "mithril/stream"
 import stream from "mithril/stream"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../platform-kit/rest-client/error"
 import { UserError } from "../../common/api/main/UserError"
 import {
 	createKnowledgeBaseEntry,
@@ -13,8 +13,7 @@ import {
 	KnowledgeBaseEntryKeyword,
 	TemplateGroupRoot,
 } from "@tutao/entities/tutanota"
-import { clone, elementIdToId } from "../../../platform-kit/meta"
-import { NotFoundError } from "../../../platform-kit/rest-client/error"
+import { clone, elementIdToId, isSameSingleId } from "../../../platform-kit/meta"
 
 export class KnowledgeBaseEditorModel {
 	title: Stream<string>
@@ -75,7 +74,7 @@ function keywordsToString(keywords: Array<KnowledgeBaseEntryKeyword>): string {
 }
 
 function stringToKeywords(keywords: string): Array<KnowledgeBaseEntryKeyword> {
-	return deduplicate(keywords.split(" ").filter(Boolean))
+	return deduplicate(keywords.split(" ").filter(Boolean), isSameSingleId)
 		.sort(localeCompare)
 		.map((keyword) =>
 			createKnowledgeBaseEntryKeyword({

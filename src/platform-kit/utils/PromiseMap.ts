@@ -1,4 +1,5 @@
 import { TypeChecks } from "../app-env/TsTypeChecks"
+import { TsIterable, TsIterator } from "@tutao/lang-api"
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -48,7 +49,7 @@ export type Mapper<Element, NewElement> = (element: Element, index: number) => P
 	```
  */
 export async function pMap<Element, NewElement>(
-	iterable: Iterable<Element>,
+	iterable: TsIterable<Element>,
 	mapper: Mapper<Element, NewElement>,
 	options: Options = { concurrency: 1 },
 ): Promise<Array<NewElement>> {
@@ -64,9 +65,9 @@ export async function pMap<Element, NewElement>(
 			)
 		}
 
-		const result: NewElement[] = []
-		const errors = []
-		const iterator = iterable[Symbol.iterator]()
+		const result: Array<NewElement> = []
+		const errors: Array<Error> = []
+		const iterator = TsIterator.fromIterable(iterable)
 		let isRejected = false
 		let isIterableDone = false
 		let resolvingCount = 0

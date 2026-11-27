@@ -33,7 +33,6 @@ import {
 	insertIntoSortedArray,
 	lazy,
 	lazyAsync,
-	memoized,
 	millisToDays,
 	noOp,
 } from "../../../../platform-kit/utils"
@@ -94,12 +93,12 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/CalendarSearchUtils"
 import { CalendarSearchModel } from "../../search/model/CalendarSearchModel"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
+import { memoized } from "../../../../ui/utils/memoized"
 
 export interface EventWrapperFlags {
 	/**

@@ -1,5 +1,5 @@
 import { TimeConstants } from "./TimeConstants.js"
-import { TsMath, TsObject, TsString } from "@tutao/lang-api"
+import { Nullable, TsMath, TsObject, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
 	constructor() {}
@@ -93,7 +93,7 @@ export type ConstType = {
 	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: number
 	MEMORY_GB_FACTOR: number
 	MEMORY_WARNING_FACTOR: number
-	CURRENT_DATE: Date | null
+	CURRENT_DATE: Nullable<Date>
 	CURRENCY_SYMBOL_EUR: TsString
 	DEFAULT_APP_DOMAIN: TsString
 	LEGACY_WEBAUTHN_RP_ID: TsString

@@ -3,7 +3,7 @@ import { initLocator, locator, resetLocator } from "./DriveWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
 import { CryptoError } from "../../../../platform-kit/crypto/error"
-import { errorToObj } from "../../../../platform-kit/utils"
+
 import { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher"
 import { WebWorkerTransport } from "../../../../app-kit/native-bridge/common/threading/WebTransport"
@@ -13,6 +13,7 @@ import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "../../../../platform-kit/rest-client/error"
+import { errorToObj } from "../../../../app-kit/native-bridge/shared/ErrorUtils"
 
 EnvProvider.assertWorkerOrNode()
 

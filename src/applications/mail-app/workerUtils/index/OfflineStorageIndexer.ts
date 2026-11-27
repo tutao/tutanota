@@ -9,7 +9,7 @@ import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { GENERATED_MAX_ID } from "@tutao/meta"
+import { GENERATED_MAX_ID, isSameSingleId } from "@tutao/meta"
 
 export class OfflineStorageIndexer implements Indexer {
 	constructor(
@@ -30,11 +30,11 @@ export class OfflineStorageIndexer implements Indexer {
 		// Added mail groups will be indexed when extendMailIndex() will be called later
 		const indexedGroups = (await this.persistence.getIndexedGroups()).map((data) => data.groupId)
 		const userGroups = filterIndexMemberships(user).map((membership) => membership.group)
-		const removedGroups = difference(indexedGroups, userGroups)
+		const removedGroups = difference(indexedGroups, userGroups, isSameSingleId)
 		for (const removedGroup of removedGroups) {
 			await this.persistence.removeIndexedGroup(removedGroup)
 		}
-		const addedGroups = difference(userGroups, indexedGroups)
+		const addedGroups = difference(userGroups, indexedGroups, isSameSingleId)
 		for (const addedGroup of addedGroups) {
 			const membership = this.userFacade.getMembership(addedGroup)
 			const groupType = assertNotNull(membership.groupType) as GroupType

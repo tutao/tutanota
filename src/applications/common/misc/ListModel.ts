@@ -10,7 +10,6 @@ import {
 	last,
 	lastIndex,
 	lastThrow,
-	memoizedWithHiddenArgument,
 	noOp,
 	remove,
 	setAddAll,
@@ -24,6 +23,7 @@ import { ListFetchResult, PageSize } from "../../../ui/base/ListUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
 
 import { isOfflineError } from "@tutao/rest-client/error"
+import { memoizedWithHiddenArgument } from "../../../ui/utils/memoized"
 
 /**
  * Specifies methods for retrieving items, fetching items, and comparing items for a ListModel.

@@ -1,12 +1,13 @@
 import { AesKey } from "@tutao/crypto"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
+import { Nullable } from "@tutao/lang-api"
 
 export class InstanceSubKeyCache<V> {
 	map = new Map<string, V>()
 
 	constructor() {}
 
-	get(key: InstanceSubKeyCacheKey): V | null {
+	get(key: InstanceSubKeyCacheKey): Nullable<V> {
 		return this.map.get(this.serializeInstanceSubKeyCacheKey(key)) ?? null
 	}
 	set(key: InstanceSubKeyCacheKey, value: V): void {

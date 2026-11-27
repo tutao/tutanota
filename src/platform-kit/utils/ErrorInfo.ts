@@ -1,9 +1,9 @@
-import { isNotNull } from "./index"
+import { isNotNull, Nullable } from "@tutao/lang-api"
 
 export interface ErrorInfo {
-	readonly name: string | null
-	readonly message: string | null
-	readonly stack: string | null
+	readonly name: Nullable<string>
+	readonly message: Nullable<string>
+	readonly stack: Nullable<string>
 }
 
 export function errToErrorInfo(err: Error): ErrorInfo {

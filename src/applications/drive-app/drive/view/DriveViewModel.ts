@@ -3,11 +3,11 @@ import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef, ListenerPriority
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
-import { assertNotNull, debounceStart, last, lazyAsync, memoizedWithHiddenArgument, promiseMap } from "@tutao/utils"
+import { assertNotNull, debounceStart, last, lazyAsync, promiseMap } from "@tutao/utils"
 import { DriveTransfers, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
-import { EnvProvider, TimeConstants, TutanotaConstants } from "@tutao/app-env"
+import { TimeConstants, TutanotaConstants } from "@tutao/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult, ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
@@ -50,6 +50,7 @@ import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 import { DuplicateFilesDialogDecision, showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
 import { Singletons } from "../../../../platform-kit/singletons/singleton"
+import { memoizedWithHiddenArgument } from "../../../../ui/utils/memoized"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular

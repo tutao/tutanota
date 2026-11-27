@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Autocapitalize, LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
-import { isDomainName } from "../../../../platform-kit/utils/FormatUtils"
+import { isDomainName } from "../../../../ui/utils/FormatUtils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import type { AddDomainData } from "./AddDomainWizard"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"

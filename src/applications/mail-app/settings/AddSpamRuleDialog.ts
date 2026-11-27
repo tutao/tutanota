@@ -1,7 +1,7 @@
 import m from "mithril"
 import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { isDomainOrTopLevelDomain, isMailAddress } from "../../../platform-kit/utils/FormatUtils"
+import { isDomainOrTopLevelDomain, isMailAddress } from "../../../ui/utils/FormatUtils"
 import { EnvProvider, TutanotaConstants } from "../../../platform-kit/app-env"
 import { contains } from "../../../platform-kit/utils"
 import { Dialog } from "../../../ui/base/Dialog"

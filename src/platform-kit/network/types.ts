@@ -1,3 +1,5 @@
+import { Nullable } from "@tutao/lang-api"
+
 export const enum CredentialType {
 	Internal = "internal",
 	External = "external",
@@ -12,7 +14,7 @@ export interface Credentials {
 	login: string
 
 	/** Session#accessKey encrypted password. Is set when session is persisted. */
-	encryptedPassword: Base64 | null
+	encryptedPassword: Nullable<Base64>
 	encryptedPassphraseKey: Uint8Array<ArrayBuffer> | null
 	accessToken: Base64Url
 	userId: Id

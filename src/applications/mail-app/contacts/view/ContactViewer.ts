@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { LegacyTextField, LegacyTextFieldType } from "../../../../ui/base/LegacyTextField.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { assertNotNull, downcast, memoized, NBSP, noOp } from "../../../../platform-kit/utils"
+import { assertNotNull, downcast, NBSP, noOp } from "../../../../platform-kit/utils"
 import {
 	getContactAddressTypeLabel,
 	getContactCustomDateTypeToLabel,
@@ -24,6 +24,7 @@ import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightView
 import { Contact, ContactAddress, ContactMessengerHandle, ContactPhoneNumber, ContactSocialId, ContactWebsite } from "@tutao/entities/tutanota"
 import { ContactAddressType, ContactPhoneNumberType, PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { getContactSocialType, getCustomDateType, getRelationshipType } from "../ContactUtils"
+import { memoized } from "../../../../ui/utils/memoized"
 
 EnvProvider.assertMainOrNode()
 

@@ -159,12 +159,12 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		return this.keyEncryption.decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
-	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
+	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: Nullable<OwnerKeyProvider>, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
 		const ownerKey = isNotNull(ownerKeyProvider) ? await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0")) : null
 		return this.resolveSessionKeyWithOwnerKey(ownerKey, migratedEntity)
 	}
 
-	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | null, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
+	async resolveSessionKeyWithOwnerKey(ownerKey: Nullable<AesKey>, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
 		try {
 			if (isNotNull(ownerKey) && isNotNull(migratedEntity._ownerEncSessionKey)) {
 				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
@@ -267,8 +267,8 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		const bucketKey = assertNotNull(instance.bucketKey)
 
 		let decryptedBucketKey: AesKey
-		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
-		let pqMessageSenderKey: X25519PublicKey | null = null
+		let unencryptedSenderAuthStatus: Nullable<EncryptionAuthStatus> = null
+		let pqMessageSenderKey: Nullable<X25519PublicKey> = null
 		if (isNotNull(bucketKey.keyGroup) && isNotNull(bucketKey.pubEncBucketKey)) {
 			// bucket key is encrypted with public key for internal recipient
 			const { decryptedAesKey, senderIdentityPubKey } = await this.asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
@@ -374,8 +374,8 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		}
 	}
 
-	private async trySymmetricPermission(listPermissions: Permission[]): Promise<AesKey | null> {
-		const symmetricPermission: Permission | null =
+	private async trySymmetricPermission(listPermissions: Permission[]): Promise<Nullable<AesKey>> {
+		const symmetricPermission: Nullable<Permission> =
 			listPermissions.find(
 				(p) =>
 					(p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
@@ -402,14 +402,14 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 	private async collectAllInstanceSessionKeysAndAuthenticate(
 		instance: PersistentEntity,
 		decBucketKey: AesKey,
-		encryptionAuthStatus: EncryptionAuthStatus | null,
-		pqMessageSenderKey: X25519PublicKey | null,
+		encryptionAuthStatus: Nullable<EncryptionAuthStatus>,
+		pqMessageSenderKey: Nullable<X25519PublicKey>,
 	): Promise<ResolvedSessionKeys> {
 		const bucketKey = assertNotNull(instance.bucketKey)
 
 		const elementId: Id = instance._id[1]
 
-		let resolvedSessionKeyForInstance: AesKey | null = null
+		let resolvedSessionKeyForInstance: Nullable<AesKey> = null
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = this.keyEncryption.decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
 			const groupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup))
@@ -447,14 +447,14 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 	}
 
 	private async authenticateMainInstance(
-		encryptionAuthStatus: EncryptionAuthStatus | null,
+		encryptionAuthStatus: Nullable<EncryptionAuthStatus>,
 		pqMessageSenderKey: Uint8Array<ArrayBuffer> | null,
-		pqMessageSenderKeyVersion: KeyVersion | null,
+		pqMessageSenderKeyVersion: Nullable<KeyVersion>,
 		instance: PersistentEntity,
 		resolvedSessionKeyForInstance: AesKey,
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: AesKey,
-		keyGroup: Id | null,
+		keyGroup: Nullable<Id>,
 	): Promise<void> {
 		// we only authenticate mail instances
 		const isMailInstance = isSameTypeRef(MailTypeRef, instance._type)
@@ -651,7 +651,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		return sk
 	}
 
-	async resolveServiceSessionKey(instance: EntityAdapter): Promise<AesKey | null> {
+	async resolveServiceSessionKey(instance: EntityAdapter): Promise<Nullable<AesKey>> {
 		if (isNotNull(instance._ownerPublicEncSessionKey)) {
 			// we assume the server uses the current key pair of the recipient
 			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), null)
@@ -673,7 +673,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 		keyVerificationMismatchRecipients: Array<string>,
-	): Promise<RecipientKeyData | null> {
+	): Promise<Nullable<RecipientKeyData>> {
 		const recipientPubKeyIdentifier = {
 			identifier: recipientMailAddress,
 			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
@@ -693,7 +693,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		recipientPubKeyIdentifier: PublicKeyIdentifier,
 		notFoundRecipients: Array<string>,
 		keyVerificationMismatchRecipients: Array<string>,
-	): Promise<RecipientKeyData | null> {
+	): Promise<Nullable<RecipientKeyData>> {
 		try {
 			const publicKey = await this.publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey(recipientPubKeyIdentifier)
 
@@ -858,7 +858,11 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 	 * the entity must already have an _ownerGroup
 	 * @returns the generated key
 	 */
-	async setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey: Nullable<VersionedKey>): Promise<AesKey | null> {
+	async setNewOwnerEncSessionKey(
+		clientTypeModel: ClientTypeModel,
+		instance: Entity,
+		keyToEncryptSessionKey: Nullable<VersionedKey>,
+	): Promise<Nullable<AesKey>> {
 		const ownerGroup = assertNotNull(instance._ownerGroup, `no owner group set  ${JSON.stringify(instance)}`)
 
 		if (clientTypeModel.encrypted) {

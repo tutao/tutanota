@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
-import { convertTextToHtml, Thunk } from "@tutao/utils"
+import { Thunk } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { Card } from "../../../../ui/base/Card.js"
@@ -23,6 +23,7 @@ import { DataFile, MailMethod } from "../../../../entities/tutanota/Utils"
 import { PlanTypeToName } from "../../subscription/utils/SubscriptionUtils"
 
 import type { HtmlEditor } from "../../../../ui/editor/HtmlEditor"
+import { convertTextToHtml } from "../../../../ui/utils/FormatUtils"
 
 type Props = {
 	data: SupportDialogState

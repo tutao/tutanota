@@ -1,5 +1,5 @@
 import { findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { assertNotNull, cleanMailAddress, contains, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "../../../../../platform-kit/utils"
+import { assertNotNull, contains, defer, DeferredObject, downcast, findAll, lazy, noOp, trisectingDiff } from "../../../../../platform-kit/utils"
 import { PresentableKeyVerificationState, ProgrammingError, ShareCapability } from "../../../../../platform-kit/app-env"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
@@ -27,6 +27,7 @@ import { clone, haveSameId } from "../../../../../platform-kit/meta"
 
 import { getAttendeeStatus } from "../../../../common/calendar/date/CalendarUtils"
 import { hasCapabilityOnGroup } from "../../../../../entities/sys/Utils"
+import { cleanMailAddress } from "../../../../../ui/utils/FormatUtils"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {
@@ -117,7 +118,16 @@ export class CalendarEventWhoModel {
 		// resolve current recipients so that we know what external passwords to display
 		const resolvePromises = initialValues.attendees?.map((a) => this.resolveAndCacheAddress(a.address)).concat() ?? []
 		// only resolve the organizer if it is not part of the initial attendee list, otherwise we would query the encryption keys multiple times.
-		if (initialValues.organizer && contains(initialValues.attendees || [], initialValues.organizer)) {
+		if (
+			initialValues.organizer &&
+			contains(
+				initialValues.attendees || [],
+				// FIXME:
+				// we are looking for organizer(EncryptedMailAddress) in an array of attendees(CalendarEventAttendee)
+				// will we ever find anything?
+				downcast(initialValues.organizer),
+			)
+		) {
 			resolvePromises.push(this.resolveAndCacheAddress(initialValues.organizer))
 		}
 		Promise.all(resolvePromises).then(this.uiUpdateCallback)
@@ -638,12 +648,12 @@ export class CalendarEventWhoModel {
 	}
 }
 
-function getRecipientLists(
-	initialAttendees: ReadonlyMap<unknown, CalendarEventAttendee>,
-	currentAttendees: ReadonlyMap<unknown, CalendarEventAttendee>,
+function getRecipientLists<K>(
+	initialAttendees: ReadonlyMap<K, CalendarEventAttendee>,
+	currentAttendees: ReadonlyMap<K, CalendarEventAttendee>,
 	isOrganizer: boolean,
 	isNew: boolean,
-): ReturnType<typeof trisectingDiff<CalendarEventAttendee>> {
+): ReturnType<typeof trisectingDiff<K, CalendarEventAttendee>> {
 	if (!isOrganizer) {
 		// if we're not the organizer, we can't have changed the guest list.
 		return { added: [], deleted: [], kept: Array.from(initialAttendees.values()) }

@@ -1,5 +1,5 @@
 import { ServiceUnavailableError, TooManyRequestsError } from "./error.js"
-import { defer, DeferredObject, noOp } from "@tutao/utils"
+import { defer, DeferredObject, noOp, Nullable } from "@tutao/utils"
 import { isNull } from "@tutao/lang-api"
 
 export class SuspensionHandler {
@@ -79,7 +79,7 @@ export class SuspensionHandler {
 	}
 }
 
-export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: string | null): boolean {
+export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: Nullable<string>): boolean {
 	const suspensionTimeNumber = isNull(suspensionTimeNumberString) ? 0 : parseInt(suspensionTimeNumberString)
 	return suspensionTimeNumber > 0 && (statusCode === TooManyRequestsError.CODE || statusCode === ServiceUnavailableError.CODE)
 }

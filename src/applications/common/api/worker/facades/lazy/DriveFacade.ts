@@ -5,7 +5,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { AeadCipherVersion, CryptoWrapper, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, first, groupBy, isEmpty, Nullable, partition, promiseMap, Require, stringToUtf8Uint8Array } from "@tutao/utils"
+import { assertNotNull, first, groupBy, isEmpty, isNotNull, Nullable, partition, promiseMap, Require, stringToUtf8Uint8Array } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -210,12 +210,12 @@ export class DriveFacade {
 	public async getFolderContents(folderId: IdTuple): Promise<FolderContents> {
 		const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 		const refs = await this.entityClient.loadAll(DriveFileRefTypeRef, folder.files)
-		const isFileRef = (ref: DriveFileRef): ref is Require<"file", DriveFileRef> => ref.file != null
+		const isFileRef = (ref: DriveFileRef): ref is Require<"file", DriveFileRef> => isNotNull(ref.file)
 		const [fileRefs, folderRefs] = partition(refs, isFileRef)
 		const files = await loadMultipleFromLists(
 			DriveFileTypeRef,
 			this.entityClient,
-			fileRefs.map((ref) => ref.file),
+			fileRefs.map((ref) => assertNotNull(ref.file)),
 		)
 		const folders = await loadMultipleFromLists(
 			DriveFolderTypeRef,

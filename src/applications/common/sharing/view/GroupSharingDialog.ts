@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import type { TableLineAttrs } from "../../../../ui/base/Table.js"
 import { ColumnWidth, Table } from "../../../../ui/base/Table.js"
-import { assert, assertNotNull, cleanMailAddress, contains, downcast, findAndRemove, neverNull, remove } from "../../../../platform-kit/utils"
+import { assert, assertNotNull, contains, downcast, findAndRemove, neverNull, remove } from "../../../../platform-kit/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ButtonType } from "../../../../ui/base/Button.js"
@@ -30,6 +30,7 @@ import { KeyVerificationMismatchError } from "../../../../platform-kit/network/e
 import { GroupInfo } from "@tutao/entities/sys"
 import { getMemberCapability, GroupType, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../../../../entities/sys/Utils"
 import { ShareCapability, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { cleanMailAddress } from "../../../../ui/utils/FormatUtils"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))

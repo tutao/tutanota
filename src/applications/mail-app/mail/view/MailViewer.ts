@@ -4,7 +4,7 @@ import stream from "mithril/stream"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { CancelledError, EnvProvider, FeatureType } from "../../../../platform-kit/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
+import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, noOp, ofClass } from "../../../../platform-kit/utils"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icon, progressIcon } from "../../../../ui/base/Icon"
@@ -37,6 +37,7 @@ import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { getElementId } from "@tutao/meta"
 import { Singletons } from "../../../../platform-kit/singletons/singleton"
+import { memoized } from "../../../../ui/utils/memoized"
 
 EnvProvider.assertMainOrNode()
 

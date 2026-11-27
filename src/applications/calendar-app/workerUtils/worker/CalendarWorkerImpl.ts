@@ -8,10 +8,10 @@ import type { NativeInterface } from "../../../../app-kit/native-bridge/common/N
 import { WebWorkerTransport } from "../../../../app-kit/native-bridge/common/threading/WebTransport.js"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
 import { CryptoError } from "../../../../platform-kit/crypto/error"
-import { errorToObj } from "../../../../platform-kit/utils"
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "@tutao/instance-pipeline"
+import { errorToObj } from "../../../../app-kit/native-bridge/shared/ErrorUtils"
 
 EnvProvider.assertWorkerOrNode()
 

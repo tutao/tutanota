@@ -10,7 +10,7 @@ import { attachDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdow
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { formatMailAddressFromParts } from "../../../../ui/utils/Formatter"
 import { Icon } from "../../../../ui/base/Icon"
-import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils"
+import { isMailAddress } from "../../../../ui/utils/FormatUtils"
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils"
 import { locator } from "../../api/main/CommonLocator"
 import { AccessDeactivatedError } from "@tutao/rest-client/error"

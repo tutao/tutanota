@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { memoized, neverNull, noOp, ofClass, startsWith } from "../../../../platform-kit/utils"
+import { neverNull, noOp, ofClass, startsWith } from "../../../../platform-kit/utils"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -8,6 +8,7 @@ import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { KnowledgeBaseEntry, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { idToElementId } from "@tutao/meta"
+import { memoized } from "../../../../ui/utils/memoized"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry

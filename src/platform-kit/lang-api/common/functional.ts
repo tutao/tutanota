@@ -37,7 +37,7 @@ export function assertNotNaN(number: number, message: string = "Found NaN when v
  * @param value the value to check
  * @param message optional error message
  */
-export function assertNull<T>(value: T | null, message: string = "not null"): void {
+export function assertNull<T>(value: Nullable<T>, message: string = "not null"): void {
 	if (isNotNull(value)) {
 		throw new Error("AssertNull failed : " + message)
 	}
@@ -49,17 +49,17 @@ export function assertNull<T>(value: T | null, message: string = "not null"): vo
  * @param value the value to check
  * @param message optional error message
  */
-export function assertNonNull<T>(value: T | null, message: string = "null"): asserts value is T {
+export function assertNonNull<T>(value: Nullable<T>, message: string = "null"): asserts value is T {
 	if (isNull(value)) {
 		throw new Error("AssertNonNull failed: " + message)
 	}
 }
 
-export function isNotNull<T>(t: T | null): t is NonNullable<T> {
+export function isNotNull<T>(t: Nullable<T>): t is NonNullable<T> {
 	return t != null
 }
 
-export function isNull<T>(t: T | null | undefined): t is null | undefined {
+export function isNull<T>(t: Nullable<T> | undefined): t is Nullable<undefined> {
 	return t === null || t === undefined
 }
 
@@ -75,4 +75,12 @@ export function downcast<R = any>(object: any): R {
 
 export function wormhole(...args: any): void {
 	// does nothing
+}
+
+export function comparePointer<T>(obj1: T, obj2: T): boolean {
+	return obj1 === obj2
+}
+
+export function isSameString(str1: string, str2: string): boolean {
+	return str1 === str2
 }

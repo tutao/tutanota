@@ -2,19 +2,7 @@ import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import Id from "../../../../ui/translations/id"
 import { createEmptyRestriction, emptyListModel, getSearchUrl, isNewSearch, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
-import {
-	DateProvider,
-	debounce,
-	filterInt,
-	findBy,
-	getEndOfDay,
-	getFirstOrThrow,
-	getStartOfDay,
-	isNotEmpty,
-	isNotNull,
-	memoizedWithHiddenArgument,
-	YEAR_IN_MILLIS,
-} from "@tutao/utils"
+import { DateProvider, debounce, filterInt, findBy, getEndOfDay, getFirstOrThrow, getStartOfDay, isNotEmpty, isNotNull, YEAR_IN_MILLIS } from "@tutao/utils"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { LoginController } from "../../../common/api/main/LoginController"
@@ -55,6 +43,7 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { FileType, getDisplayType } from "../../drive/model/DriveMimeUtils"
 import { DuplicateFilesDialogDecision } from "../../drive/view/DriveDuplicateFileDialog"
+import { memoizedWithHiddenArgument } from "../../../../ui/utils/memoized"
 
 const SEARCH_PAGE_SIZE = 100
 

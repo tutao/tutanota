@@ -1,7 +1,7 @@
 import m from "mithril"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
-import { isMailAddress } from "../../../platform-kit/utils/FormatUtils.js"
+import { isMailAddress } from "../../../ui/utils/FormatUtils.js"
 import { contains, delay, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { showBuyDialog } from "../subscription/BuyDialog.js"

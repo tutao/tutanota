@@ -265,7 +265,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async loadMultipleParsedInstances<T extends PersistentEntity>(
 		typeRef: TypeRef<T>,
-		listId: Id | null,
+		listId: Nullable<Id>,
 		elementIds: Array<Id>,
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -314,7 +314,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async loadMultiple<T extends PersistentEntity>(
 		typeRef: TypeRef<T>,
-		listId: Id | null,
+		listId: Nullable<Id>,
 		elementIds: Array<Id>,
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -324,7 +324,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	private async loadMultipleBlobElements(
-		archiveId: Id | null,
+		archiveId: Nullable<Id>,
 		idsToLoad: string,
 		headers: Dict,
 		path: string,
@@ -411,7 +411,7 @@ export class EntityRestClient implements EntityRestInterface {
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 	): Promise<DecryptedParsedInstance> {
-		let sessionKey: AesKey | null
+		let sessionKey: Nullable<AesKey>
 		if (isNotNull(ownerEncSessionKeyProvider)) {
 			const { elementId } = expandId(entityAdapter._id)
 
@@ -443,11 +443,11 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async setup<T extends PersistentEntity>(
-		listId: Id | null,
+		listId: Nullable<Id>,
 		instance: T,
 		extraHeaders: Nullable<Dict> = null,
 		options: Nullable<EntityRestClientSetupOptions> = null,
-	): Promise<Id | null> {
+	): Promise<Nullable<Id>> {
 		const typeRef = instance._type
 		const { clientTypeModel, path, headers, queryParams } = await this._validateAndPrepareRestRequest(
 			typeRef,

@@ -53,7 +53,7 @@ export interface SessionAndInstanceKeyResolver {
 	 */
 	resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>>
 
-	resolveSessionKeyWithOwnerKey(ownerKeyProvider: AesKey | null, migratedEntity: Entity): Promise<Nullable<AesKey>>
+	resolveSessionKeyWithOwnerKey(ownerKeyProvider: Nullable<AesKey>, migratedEntity: Entity): Promise<Nullable<AesKey>>
 
 	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: Entity): Promise<Nullable<AesKey>>
 

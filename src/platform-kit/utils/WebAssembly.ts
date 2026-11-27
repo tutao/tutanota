@@ -11,6 +11,7 @@ import {
 	WebAssemblyArgument,
 } from "./WebAssemblyArgument"
 import { TypeChecks } from "../app-env/TsTypeChecks"
+import { Nullable } from "@tutao/lang-api"
 
 /**
  * General interface for WASM exports, whether from native WASM or a fallback.
@@ -74,7 +75,7 @@ type ArgsToOverWrite = { arrayInWASM: Uint8Array; originalBufferYouPassedIn: Abs
  *
  * @return return value of the function
  */
-export function callWebAssemblyFunctionWithArguments<T>(func: (...args: number[]) => T, exports: WASMExports, ...args: (WebAssemblyArgument | null)[]): T {
+export function callWebAssemblyFunctionWithArguments<T>(func: (...args: number[]) => T, exports: WASMExports, ...args: Nullable<WebAssemblyArgument>[]): T {
 	const argsToPass: number[] = []
 	const toFree: Ptr[] = []
 	const toClear: Uint8Array[] = []

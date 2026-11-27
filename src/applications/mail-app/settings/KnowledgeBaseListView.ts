@@ -9,7 +9,7 @@ import { EnvProvider, ShareCapability } from "../../../platform-kit/app-env"
 import type { LoginController } from "../../common/api/main/LoginController"
 import { ListColumnWrapper } from "../../../ui/ListColumnWrapper"
 import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntryView"
-import { assertNotNull, memoized, NBSP, noOp } from "../../../platform-kit/utils"
+import { assertNotNull, NBSP, noOp } from "../../../platform-kit/utils"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../../ui/SelectableRowContainer.js"
 import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../ui/base/ListUtils.js"
@@ -27,6 +27,7 @@ import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { isSameSingleId, listIdPart } from "../../../platform-kit/meta"
+import { memoized } from "../../../ui/utils/memoized"
 
 EnvProvider.assertMainOrNode()
 

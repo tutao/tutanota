@@ -14,7 +14,7 @@ import { NotFoundError } from "@tutao/rest-client/error"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { EndType, ProgrammingError } from "../../../../../platform-kit/app-env"
 import m from "mithril"
-import { convertTextToHtml, deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "../../../../../platform-kit/utils"
+import { deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "../../../../../platform-kit/utils"
 import { ResolvedUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -22,6 +22,7 @@ import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { EventWrapper } from "../../view/CalendarViewModel"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
+import { convertTextToHtml } from "../../../../../ui/utils/FormatUtils"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.

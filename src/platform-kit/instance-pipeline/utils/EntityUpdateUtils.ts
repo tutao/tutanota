@@ -9,7 +9,7 @@ import { DecryptedParsedInstance } from "@tutao/instance-pipeline"
  */
 export type EntityUpdateData<T extends PersistentEntity = PersistentEntity> = {
 	typeRef: TypeRef<T>
-	instanceListId: Id | null
+	instanceListId: Nullable<Id>
 	instanceId: string
 	operation: OperationType
 	instance: Nullable<DecryptedParsedInstance>

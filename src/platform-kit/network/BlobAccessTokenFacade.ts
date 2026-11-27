@@ -286,7 +286,7 @@ class BlobAccessTokenCache {
 	 * First will try to use the token keyed by {@param archiveOrGroupKey}, otherwise it will try to find a token valid for all of {@param instanceIds}.
 	 */
 	public async getToken(
-		archiveOrGroupKey: Id | null,
+		archiveOrGroupKey: Nullable<Id>,
 		instanceIds: readonly Id[],
 		loader: () => Promise<BlobServerAccessInfo>,
 	): Promise<BlobServerAccessInfo> {
@@ -295,7 +295,15 @@ class BlobAccessTokenCache {
 			return archiveToken
 		}
 
-		const tokens = deduplicate(instanceIds.map((id) => this.instanceMap.get(id) ?? null))
+		const tokens = deduplicate(
+			instanceIds.map((id) => this.instanceMap.get(id) ?? null),
+
+			// TODO:
+			// default comparing function was ===
+			// but since we are comparing BlobServerAccessInfo, which is an object
+			// comparator was always returniung false? so technically nothing was deduplicated except for null
+			() => false,
+		)
 		const firstTokenFound = first(tokens)
 		if (tokens.length !== 1 || isNull(firstTokenFound) || !canBeUsedForAnotherRequest(firstTokenFound, this.dateProvider)) {
 			const newToken = await loader()

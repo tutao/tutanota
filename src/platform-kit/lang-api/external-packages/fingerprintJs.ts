@@ -1,7 +1,7 @@
 import { load as botdLoad } from "@fingerprintjs/botd"
-import { downcast } from "@tutao/lang-api"
+import { downcast, Nullable } from "@tutao/lang-api"
 
-export type BotdResult = { bot: boolean; botKind: BotKind | null }
+export type BotdResult = { bot: boolean; botKind: Nullable<BotKind> }
 
 export const enum BotKind {
 	Awesomium = "awesomium",
