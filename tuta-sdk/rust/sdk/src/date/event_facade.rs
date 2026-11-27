@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::panic;
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
-use time_tz::{timezones, Offset, TimeZone, Tz};
+use time_tz::{timezones, Offset, PrimitiveDateTimeExt, TimeZone, Tz};
 
 pub struct DateParts(pub Option<u32>, pub u8, pub u8);
 
@@ -144,7 +144,9 @@ impl EventFacade {
 		repeat_rule: &EventRepeatRule,
 		progenitor_date: DateTime,
 	) -> Result<Vec<DateTime>, ApiCallError> {
-		self.apply_by_rules(date, repeat_rule, progenitor_date)
+		// TODO: Remove hard-coded UTC time zone... currently this is just to preserve the pre-existing behaviour
+		let utc_time_zone = timezones::get_by_name("Etc/UTC").unwrap();
+		self.apply_by_rules(date, repeat_rule, progenitor_date, utc_time_zone)
 	}
 }
 
@@ -235,7 +237,7 @@ impl EventFacade {
 
 		while end_type != EndType::Count || occurrences < end_value.unwrap() {
 			let occurrences_for_date =
-				self.apply_by_rules(current_occurrence_date, &repeat_rule, event_start_time)?;
+				self.apply_by_rules(current_occurrence_date, &repeat_rule, event_start_time, tz)?;
 
 			let mut has_invalid_set_pos = false;
 			let parsed_set_pos: Vec<i64> = set_pos_rules
@@ -412,18 +414,26 @@ impl EventFacade {
 	/// * `date` - The date to apply the defined byrules
 	/// * `repeat_rule` - Repeat rule to extract all the byrules and relevant data
 	/// * `progenitor_date` - Original event start
+	/// * `time_zone` - The time zone that should be used for the next occurrence calculation
 	fn apply_by_rules(
 		&self,
 		date: DateTime,
 		repeat_rule: &EventRepeatRule,
 		progenitor_date: DateTime,
+		time_zone: &Tz,
 	) -> Result<Vec<DateTime>, ApiCallError> {
-		let Ok(parsed_date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
+		let Ok(offset_date_time_utc) =
+			OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64)
+		else {
 			log::warn!("Possible invalid date ({date:?}) provided to generate_future_instance, returning empty vec.");
 			return Ok(Vec::new());
 		};
+		// TODO: Do something better than unwrap
+		let time_zone_offset = time_zone.get_offset_local(&offset_date_time_utc).unwrap();
+		let utc_offset = time_zone_offset.to_utc();
+		let offset_date_time = offset_date_time_utc.to_offset(utc_offset);
 
-		let date = PrimitiveDateTime::new(parsed_date.date(), parsed_date.time());
+		let date = PrimitiveDateTime::new(offset_date_time.date(), offset_date_time.time());
 
 		let by_month_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
@@ -537,9 +547,16 @@ impl EventFacade {
 				day_applied_events,
 				valid_months.clone(),
 				Some(date_timestamp),
+				time_zone,
 			)
 			.iter()
-			.map(|date| DateTime::from_seconds(date.assume_utc().unix_timestamp().unsigned_abs()))
+			.map(|date| {
+				// TODO: Do something better than unwrap
+				let offset_date_time = date.assume_timezone(time_zone).unwrap();
+				let timestamp = offset_date_time.unix_timestamp();
+				let datetime = DateTime::from_seconds(timestamp.unsigned_abs());
+				return datetime;
+			})
 			.collect())
 	}
 	fn apply_month_rules(
@@ -1395,7 +1412,7 @@ impl EventFacade {
 			};
 		}
 
-		// Calculate next event to avoid creating events too ahead in the future
+		// Calculate next event to avoid creating events too far ahead in the future
 		let next_event = match date.checked_add(Duration::weeks(1)) {
 			Some(new_date) => new_date.assume_utc().unix_timestamp(),
 			None => {
@@ -1491,6 +1508,7 @@ impl EventFacade {
 		dates: Vec<PrimitiveDateTime>,
 		valid_months: Vec<u8>,
 		event_start_time: Option<u64>,
+		time_zone: &Tz,
 	) -> Vec<PrimitiveDateTime> {
 		let mut clean_dates;
 
@@ -1508,18 +1526,19 @@ impl EventFacade {
 			clean_dates = clean_dates
 				.iter()
 				.filter(|date| {
-					let date_unix_timestamp = date.assume_utc().unix_timestamp().unsigned_abs();
+					// TODO: Do something better than unwrap here. This is a must to prevent event from not being shown due to missing when switching to DST
+					let date_unix_timestamp = date
+						.assume_timezone(time_zone)
+						.unwrap()
+						.unix_timestamp()
+						.unsigned_abs();
 					date_unix_timestamp >= event_start_time.unwrap()
 				})
 				.copied()
 				.collect();
 		}
 
-		clean_dates.sort_by(|a, b| {
-			a.assume_utc()
-				.unix_timestamp()
-				.cmp(&b.assume_utc().unix_timestamp())
-		});
+		clean_dates.sort_by(|a, b| a.cmp(b));
 		clean_dates.dedup();
 		clean_dates
 	}
@@ -1978,6 +1997,7 @@ mod event_facade_unit_tests {
 		};
 		use crate::date::DateTime;
 		use time::{Date, Month};
+		use time_tz::timezones;
 
 		#[test]
 		fn test_generate_events_by_day_by_month_yearly() {
@@ -2548,6 +2568,70 @@ mod event_facade_unit_tests {
 			);
 
 			assert!(events.is_ok())
+		}
+
+		#[test]
+		fn test_generate_events_weekly_by_day() {
+			let events_facade = EventFacade {};
+
+			let max_date = DateTime::from_seconds(
+				Date::from_calendar_date(2026, Month::December, 22)
+					.unwrap()
+					.midnight()
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let repeat_rule = EventRepeatRule {
+				frequency: RepeatPeriod::Weekly,
+				by_rules: vec![ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "SU".to_string(),
+				}],
+			};
+
+			let events = events_facade.calculate_event_occurrences(
+				DateTime::from_seconds(1795302000), // 00:00 Nov 22 2026 (Europe/Berlin)
+				DateTime::from_seconds(1795303800), // 00:30 Nov 22 2026 (Europe/Berlin)
+				repeat_rule,
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"Europe/Berlin".to_string(),
+			);
+
+			println!("{events:?}");
+
+			log::info!("PRINT THE STRING");
+
+			assert!(events.is_ok());
+
+			// Test that we have the progenitor on 00:00 Nov 22 2026 (Europe/Berlin)
+			let expected_progenitor_timestamp = Date::from_calendar_date(2026, Month::November, 22)
+				.unwrap()
+				.with_time(Time::from_hms(0, 0, 0).unwrap())
+				.assume_timezone(timezones::get_by_name("Europe/Berlin").unwrap())
+				.unwrap()
+				.unix_timestamp() as u64;
+			assert_eq!(
+				expected_progenitor_timestamp,
+				events.clone().unwrap()[0].as_seconds()
+			);
+
+			// Test that we have the first reoccurrence on 00:00 Nov 29 2026 (Europe/Berlin)
+			let expected_first_reoccurrence_timestamp =
+				Date::from_calendar_date(2026, Month::November, 29)
+					.unwrap()
+					.with_time(Time::from_hms(0, 0, 0).unwrap())
+					.assume_timezone(timezones::get_by_name("Europe/Berlin").unwrap())
+					.unwrap()
+					.unix_timestamp() as u64;
+			assert_eq!(
+				expected_first_reoccurrence_timestamp,
+				events.clone().unwrap()[1].as_seconds()
+			);
 		}
 
 		#[test]
@@ -4134,6 +4218,34 @@ mod event_facade_unit_tests {
 
 	#[test]
 	fn test_flow_weekly_with_by_day() {
+		let time = Time::from_hms(0, 0, 00).unwrap();
+		let date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2026, Month::November, 22).unwrap(),
+			time,
+		);
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Weekly,
+			by_rules: vec![ByRule {
+				by_rule: ByRuleType::ByDay,
+				interval: "SU".to_string(),
+			}],
+		};
+
+		let event_recurrence = EventFacade {};
+		assert_eq!(
+			event_recurrence
+				.generate_future_instances(date.to_date_time(), &repeat_rule, date.to_date_time())
+				.unwrap(),
+			[
+				date.replace_day(13).unwrap().to_date_time(),
+				date.replace_day(14).unwrap().to_date_time()
+			]
+		);
+	}
+
+	#[test]
+	fn test_flow_weekly_with_by_day_and_time_zone() {
 		let time = Time::from_hms(13, 23, 00).unwrap();
 		let date = PrimitiveDateTime::new(
 			Date::from_calendar_date(2025, Month::February, 10).unwrap(),
