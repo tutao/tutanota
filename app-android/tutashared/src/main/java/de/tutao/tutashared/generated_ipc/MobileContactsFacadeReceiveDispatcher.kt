@@ -62,11 +62,6 @@ class MobileContactsFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"isLocalStorageAvailable" -> {
-				val result: Boolean = this.facade.isLocalStorageAvailable(
-				)
-				return json.encodeToString(result)
-			}
 			"findLocalMatches" -> {
 				val contacts: List<StructuredContact> = json.decodeFromString(arg[0])
 				val result: List<String> = this.facade.findLocalMatches(

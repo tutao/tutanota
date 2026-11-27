@@ -31,10 +31,6 @@ object AndroidMobileContactsFacadeStub : MobileContactsFacade {
 		throw NotImplementedError()
 	}
 
-	override suspend fun isLocalStorageAvailable(): Boolean {
-		throw NotImplementedError()
-	}
-
 	override suspend fun findLocalMatches(contacts: List<StructuredContact>): List<String> {
 		throw NotImplementedError()
 	}

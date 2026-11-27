@@ -52,10 +52,6 @@ public final class MobileContactsFacadeReceiveDispatcher: Sendable {
 				contactId
 			)
 			return "null"
-		case "isLocalStorageAvailable":
-			let result = try await self.facade.isLocalStorageAvailable(
-			)
-			return toJson(result)
 		case "findLocalMatches":
 			let contacts = try! JSONDecoder().decode([StructuredContact].self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.findLocalMatches(

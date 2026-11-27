@@ -88,9 +88,6 @@ final class TutaContactFacade: Sendable {
 	/// Removes the local contacts by their identifiers.
 	func deleteLocalContacts(_ contacts: [String]) throws { try self.nativeContactStoreFacade.delete(localContacts: contacts) }
 
-	/// Returns whether the local contact container is available
-	func isLocalStorageAvailable() -> Bool { nativeContactStoreFacade.isLocalStorageAvailable() }
-
 	private func getAllNotSyncedContacts() throws -> [CNContact] {
 		// We do want to go over all contacts
 		// We do not want to touch contacts that we sync for this or another account

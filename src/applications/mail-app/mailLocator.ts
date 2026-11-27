@@ -594,7 +594,7 @@ class MailLocator implements CommonLocator {
 			this.contactFacade,
 			this.systemPermissionHandler,
 			EnvProvider.get().isApp() ? this.mobileContactsFacade : null,
-			EnvProvider.get().isApp() ? this.nativeContactsSyncManager() : null,
+			EnvProvider.get().isAndroidApp() ? this.nativeContactsSyncManager() : null,
 		)
 	}
 
@@ -766,7 +766,7 @@ class MailLocator implements CommonLocator {
 		return EnvProvider.get().isBrowser()
 			? new NoopCredentialRemovalHandler()
 			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async (login, userId) => {
-					if (EnvProvider.get().isApp()) {
+					if (EnvProvider.get().isAndroidApp()) {
 						await mailLocator.nativeContactsSyncManager().disableSync(userId, login)
 					}
 					await mailLocator.indexerFacade.deleteIndex(userId)
@@ -1430,7 +1430,7 @@ class MailLocator implements CommonLocator {
 	}
 
 	readonly nativeContactsSyncManager: () => NativeContactsSyncManager = lazyMemoized(() => {
-		assert(EnvProvider.get().isApp(), "isApp")
+		assert(EnvProvider.get().isAndroidApp(), "isAndroidApp")
 		return new NativeContactsSyncManager(this.logins, this.mobileContactsFacade, this.entityClient, this.eventController, this.contactModel, deviceConfig)
 	})
 
@@ -1464,7 +1464,7 @@ class MailLocator implements CommonLocator {
 				await this.contactImporter(),
 				this.systemFacade,
 				this.credentialsProvider,
-				await this.nativeContactsSyncManager(),
+				EnvProvider.get().isAndroidApp() ? this.nativeContactsSyncManager() : null,
 				deviceConfig,
 				true,
 			)

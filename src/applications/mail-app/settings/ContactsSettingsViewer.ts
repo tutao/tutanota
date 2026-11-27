@@ -78,7 +78,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderContactsSyncDropdown(): Child {
-		if (!EnvProvider.get().isApp()) return null
+		if (!EnvProvider.get().isAndroidApp()) return null
 
 		return m(
 			"#contactsync",
@@ -109,7 +109,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async onContactSyncSelectionChanged(contactSyncEnabled: boolean) {
-		assert(EnvProvider.get().isApp(), "isApp")
+		assert(EnvProvider.get().isAndroidApp(), "isAndroidApp")
 		const syncManager = mailLocator.nativeContactsSyncManager()
 
 		if (!contactSyncEnabled) {

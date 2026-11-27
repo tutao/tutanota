@@ -65,19 +65,11 @@ final class IosMobileContactsFacade: MobileContactsFacade {
 		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
 	}
 
-	func isLocalStorageAvailable() async throws -> Bool {
-		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
-	}
-
 	func findLocalMatches(_ contacts: [TutanotaSharedFramework.StructuredContact]) async throws -> [String] {
 		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
 	}
 
 	func deleteLocalContacts(_ contacts: [String]) async throws {
-		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
-	}
-
-	func matchStoredContacts(_ username: String, _ contactId: String?) async throws {
 		throw TUTErrorFactory.createError(withDomain: ERROR_DOMAIN, message: "Contact sync isn't available on Tuta Calendar")
 	}
 }

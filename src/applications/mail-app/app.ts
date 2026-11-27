@@ -204,16 +204,10 @@ import("../../ui/translations/en.js")
 					if (sessionType === SessionType.Temporary) {
 						return
 					}
-					if (EnvProvider.get().isApp()) {
+					if (EnvProvider.get().isAndroidApp()) {
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 						const syncManager = mailLocator.nativeContactsSyncManager()
-						if (syncManager.isEnabled() && EnvProvider.get().isIOSApp()) {
-							const canSync = await syncManager.canSync()
-							if (!canSync) {
-								await syncManager.disableSync()
-							}
-						}
-						syncManager.syncContacts()
+						void syncManager.syncContacts()
 					}
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
