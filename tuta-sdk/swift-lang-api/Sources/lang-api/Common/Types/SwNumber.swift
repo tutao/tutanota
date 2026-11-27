@@ -2,6 +2,10 @@ public typealias TsNumber = SwNumber
 public final class SwNumber: Sendable, EquitableIsStructural, Hashable, Comparable {
   internal let inner: Double
 
+  internal var int: Int {
+    Int(self.inner)
+  }
+
   public init(_ value: Double) {
     self.inner = value
   }
@@ -18,8 +22,20 @@ public final class SwNumber: Sendable, EquitableIsStructural, Hashable, Comparab
     return lhs.inner == rhs.inner
   }
 
+  public static func + (lhs: SwNumber, rhs: SwNumber) -> SwNumber {
+    return SwNumber(lhs.inner + rhs.inner)
+  }
+
+  public static func - (lhs: SwNumber, rhs: SwNumber) -> SwNumber {
+    return SwNumber(lhs.inner - rhs.inner)
+  }
+
   public static func * (lhs: SwNumber, rhs: SwNumber) -> SwNumber {
     return SwNumber(lhs.inner * rhs.inner)
+  }
+
+  public static func / (lhs: SwNumber, rhs: SwNumber) -> SwNumber {
+    return SwNumber(lhs.inner / rhs.inner)
   }
 
   public func hash(into hasher: inout Hasher) {

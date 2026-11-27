@@ -42,10 +42,10 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
   }
 
   public func at(_ index: SwNumber) throws -> Nullable<T> {
-    if index.inner > self.inner.count {
+    if index.int > self.inner.count {
       return nil
     }
-    return self.inner[index.inner]
+    return self.inner[index.int]
   }
 
   public func first() throws -> T {

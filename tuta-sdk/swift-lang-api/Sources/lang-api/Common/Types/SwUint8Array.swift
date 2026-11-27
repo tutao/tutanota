@@ -11,14 +11,14 @@ public class SwUint8Array: @unchecked Sendable {
 
   public subscript(index: SwNumber) -> Nullable<SwNumber> {
     get {
-      let actualIndex = self.inner.startIndex + index.inner
+      let actualIndex = self.inner.startIndex + index.int
       guard self.inner.indices.contains(actualIndex) else {
         return nil
       }
       return SwNumber(Int(self.inner[actualIndex]))
     }
     set(newValue) {
-      let actualIndex = self.inner.startIndex + index.inner
+      let actualIndex = self.inner.startIndex + index.int
       guard self.inner.indices.contains(actualIndex) else {
         return
       }
@@ -28,18 +28,18 @@ public class SwUint8Array: @unchecked Sendable {
   }
 
   public func subarray(_ begin: SwNumber = SwNumber(0), _ end: SwNumber? = nil) -> SwUint8Array {
-    var begin = begin.inner
+    var begin = begin.int
     if begin < 0 {
-      begin = self.length.inner + begin
+      begin = self.length.int + begin
     }
-    begin = min(max(begin, 0), self.length.inner)
+    begin = min(max(begin, 0), self.length.int)
     let startIndex = self.inner.startIndex + begin
 
-    var end = end?.inner ?? self.length.inner
+    var end = end?.int ?? self.length.int
     if end < 0 {
-      end = self.length.inner + end
+      end = self.length.int + end
     }
-    end = min(max(end, 0), self.length.inner)
+    end = min(max(end, 0), self.length.int)
     let endIndex = self.inner.startIndex + end
 
     guard
@@ -66,7 +66,7 @@ public class SwUint8Array: @unchecked Sendable {
       throw try TutanotaError(SwString("RangeError"), SwString("source array is too long"))
     }
 
-    let offsetStartIndex = self.inner.startIndex + targetOffset.inner
+    let offsetStartIndex = self.inner.startIndex + targetOffset.int
 
     for i in array.indices {
       self.inner[offsetStartIndex + i] = array[array.startIndex + i]
@@ -90,18 +90,18 @@ public class SwUint8Array: @unchecked Sendable {
   public func fill(_ value: SwNumber, _ start: SwNumber = SwNumber(0), _ end: SwNumber? = nil)
     -> Self
   {
-    var start = start.inner
+    var start = start.int
     if start < 0 {
-      start = self.length.inner + start
+      start = self.length.int + start
     }
-    start = min(max(start, 0), self.length.inner)
+    start = min(max(start, 0), self.length.int)
     let startIndex = self.inner.startIndex + start
 
-    var end = end?.inner ?? self.length.inner
+    var end = end?.int ?? self.length.int
     if end < 0 {
-      end = self.length.inner + end
+      end = self.length.int + end
     }
-    end = min(max(end, 0), self.length.inner)
+    end = min(max(end, 0), self.length.int)
     let endIndex = self.inner.startIndex + end
 
     guard startIndex < endIndex else {

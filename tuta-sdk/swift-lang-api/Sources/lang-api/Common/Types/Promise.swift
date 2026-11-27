@@ -32,21 +32,24 @@ public final class Promise<T: Sendable>: Sendable {
   public func then<P: Sendable>(_ syncAction: @Sendable @escaping (T) throws -> P)
     throws -> Promise<P>
   {
-      fatalError()
+    fatalError()
   }
 
-
-  public func `catch`(_ action: @Sendable @escaping (TutanotaError) async throws -> Promise<T>) throws -> Promise<T>
+  public func `catch`(_ action: @Sendable @escaping (TutanotaError) async throws -> Promise<T>)
+    throws -> Promise<T>
   {
     fatalError("not implemented")
   }
 
-  public func `catch`(_ action: @Sendable @escaping (TutanotaError) throws -> T) throws -> Promise<T>
-  {
+  public func `catch`(_ action: @Sendable @escaping (TutanotaError) throws -> T) throws -> Promise<
+    T
+  > {
     fatalError("not implemented")
   }
 
-  public func finally(_ action: @Sendable @escaping () async throws -> Promise<Void>) throws -> Promise<T> {
+  public func finally(_ action: @Sendable @escaping () async throws -> Promise<Void>) throws
+    -> Promise<T>
+  {
     return Promise({
       let value: T
       do {
@@ -56,7 +59,7 @@ public final class Promise<T: Sendable>: Sendable {
         throw error
       }
 
-      let _ =  try await action()
+      let _ = try await action()
       return Promise.resolve(value)
     })
   }
@@ -71,7 +74,7 @@ public final class Promise<T: Sendable>: Sendable {
         throw error
       }
 
-      let _ =  try action()
+      let _ = try action()
       return Promise.resolve(value)
     })
   }

@@ -35,7 +35,7 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
   }
 
   public func at(_ index: SwNumber) -> Nullable<SwString> {
-    let actualIndex = index.inner < 0 ? self.utf16.count + index.inner : index.inner
+    let actualIndex = index.inner < 0 ? self.utf16.count + index.int : index.int
     guard let unit = self.codeUnit(at: actualIndex) else {
       return nil
     }
@@ -43,26 +43,26 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
   }
 
   public func charAt(_ index: SwNumber) -> SwString {
-    guard let unit = self.codeUnit(at: index.inner) else {
+    guard let unit = self.codeUnit(at: index.int) else {
       return SwString("")
     }
     return SwString(String(decoding: [unit], as: UTF16.self))
   }
 
   public func charCodeAt(_ index: SwNumber) -> SwNumber {
-    guard let unit = self.codeUnit(at: index.inner) else {
+    guard let unit = self.codeUnit(at: index.int) else {
       return SwNumber(Double.nan)
     }
     return SwNumber(Double(Int(unit)))
   }
 
   public func codePointAt(_ index: SwNumber) -> Nullable<SwNumber> {
-    guard let first = codeUnit(at: index.inner) else {
+    guard let first = codeUnit(at: index.int) else {
       return nil
     }
     guard
       (0xD800...0xDBFF).contains(first),
-      let second = codeUnit(at: index.inner + 1),
+      let second = codeUnit(at: index.int + 1),
       (0xDC00...0xDFFF).contains(second)
     else {
       return SwNumber(Int(first))
@@ -77,7 +77,7 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
   public func endsWith(_ searchString: SwString, _ endPosition: SwNumber? = nil) -> Bool {
     let source = self.utf16
     let search = searchString.utf16
-    let end = min(max(endPosition?.inner ?? source.count, 0), source.count)
+    let end = min(max(endPosition?.int ?? source.count, 0), source.count)
 
     guard search.count <= end else {
       return false
@@ -88,7 +88,7 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
 
   public func includes(_ searchString: SwString, _ position: SwNumber = SwNumber(0)) -> Bool {
     let source = self.utf16
-    let startIndex = source.index(source.startIndex, offsetBy: position.inner)
+    let startIndex = source.index(source.startIndex, offsetBy: position.int)
 
     return source.suffix(from: startIndex).contains(searchString.utf16)
   }
@@ -97,23 +97,23 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     let source = self.utf16
     let search = searchString.utf16
 
-    var position = position
-    if position < SwNumber(0) {
-      position = SwNumber(0)
+    var position = position.int
+    if position < 0 {
+      position = 0
     }
 
-    guard position.inner + search.count <= source.count else {
+    guard position + search.count <= source.count else {
       return SwNumber(-1)
     }
 
-    let startIndex = source.index(source.startIndex, offsetBy: position.inner)
+    let startIndex = source.index(source.startIndex, offsetBy: position)
     var candidate = startIndex
     let lastCandidate = source.index(source.endIndex, offsetBy: -search.count)
 
     while candidate <= lastCandidate {
       let matchEnd = source.index(candidate, offsetBy: search.count)
       if source[candidate..<matchEnd].elementsEqual(search) {
-        return position + SwNumber(source.distance(from: startIndex, to: candidate))
+        return SwNumber(position + source.distance(from: startIndex, to: candidate))
       }
       source.formIndex(after: &candidate)
     }
@@ -131,23 +131,23 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
     let source = self.utf16
     let search = searchString.utf16
 
-    var position = position
-    if position < SwNumber(0) {
-      position = SwNumber(0)
+    var position = position.int
+    if position < 0 {
+      position = 0
     }
 
-    guard position.inner + search.count <= source.count else {
+    guard position + search.count <= source.count else {
       return SwNumber(-1)
     }
 
-    let startIndex = source.index(source.startIndex, offsetBy: position.inner)
+    let startIndex = source.index(source.startIndex, offsetBy: position)
     let lastCandidate = startIndex
     var candidate = source.index(source.endIndex, offsetBy: -search.count)
 
     while candidate <= lastCandidate {
       let matchEnd = source.index(candidate, offsetBy: search.count)
       if source[candidate..<matchEnd].elementsEqual(search) {
-        return position + SwNumber(source.distance(from: startIndex, to: candidate))
+        return SwNumber(position + source.distance(from: startIndex, to: candidate))
       }
       source.formIndex(before: &candidate)
     }
@@ -167,16 +167,16 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
 
   public func padStart(_ targetLength: SwNumber, _ padString: SwString = SwString(" ")) -> SwString
   {
-    let missing = max(targetLength.inner - self.length.inner, 0)
-    let repetitions = padString.length.inner / missing
-    let remainder = padString.length.inner % missing
+    let missing = max(targetLength.int - self.length.int, 0)
+    let repetitions = padString.length.int / missing
+    let remainder = padString.length.int % missing
 
     return padString.repeat(SwNumber(repetitions))
       + padString.slice(SwNumber(0), SwNumber(remainder)) + self
   }
 
   public func `repeat`(_ count: SwNumber) -> SwString {
-    return SwString(String(repeating: self.inner, count: count.inner))
+    return SwString(String(repeating: self.inner, count: count.int))
   }
 
   public func replace(_ pattern: SwRegExp, _ replacement: SwString) -> SwString {
@@ -206,8 +206,8 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
 
   public func slice(_ indexStart: SwNumber, _ indexEnd: SwNumber? = nil) -> SwString {
     let indexEnd = indexEnd ?? self.length
-    let startIndex = self.utf16.index(self.utf16.startIndex, offsetBy: indexStart.inner)
-    let endIndex = self.utf16.index(self.utf16.startIndex, offsetBy: indexEnd.inner)
+    let startIndex = self.utf16.index(self.utf16.startIndex, offsetBy: indexStart.int)
+    let endIndex = self.utf16.index(self.utf16.startIndex, offsetBy: indexEnd.int)
 
     return SwString(String(self.utf16[startIndex..<endIndex]) ?? "")
   }
@@ -286,12 +286,12 @@ public final class SwString: Sendable, Equatable, Hashable, ToString {
   }
 
   public static func fromCharCode(_ nums: SwNumber...) -> SwString {
-    let utf16Array = Array(nums.map({ UInt16($0.inner % 65536) }))
+    let utf16Array = Array(nums.map({ UInt16($0.int % 65536) }))
     return SwString(String(utf16CodeUnits: utf16Array, count: utf16Array.count))
   }
 
   public static func fromCodePoint(_ nums: SwNumber...) -> SwString {
-    return SwString(String(String.UnicodeScalarView(nums.compactMap({ UnicodeScalar($0.inner) }))))
+    return SwString(String(String.UnicodeScalarView(nums.compactMap({ UnicodeScalar($0.int) }))))
   }
 
   // I don't even know what the signature should be
