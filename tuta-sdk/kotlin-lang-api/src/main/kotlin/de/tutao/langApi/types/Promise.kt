@@ -4,6 +4,7 @@ import de.tutao.langApi.TutanotaError
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlin.experimental.ExperimentalTypeInference
 
 @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
 class Promise<T> private constructor(private val task: Deferred<T>) {
@@ -28,17 +29,19 @@ class Promise<T> private constructor(private val task: Deferred<T>) {
 		return task.await()
 	}
 
-
-	fun <P> then(asyncAction: suspend (T) -> Promise<P>): Promise<P> {
-		return Promise(GlobalScope.async {
-			val res = this@Promise.await()
-			asyncAction(res).await()
-		})
+	@OptIn(ExperimentalTypeInference::class)
+	@OverloadResolutionByLambdaReturnType
+	@JvmName("thenSync")
+	fun <P> then(syncAction: (T) -> P): Promise<P> {
+		TODO()
 	}
 
-//	fun <P> then(syncAction: (T) -> P): Promise<P> {
-//		TODO("not implemented")
-//	}
+	@OptIn(ExperimentalTypeInference::class)
+	@OverloadResolutionByLambdaReturnType
+	@JvmName("thenAsync")
+	fun <P> then(asyncAction: suspend (T) -> Promise<P>): Promise<P> {
+		TODO()
+	}
 
 	fun `catch`(action: suspend (TutanotaError) -> Promise<T>): Promise<T> {
 		TODO("not implemented")
@@ -77,6 +80,4 @@ class Promise<T> private constructor(private val task: Deferred<T>) {
 			value
 		})
 	}
-
-
 }

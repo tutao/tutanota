@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.3.0-RC"
+kotlin = "2.4.21"
 
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
