@@ -1,7 +1,6 @@
 import { assertNotNull, DeepEquals, downcast, isNotNull, isNull, Nullable } from "./Utils.js"
-import { TypeChecks } from "@tutao/lang-api"
-
-export { BrandedType, TsBrand, newPromise } from "@tutao/lang-api"
+import { TypeChecks } from "../app-env/TsTypeChecks.js"
+export { BrandedType, TsBrand } from "@tutao/lang-api"
 
 // This file is not transpiled
 /* eslint-disable  no-restricted-syntax */
@@ -288,6 +287,20 @@ function isArguments(a: any): boolean {
 }
 
 const hasOwn = {}.hasOwnProperty
+
+/**
+ * Factory method to allow tracing unresolved promises.
+ */
+export function newPromise<T>(executor: (resolve: (value: T) => void, reject: (reason?: any) => void) => void, tag?: string): Promise<T> {
+	const promise = new Promise<T>((resolve, reject) => {
+		executor(resolve, reject)
+	})
+
+	// only to be enabled for local debugging purposes
+	// 	traceUnresolvedPromises(promise, tag)
+
+	return promise
+}
 
 function traceUnresolvedPromises<T>(promise: Promise<T>, tag: Nullable<string> = null): void {
 	let pending = true

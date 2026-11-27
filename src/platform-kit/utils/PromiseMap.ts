@@ -1,5 +1,4 @@
 import { TypeChecks } from "../app-env/TsTypeChecks"
-import { newPromise } from "@tutao/lang-api"
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -54,7 +53,7 @@ export async function pMap<Element, NewElement>(
 	options: Options = { concurrency: 1 },
 ): Promise<Array<NewElement>> {
 	const concurrency = options.concurrency ?? 1
-	return newPromise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		if (!TypeChecks.isFunction(mapper)) {
 			throw new TypeError("Mapper function is required")
 		}
