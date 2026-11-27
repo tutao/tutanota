@@ -83,6 +83,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			: null
 	})
 
+	private readonly canHaveUsers = new LazyLoaded<boolean>(() => locator.logins.getUserController().canHaveUsers())
+
 	private accountMaintenanceUpdateNotifier: AccountMaintenanceUpdateNotifier | null = null
 
 	private spamRuleLines: ReadonlyArray<TableLineAttrs> = []
@@ -103,6 +105,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	constructor() {
 		this.customerProperties.getAsync().then(m.redraw)
 		this.companyEmailSignatureTemplate.getAsync().then(m.redraw)
+		this.canHaveUsers.getAsync().then(m.redraw)
 		this.updateCustomerServerProperties()
 		this.view = this.view.bind(this)
 		this.updateDomains()
@@ -307,7 +310,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	renderCompanyEmailSignatureTemplateSettings(): Children {
 		const companyEmailSignatureTemplate = this.companyEmailSignatureTemplate.getSync()
-		if (!this.companyEmailSignatureTemplate.isLoaded()) {
+		if (!this.companyEmailSignatureTemplate.isLoaded() || !this.canHaveUsers.isLoaded() || !this.canHaveUsers.getLoaded()) {
 			return null
 		}
 
