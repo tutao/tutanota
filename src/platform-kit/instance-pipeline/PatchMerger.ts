@@ -34,7 +34,7 @@ import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 import { IncomingServerJson } from "./TypeMapper"
-import { isNull, TsInt } from "@tutao/lang-api"
+import { isNull } from "@tutao/lang-api"
 import { AssociationPath, ValuePath } from "./EncryptionContextPath"
 import { InstanceTypeId, makeKeyDerivationContext } from "./InstanceTypeContext"
 
@@ -412,7 +412,7 @@ export class PatchMerger {
 			throw new PatchOperationError("Invalid attributePath, expected non-empty attributePath")
 		}
 		try {
-			const attributeId = TsInt.parseInt(pathItem.split(":")[0])
+			const attributeId = Number.parseInt(pathItem.split(":")[0])
 			const attributeIdsInServerTypeModel = Object.keys(serverTypeModel.values).concat(Object.keys(serverTypeModel.associations))
 
 			if (!attributeIdsInServerTypeModel.some((attribute) => attribute === attributeId.toString())) {

@@ -1,7 +1,7 @@
-import { TsInt, TsString } from "./primitives"
+import { TsString } from "./primitives"
 
 export const TsMath = {
-	pow(base: TsInt, raise: TsInt): TsInt {
+	pow(base: number, raise: number): number {
 		return Math.pow(base, raise)
 	},
 }

@@ -1,6 +1,6 @@
 import { TutanotaError } from "@tutao/app-env"
 import { filterInt } from "@tutao/utils"
-import { Nullable, TsInt, TutanotaErrorWithData } from "@tutao/lang-api"
+import { Nullable, TutanotaErrorWithData } from "@tutao/lang-api"
 
 export class HttpClientError extends TutanotaError implements TutanotaErrorWithData<Nullable<string>> {
 	public constructor(
@@ -210,7 +210,7 @@ export class SuspensionError extends HttpClientError {
 	) {
 		super("SuspensionError", message, suspensionTime)
 
-		if (suspensionTime != null && TsInt.isNaN(filterInt(suspensionTime))) {
+		if (suspensionTime != null && Number.isNaN(filterInt(suspensionTime))) {
 			throw new Error("invalid suspension time value (NaN)")
 		}
 	}

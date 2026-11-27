@@ -1,5 +1,5 @@
 public protocol NumberBasedEnum {
-  var __tsValue: SwInt { get }
+  var __tsValue: SwNumber { get }
 }
 
 public protocol StringBasedEnum {
@@ -11,7 +11,7 @@ public final class LangApiEnum {
     return value.__tsValue
   }
 
-  public static func getNumericEnumValue<E: NumberBasedEnum>(_ value: E) -> SwInt {
+  public static func getNumericEnumValue<E: NumberBasedEnum>(_ value: E) -> SwNumber {
     return value.__tsValue
   }
 }

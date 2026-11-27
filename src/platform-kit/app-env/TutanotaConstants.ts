@@ -1,5 +1,5 @@
 import { TimeConstants } from "./TimeConstants.js"
-import { TsDouble, TsInt, TsMath, TsObject, TsString } from "@tutao/lang-api"
+import { TsMath, TsObject, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
 	constructor() {}
@@ -7,7 +7,7 @@ export class TutanotaConstants {
 	public static readonly Const: Readonly<ConstType> = {
 		INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
 		REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
-		MEMORY_GB_FACTOR: TsDouble.from(1000000000),
+		MEMORY_GB_FACTOR: 1000000000,
 		MEMORY_WARNING_FACTOR: 0.9,
 		// Sets the current date for testing date dependent services. Only available in test environments.
 		CURRENT_DATE: null,
@@ -40,27 +40,27 @@ export class TutanotaConstants {
 
 	public static readonly DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN: TsString = "tutamail.com"
 
-	public static readonly MAX_LOGO_SIZE: TsInt = 1024 * 100
-	public static readonly MAX_BASE64_IMAGE_SIZE: TsInt = TutanotaConstants.MAX_LOGO_SIZE
+	public static readonly MAX_LOGO_SIZE: number = 1024 * 100
+	public static readonly MAX_BASE64_IMAGE_SIZE: number = TutanotaConstants.MAX_LOGO_SIZE
 	public static readonly ALLOWED_IMAGE_FORMATS: ReadonlyArray<string> = TsObject.freeze(["png", "jpg", "jpeg", "svg"])
 
-	public static readonly GENERATED_ID_MAX_TIMESTAMP: TsInt = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
-	public static readonly GENERATED_ID_MIN_TIMESTAMP: TsInt = 0
-	public static readonly FULL_INDEXED_TIMESTAMP: TsInt = TutanotaConstants.GENERATED_ID_MIN_TIMESTAMP
-	public static readonly NOTHING_INDEXED_TIMESTAMP: TsInt = TutanotaConstants.GENERATED_ID_MAX_TIMESTAMP
+	public static readonly GENERATED_ID_MAX_TIMESTAMP: number = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+	public static readonly GENERATED_ID_MIN_TIMESTAMP: number = 0
+	public static readonly FULL_INDEXED_TIMESTAMP: number = TutanotaConstants.GENERATED_ID_MIN_TIMESTAMP
+	public static readonly NOTHING_INDEXED_TIMESTAMP: number = TutanotaConstants.GENERATED_ID_MAX_TIMESTAMP
 
-	public static readonly ENTITY_EVENT_BATCH_TTL_DAYS: TsInt = 45 // 45 days (see InstanceDbMapperEventNotifier.java)
+	public static readonly ENTITY_EVENT_BATCH_TTL_DAYS: number = 45 // 45 days (see InstanceDbMapperEventNotifier.java)
 
-	public static readonly FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS: TsInt = 31
+	public static readonly FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS: number = 31
 
-	public static readonly PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS: TsInt = 2 * 365
-	public static readonly EXTERNAL_CALENDAR_SYNC_INTERVAL: TsInt = 60 * 30 * 1000 // 30 minutes
+	public static readonly PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS: number = 2 * 365
+	public static readonly EXTERNAL_CALENDAR_SYNC_INTERVAL: number = 60 * 30 * 1000 // 30 minutes
 
 	public static readonly DEFAULT_ERROR: TsString = "defaultError"
 
 	public static readonly BIRTHDAY_CALENDAR_BASE_ID: TsString = "birthday_calendar"
 	public static readonly DEFAULT_BIRTHDAY_CALENDAR_COLOR: TsString = "FF9933"
-	public static readonly MAX_LABELS_PER_MAIL: TsInt = 5
+	public static readonly MAX_LABELS_PER_MAIL: number = 5
 	public static readonly TUTA_MAIL_GOOGLE_PLAY_URL: TsString = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
 	public static readonly TUTA_MAIL_APP_STORE_URL: TsString = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
 	public static readonly TUTA_CALENDAR_GOOGLE_PLAY_URL: TsString = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
@@ -76,23 +76,23 @@ export class TutanotaConstants {
 	 * We pick a max word frequency of 2^5 so that we can compress it together
 	 * with the index (which is 2^11 =2048) into two bytes
 	 */
-	public static readonly MAX_WORD_FREQUENCY: TsInt = 31
-	public static readonly DEFAULT_VECTOR_MAX_LENGTH: TsInt = 2048
-	public static readonly UNDO_SEND_TIMEOUT_SECONDS: TsInt = 10
+	public static readonly MAX_WORD_FREQUENCY: number = 31
+	public static readonly DEFAULT_VECTOR_MAX_LENGTH: number = 2048
+	public static readonly UNDO_SEND_TIMEOUT_SECONDS: number = 10
 
 	public static readonly companyTeamLabel: TsString = "Tuta Team"
 
-	public static readonly FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 28
-	public static readonly PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 365
-	public static readonly MAX_LABELS_PER_FREE_USER: TsInt = 3
-	public static readonly INITIAL_MAIL_INDEX_INTERVAL_DAYS: TsInt = 28
+	public static readonly FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS: number = 28
+	public static readonly PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS: number = 365
+	public static readonly MAX_LABELS_PER_FREE_USER: number = 3
+	public static readonly INITIAL_MAIL_INDEX_INTERVAL_DAYS: number = 28
 }
 
 export type ConstType = {
-	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: TsInt
-	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: TsInt
-	MEMORY_GB_FACTOR: TsDouble
-	MEMORY_WARNING_FACTOR: TsDouble
+	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
+	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: number
+	MEMORY_GB_FACTOR: number
+	MEMORY_WARNING_FACTOR: number
 	CURRENT_DATE: Date | null
 	CURRENCY_SYMBOL_EUR: TsString
 	DEFAULT_APP_DOMAIN: TsString

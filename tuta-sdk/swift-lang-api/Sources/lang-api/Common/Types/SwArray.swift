@@ -28,7 +28,7 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     return SwArray(items)
   }
 
-  public subscript(_ index: SwInt) -> Nullable<T> {
+  public subscript(_ index: SwNumber) -> Nullable<T> {
     get {
       fatalError("not yet implemented!")
     }
@@ -37,15 +37,15 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     }
   }
 
-  public var length: SwInt {
-    return SwInt(self.inner.count)
+  public var length: SwNumber {
+    return SwNumber(self.inner.count)
   }
 
-  public func at(_ index: SwInt) throws -> Nullable<T> {
-    if index.asPrimitive() > self.inner.count {
+  public func at(_ index: SwNumber) throws -> Nullable<T> {
+    if index.inner > self.inner.count {
       return nil
     }
-    return self.inner[index.asPrimitive()]
+    return self.inner[index.inner]
   }
 
   public func first() throws -> T {
@@ -62,20 +62,20 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     return self.inner[2]
   }
 
-  public func atUnchecked(_ index: SwInt) -> T {
+  public func atUnchecked(_ index: SwNumber) -> T {
     return self.inner[0]
   }
 
-  public func find(_ predicate: (T, SwInt, SwArray<T>) throws -> Bool) rethrows -> Nullable<T> {
+  public func find(_ predicate: (T, SwNumber, SwArray<T>) throws -> Bool) rethrows -> Nullable<T> {
     for (index, value) in self.inner.enumerated() {
-      if try predicate(value, SwInt(index), self) {
+      if try predicate(value, SwNumber(index), self) {
         return value
       }
     }
     return nil
   }
 
-  public func find(_ predicate: (T, SwInt) throws -> Bool) rethrows -> Nullable<T> {
+  public func find(_ predicate: (T, SwNumber) throws -> Bool) rethrows -> Nullable<T> {
     return try self.find({ (_ value, _ index, _ array) throws in try predicate(value, index) })
   }
 
@@ -87,15 +87,15 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     fatalError("not yet implemented!")
   }
 
-  public func indexOf(_ searchElement: T, from: SwInt = SwInt(0)) -> SwInt {
-    return SwInt(-1)
+  public func indexOf(_ searchElement: T, from: SwNumber = SwNumber(0)) -> SwNumber {
+    return SwNumber(-1)
   }
 
   public func makeIterator() -> IndexingIterator<[Element]> {
     self.inner.makeIterator()
   }
 
-  public func push(_ item: T) -> SwInt {
+  public func push(_ item: T) -> SwNumber {
     self.inner.append(item)
     return self.length
   }
@@ -120,15 +120,15 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     fatalError("not yet implemented")
   }
 
-  public func findIndex(_ predicate: (T) throws -> Bool) rethrows -> SwInt {
+  public func findIndex(_ predicate: (T) throws -> Bool) rethrows -> SwNumber {
     fatalError("not yet implemented")
   }
 
-  public func slice(_ start: SwInt, _ count: Nullable<SwInt> = nil) throws -> SwArray<T> {
+  public func slice(_ start: SwNumber, _ count: Nullable<SwNumber> = nil) throws -> SwArray<T> {
     fatalError("not yet implemented")
   }
 
-  public func splice(_ start: SwInt, _ deleteCound: Nullable<SwInt> = nil, _ itemsToAdd: T...)
+  public func splice(_ start: SwNumber, _ deleteCound: Nullable<SwNumber> = nil, _ itemsToAdd: T...)
     throws -> SwArray<T>
   {
     // ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
@@ -151,7 +151,7 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     fatalError("not yet implemented!")
   }
 
-  public func sort(_ sortingFn: (T, T) throws -> SwInt) rethrows -> SwArray<T> {
+  public func sort(_ sortingFn: (T, T) throws -> SwNumber) rethrows -> SwArray<T> {
     fatalError("not yet implemented!")
   }
 

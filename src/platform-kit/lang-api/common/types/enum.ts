@@ -1,4 +1,4 @@
-import { TsInt, TsString } from "./primitives"
+import { TsString } from "./primitives"
 import { assertNotNull } from "../functional"
 import { TsObject } from "./ecmascript"
 
@@ -12,8 +12,8 @@ export class LangApiEnum {
 		return value
 	}
 
-	/// Same as getStringEnumValue but for enum whose assoicated value is number
-	public static getNumericEnumValue(value: TsInt): TsInt {
+	/// Same as getStringEnumValue but for enum whose associated value is number
+	public static getNumericEnumValue(value: number): number {
 		return value
 	}
 

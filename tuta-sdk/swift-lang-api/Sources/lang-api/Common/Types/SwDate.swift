@@ -11,15 +11,15 @@ public final class SwDate: Sendable {
     self.init(Date.now)
   }
 
-  public convenience init(_ value: TsInt) {
+  public convenience init(_ value: SwNumber) {
     self.init(Date(timeIntervalSince1970: Double(value.inner) / 1_000))
   }
 
-  public func getTime() -> TsInt {
-    return TsInt(Int(self.inner.timeIntervalSince1970 * 1_000))
+  public func getTime() -> SwNumber {
+    return SwNumber(Int(self.inner.timeIntervalSince1970 * 1_000))
   }
 
-  public static func now() -> TsInt {
+  public static func now() -> SwNumber {
     return SwDate().getTime()
   }
 }

@@ -1,4 +1,4 @@
-import { isNotNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJson, TsRecord, TsString } from "@tutao/lang-api"
+import { isNotNull, Nullable, ProgrammingError, RuntimeInfo, TsJson, TsRecord, TsString } from "@tutao/lang-api"
 import { ClientType } from "./TutanotaConstants"
 
 // keep in sync with LaunchHtml.js meta tag title
@@ -16,7 +16,7 @@ export type EnvType = {
 	paymentSetup: PaymentSetup
 	dist: boolean
 	versionNumber: TsString
-	timeout: TsInt
+	timeout: number
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName: TsString | null
@@ -108,7 +108,7 @@ export class EnvProvider {
 		return this.env.versionNumber
 	}
 
-	public getTimeOutValue(): TsInt {
+	public getTimeOutValue(): number {
 		return this.env.timeout
 	}
 

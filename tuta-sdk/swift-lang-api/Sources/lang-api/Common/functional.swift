@@ -18,9 +18,9 @@ public func assertNotNull<T>(_ value: Nullable<T>, _ message: SwString = SwStrin
 }
 
 public func assertNotNaN(
-  _ number: SwDouble, message: SwString = SwString("Found NaN when valid number is expected")
-) throws -> SwDouble {
-  if number.asPrimitive().isNaN {
+  _ number: SwNumber, message: SwString = SwString("Found NaN when valid number is expected")
+) throws -> SwNumber {
+  if number.inner.isNaN {
     throw try ProgrammingError(message)
   }
   return number

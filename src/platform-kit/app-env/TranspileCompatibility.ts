@@ -1,1 +1,1 @@
-export { TsRegex, TsInt, TsObject, TsDate, TsMath } from "@tutao/lang-api"
+export { TsRegex, TsObject, TsDate, TsMath } from "@tutao/lang-api"

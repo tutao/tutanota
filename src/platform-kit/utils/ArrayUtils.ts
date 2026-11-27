@@ -1,6 +1,5 @@
 import { identity, isNotNull, neverNull } from "./Utils.js"
 import { getFromMap } from "./MapUtils.js"
-import { TsInt } from "@tutao/lang-api"
 
 export function concat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
@@ -16,14 +15,14 @@ export function concat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
 /**
  * Create an array filled with the numbers min..max (inclusive)
  */
-export function numberRange(min: TsInt, max: TsInt): Array<TsInt> {
+export function numberRange(min: number, max: number): Array<number> {
 	return [...Array(max + 1).keys()].slice(min)
 }
 
 /**
  * Create a generator for integer range in [min; max).
  */
-export function* lazyNumberRange(min: TsInt, max: TsInt): Generator<TsInt> {
+export function* lazyNumberRange(min: number, max: number): Generator<number> {
 	let current = min
 
 	while (current < max) {

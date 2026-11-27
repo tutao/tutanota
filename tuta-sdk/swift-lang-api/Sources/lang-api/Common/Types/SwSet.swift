@@ -14,8 +14,8 @@ public final class SwSet<T: Hashable>: @unchecked Sendable {
     }
   }
 
-  public var size: SwInt {
-    return SwInt(self.inner.count)
+  public var size: SwNumber {
+    return SwNumber(self.inner.count)
   }
 
   public func add(_ value: T) -> SwSet<T> {

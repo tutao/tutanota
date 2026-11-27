@@ -1,27 +1,14 @@
 import { EnvProvider, Mode } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
-import {
-	assert,
-	console,
-	isNotNull,
-	isNull,
-	Nullable,
-	ProgrammingError,
-	RuntimeInfo,
-	TsDouble,
-	TsInt,
-	TsString,
-	TutanotaError,
-	TypeChecks,
-} from "@tutao/lang-api"
+import { assert, console, isNotNull, isNull, Nullable, ProgrammingError, RuntimeInfo, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
 import { BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()
 
 export class ClientDetector {
 	public readonly isMacOS: boolean
-	public readonly browserVersion: Nullable<TsDouble>
+	public readonly browserVersion: Nullable<number>
 	public readonly browser: BrowserType
 	public readonly device: DeviceType
 
@@ -73,9 +60,9 @@ export class ClientDetector {
 		return this.device === DeviceType.DESKTOP
 	}
 
-	private static _getBrowserAndVersion(userAgent: TsString): [BrowserType, Nullable<TsDouble>] {
+	private static _getBrowserAndVersion(userAgent: TsString): [BrowserType, Nullable<number>] {
 		let browser: BrowserType = BrowserType.OTHER
-		let browserVersion: Nullable<TsDouble> = null
+		let browserVersion: Nullable<number> = null
 
 		const operaIndex1 = userAgent.indexOf("Opera")
 		const operaIndex2 = userAgent.indexOf("OPR/")
@@ -151,11 +138,11 @@ export class ClientDetector {
 		}
 
 		if (versionIndex !== -1) {
-			const mainVersionEndIndex: TsInt = userAgent.indexOf(".", versionIndex)
+			const mainVersionEndIndex: number = userAgent.indexOf(".", versionIndex)
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					browserVersion = TsDouble.parseFloat(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					browserVersion = Number.parseFloat(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -170,23 +157,23 @@ export class ClientDetector {
 		return [browser, browserVersion]
 	}
 
-	private static _getIosBrowserVersion(userAgent: TsString): Nullable<TsDouble> {
+	private static _getIosBrowserVersion(userAgent: TsString): Nullable<number> {
 		// Extracting version does not work with iPad OS WebView because it's not in the userAgent. We could look it up
 		// from Webkit version but maybe we don't need that for now.
-		const versionIndex: TsInt = userAgent.indexOf(" OS ")
+		const versionIndex: number = userAgent.indexOf(" OS ")
 		if (versionIndex === -1) {
 			return null
 		}
 
 		try {
 			// in case of versions like 12_1_1 get substring 12_1 and convert it to 12.1
-			let pos: TsInt = versionIndex + 4
+			let pos: number = versionIndex + 4
 			let hadNan = false
 
 			while (pos < userAgent.length) {
 				pos++
 
-				if (TsInt.isNaN(TsInt.parseInt(userAgent.charAt(pos)))) {
+				if (Number.isNaN(Number.parseInt(userAgent.charAt(pos)))) {
 					if (hadNan) {
 						break
 					} else {
@@ -196,7 +183,7 @@ export class ClientDetector {
 			}
 
 			const numberString = userAgent.substring(versionIndex + 4, pos)
-			return TsDouble.parseFloat(numberString.replace(/_/g, "."))
+			return Number.parseFloat(numberString.replace(/_/g, "."))
 		} catch (e) {
 			return null
 		}

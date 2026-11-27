@@ -5,17 +5,17 @@ public class SwUint8Array: @unchecked Sendable {
     self.inner = array
   }
 
-  public var length: SwInt {
-    return SwInt(self.inner.count)
+  public var length: SwNumber {
+    return SwNumber(self.inner.count)
   }
 
-  public subscript(index: SwInt) -> Nullable<SwInt> {
+  public subscript(index: SwNumber) -> Nullable<SwNumber> {
     get {
       let actualIndex = self.inner.startIndex + index.inner
       guard self.inner.indices.contains(actualIndex) else {
         return nil
       }
-      return SwInt(Int(self.inner[actualIndex]))
+      return SwNumber(Int(self.inner[actualIndex]))
     }
     set(newValue) {
       let actualIndex = self.inner.startIndex + index.inner
@@ -27,7 +27,7 @@ public class SwUint8Array: @unchecked Sendable {
     }
   }
 
-  public func subarray(_ begin: SwInt = SwInt(0), _ end: SwInt? = nil) -> SwUint8Array {
+  public func subarray(_ begin: SwNumber = SwNumber(0), _ end: SwNumber? = nil) -> SwUint8Array {
     var begin = begin.inner
     if begin < 0 {
       begin = self.length.inner + begin
@@ -56,13 +56,13 @@ public class SwUint8Array: @unchecked Sendable {
     return SwUint8Array(self.inner[startIndex..<endIndex])
   }
 
-  private func set_notTheKeyword(_ array: ArrayView<UInt8>, _ targetOffset: SwInt = SwInt(0))
+  private func set_notTheKeyword(_ array: ArrayView<UInt8>, _ targetOffset: SwNumber = SwNumber(0))
     throws
   {
-    guard SwInt(0) <= targetOffset && targetOffset <= self.length else {
+    guard SwNumber(0) <= targetOffset && targetOffset <= self.length else {
       throw try TutanotaError(SwString("RangeError"), SwString("invalid or out-of-range index"))
     }
-    guard targetOffset + SwInt(array.count) <= self.length else {
+    guard targetOffset + SwNumber(array.count) <= self.length else {
       throw try TutanotaError(SwString("RangeError"), SwString("source array is too long"))
     }
 
@@ -73,7 +73,7 @@ public class SwUint8Array: @unchecked Sendable {
     }
   }
 
-  public func set_notTheKeyword(_ array: SwArray<SwInt>, _ targetOffset: SwInt = SwInt(0))
+  public func set_notTheKeyword(_ array: SwArray<SwNumber>, _ targetOffset: SwNumber = SwNumber(0))
     throws
   {
     try self.set_notTheKeyword(
@@ -81,13 +81,15 @@ public class SwUint8Array: @unchecked Sendable {
     )
   }
 
-  public func set_notTheKeyword(_ array: SwUint8Array, _ targetOffset: SwInt = SwInt(0))
+  public func set_notTheKeyword(_ array: SwUint8Array, _ targetOffset: SwNumber = SwNumber(0))
     throws
   {
     try self.set_notTheKeyword(array.inner, targetOffset)
   }
 
-  public func fill(_ value: SwInt, _ start: SwInt = SwInt(0), _ end: SwInt? = nil) -> Self {
+  public func fill(_ value: SwNumber, _ start: SwNumber = SwNumber(0), _ end: SwNumber? = nil)
+    -> Self
+  {
     var start = start.inner
     if start < 0 {
       start = self.length.inner + start
@@ -113,7 +115,7 @@ public class SwUint8Array: @unchecked Sendable {
     return self
   }
 
-  public static func from(_ arrayLike: any Sequence<SwInt>)
+  public static func from(_ arrayLike: any Sequence<SwNumber>)
     -> SwUint8Array
   {
     return SwUint8Array(ArrayView(arrayLike.map { element in UInt8(element.inner) }))
@@ -121,12 +123,12 @@ public class SwUint8Array: @unchecked Sendable {
 
   public static func from<T>(
     _ arrayLike: any Sequence<T>,
-    _ mapFn: (T) throws -> SwInt
+    _ mapFn: (T) throws -> SwNumber
   ) rethrows -> SwUint8Array {
     return SwUint8Array.from(try arrayLike.map(mapFn))
   }
 
-  public static func of(_ elements: SwInt...) -> SwUint8Array {
+  public static func of(_ elements: SwNumber...) -> SwUint8Array {
     return SwUint8Array(ArrayView(elements.map { element in UInt8(element.inner) }))
   }
 }
