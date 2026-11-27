@@ -1,9 +1,4 @@
-public protocol PromiseProtocol {
-  associatedtype Value
-  func await() async throws -> Value
-}
-
-public final class Promise<T: Sendable>: Sendable, PromiseProtocol {
+public final class Promise<T: Sendable>: Sendable {
   public typealias Value = T
   private let task: Task<T, Error>
 
@@ -82,7 +77,7 @@ public final class Promise<T: Sendable>: Sendable, PromiseProtocol {
   }
 
   public static func resolve(_ value: T) -> Promise<T> {
-    return Promise<T> { value }
+    return Promise<T>(value)
   }
 }
 
