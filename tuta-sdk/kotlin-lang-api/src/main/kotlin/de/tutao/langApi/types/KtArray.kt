@@ -1,6 +1,5 @@
 package de.tutao.langApi.types
 
-import java.util.function.Consumer
 import java.util.function.Predicate
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -8,7 +7,7 @@ import java.util.stream.Stream
 class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 	constructor(vararg items: T) : this(mutableListOf(*items))
 
-	val length: KtInt get() = KtInt(inner.size)
+	val length: KtNumber get() = KtNumber(inner.size)
 
 	companion object {
 		fun <T> from(vararg items: T): KtArray<T> {
@@ -16,11 +15,11 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 		}
 	}
 
-	operator fun get(index: KtInt): T? {
+	operator fun get(index: KtNumber): T? {
 		TODO()
 	}
 
-	fun at(index: KtInt): T? {
+	fun at(index: KtNumber): T? {
 		TODO()
 	}
 
@@ -32,15 +31,15 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 		TODO()
 	}
 
-	fun atUnchecked(index: KtInt): T {
+	fun atUnchecked(index: KtNumber): T {
 		TODO()
 	}
 
-	fun find(predicate: (T, KtInt, KtArray<T>) -> Boolean): T? {
+	fun find(predicate: (T, KtNumber, KtArray<T>) -> Boolean): T? {
 		TODO()
 	}
 
-	fun find(predicate: (T, KtInt) -> Boolean): T? {
+	fun find(predicate: (T, KtNumber) -> Boolean): T? {
 		TODO()
 	}
 
@@ -48,11 +47,11 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 		TODO()
 	}
 
-	fun indexOf(searchElement: T, from: KtInt = KtInt(0)): KtInt {
+	fun indexOf(searchElement: T, from: KtNumber = KtNumber(0)): KtNumber {
 		TODO()
 	}
 
-	fun splice(start: KtInt, deleteCount: KtInt? = null, vararg itemsToAdd: T): KtArray<T> {
+	fun splice(start: KtNumber, deleteCount: KtNumber? = null, vararg itemsToAdd: T): KtArray<T> {
 		TODO()
 	}
 
@@ -64,7 +63,7 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 		TODO()
 	}
 
-	operator fun set(index: KtInt, value: T) {
+	operator fun set(index: KtNumber, value: T) {
 		val i = index.asKotlinInt()
 		if (i == this.inner.size) {
 			this.inner.add(value)
@@ -77,7 +76,7 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 		return this.inner[0]
 	}
 
-	fun push(item: T): KtInt {
+	fun push(item: T): KtNumber {
 		this.inner.add(item)
 		return this.length
 	}
@@ -94,8 +93,8 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 		return this.inner.contains(item)
 	}
 
-	fun findIndex(predicate: Predicate<T>): KtInt {
-		return KtInt(-1)
+	fun findIndex(predicate: Predicate<T>): KtNumber {
+		return KtNumber(-1)
 	}
 
 	fun concat(anotherArray: KtArray<T>): KtArray<T> {
@@ -103,7 +102,7 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 	}
 
 
-	fun slice(from: KtInt, until: KtInt? = null): KtArray<T> {
+	fun slice(from: KtNumber, until: KtNumber? = null): KtArray<T> {
 		return KtArray(this.inner.subList(from.asKotlinInt(), (until ?: this.length).asKotlinInt()))
 	}
 
@@ -115,7 +114,7 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 		return KtArray(this.inner.map { transform(it) }.toMutableList())
 	}
 
-	fun sort(compareFn: (T, T) -> KtInt): KtArray<T> {
+	fun sort(compareFn: (T, T) -> KtNumber): KtArray<T> {
 		this.inner.sortWith { a, b -> compareFn(a, b).asKotlinInt() }
 		return this
 	}

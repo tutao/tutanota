@@ -1,7 +1,7 @@
 package de.tutao.langApi.types
 
 class KtMap<K, V> {
-	val size: KtInt
+	val size: KtNumber
 		get() = TODO()
 
 	fun set_notTheKeyword(key: K, value: V) {

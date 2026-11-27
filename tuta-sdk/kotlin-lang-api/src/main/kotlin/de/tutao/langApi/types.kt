@@ -1,15 +1,13 @@
 package de.tutao.langApi
 
+import de.tutao.langApi.types.KtNumber
+
 typealias Never = Nothing
 typealias TsMath = de.tutao.langApi.types.KtMath
 
 typealias TsRegex = de.tutao.langApi.types.KtRegExp
 
 typealias TsObject = de.tutao.langApi.types.KtObject
-
-typealias TsInt = de.tutao.langApi.types.KtInt
-
-typealias TsDouble = de.tutao.langApi.types.KtDouble
 
 typealias TsString = de.tutao.langApi.types.KtString
 

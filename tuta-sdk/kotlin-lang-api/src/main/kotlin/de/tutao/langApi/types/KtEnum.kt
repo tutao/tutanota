@@ -1,7 +1,7 @@
 package de.tutao.langApi.types
 
 interface NumberBasedEnum {
-	val __ts_value: KtInt
+	val __ts_value: KtNumber
 }
 
 interface StringBasedEnum {

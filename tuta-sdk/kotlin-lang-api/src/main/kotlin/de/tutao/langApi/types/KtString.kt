@@ -2,16 +2,16 @@ package de.tutao.langApi.types
 
 class KtString(private val inner: String) {
 	companion object {
-		fun fromCharCode(vararg nums: KtInt): KtString {
+		fun fromCharCode(vararg nums: KtNumber): KtString {
 			TODO()
 		}
 
-		fun fromCodePoint(vararg nums: KtInt): KtString {
+		fun fromCodePoint(vararg nums: KtNumber): KtString {
 			TODO()
 		}
 	}
 
-	var length: KtInt = KtInt(inner.length)
+	var length: KtNumber = KtNumber(inner.length)
 
 	fun asPrimitive(): String {
 		return this.inner
@@ -21,19 +21,19 @@ class KtString(private val inner: String) {
 		return this
 	}
 
-	fun at(index: KtInt): KtString? {
+	fun at(index: KtNumber): KtString? {
 		TODO()
 	}
 
-	fun charAt(index: KtInt): KtString {
+	fun charAt(index: KtNumber): KtString {
 		TODO()
 	}
 
-	fun charCodeAt(index: KtInt): KtDouble {
+	fun charCodeAt(index: KtNumber): KtNumber {
 		TODO()
 	}
 
-	fun codePointAt(index: KtInt): KtInt? {
+	fun codePointAt(index: KtNumber): KtNumber? {
 		TODO()
 	}
 
@@ -41,15 +41,15 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun endsWith(searchString: KtString, endPosition: KtInt? = null): Boolean {
+	fun endsWith(searchString: KtString, endPosition: KtNumber? = null): Boolean {
 		TODO()
 	}
 
-	fun includes(searchString: KtString, position: KtInt = KtInt(0)): Boolean {
+	fun includes(searchString: KtString, position: KtNumber = KtNumber(0)): Boolean {
 		TODO()
 	}
 
-	fun indexOf(searchString: KtString, position: KtInt = KtInt(0)): KtInt {
+	fun indexOf(searchString: KtString, position: KtNumber = KtNumber(0)): KtNumber {
 		TODO()
 	}
 
@@ -57,7 +57,7 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun lastIndexOf(searchString: KtString, position: KtInt = KtInt(0)): KtInt {
+	fun lastIndexOf(searchString: KtString, position: KtNumber = KtNumber(0)): KtNumber {
 		TODO()
 	}
 
@@ -65,11 +65,11 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun padStart(targetLength: KtInt, padString: KtString = KtString(" ")): KtString {
+	fun padStart(targetLength: KtNumber, padString: KtString = KtString(" ")): KtString {
 		TODO()
 	}
 
-	fun repeat(count: KtInt): KtString {
+	fun repeat(count: KtNumber): KtString {
 		TODO()
 	}
 
@@ -89,11 +89,11 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun slice(indexStart: KtInt, indexEnd: KtInt? = null): KtString {
+	fun slice(indexStart: KtNumber, indexEnd: KtNumber? = null): KtString {
 		TODO()
 	}
 
-	fun split(separator: KtString, limit: KtInt = KtInt(-1)): KtArray<KtString> {
+	fun split(separator: KtString, limit: KtNumber = KtNumber(-1)): KtArray<KtString> {
 		TODO()
 	}
 
@@ -101,7 +101,7 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun substring(indexStart: KtInt, indexEnd: KtInt? = null): KtString {
+	fun substring(indexStart: KtNumber, indexEnd: KtNumber? = null): KtString {
 		TODO()
 	}
 

@@ -1,7 +1,7 @@
 package de.tutao.langApi.types
 
 class KtSet<T>(vararg items: T) {
-	val size: KtInt
+	val size: KtNumber
 		get() = TODO()
 
 	fun add(value: T): KtSet<T> {

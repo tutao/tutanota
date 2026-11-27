@@ -4,43 +4,43 @@ class KtUint8Array {
 	// Uint8Array uses unsigned values, ByteArray signed (0 to 255 vs -128 to 127)
 	var value: ByteArray = ByteArray(0)
 
-	val length: KtInt
+	val length: KtNumber
 		get() = TODO()
 
-	operator fun get(index: KtInt): KtInt? {
+	operator fun get(index: KtNumber): KtNumber? {
 		TODO()
 	}
 
-	operator fun set(index: KtInt, value: KtInt) {
+	operator fun set(index: KtNumber, value: KtNumber) {
 		TODO()
 	}
 
-	fun subarray(begin: KtInt = KtInt(0), end: KtInt? = null): KtUint8Array {
+	fun subarray(begin: KtNumber = KtNumber(0), end: KtNumber? = null): KtUint8Array {
 		TODO()
 	}
 
-	fun set_notTheKeyword(array: KtArray<KtInt>, targetOffset: KtInt = KtInt(0)) {
+	fun set_notTheKeyword(array: KtArray<KtNumber>, targetOffset: KtNumber = KtNumber(0)) {
 		TODO()
 	}
 
-	fun set_notTheKeyword(array: KtUint8Array, targetOffset: KtInt = KtInt(0)) {
+	fun set_notTheKeyword(array: KtUint8Array, targetOffset: KtNumber = KtNumber(0)) {
 		TODO()
 	}
 
-	fun fill(value: KtInt, start: KtInt = KtInt(0), end: KtInt? = null): KtUint8Array {
+	fun fill(value: KtNumber, start: KtNumber = KtNumber(0), end: KtNumber? = null): KtUint8Array {
 		TODO()
 	}
 
 	companion object {
-		fun from(arrayLike: Iterable<KtInt>): KtUint8Array {
+		fun from(arrayLike: Iterable<KtNumber>): KtUint8Array {
 			TODO()
 		}
 
-		fun <T> from(arrayLike: Iterable<T>, mapFn: (T) -> KtInt): KtUint8Array {
+		fun <T> from(arrayLike: Iterable<T>, mapFn: (T) -> KtNumber): KtUint8Array {
 			TODO()
 		}
 
-		fun of(vararg elements: KtInt): KtUint8Array {
+		fun of(vararg elements: KtNumber): KtUint8Array {
 			TODO()
 		}
 	}

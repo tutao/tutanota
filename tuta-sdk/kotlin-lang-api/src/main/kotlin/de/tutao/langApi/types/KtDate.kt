@@ -5,16 +5,16 @@ class KtDate {
 		TODO()
 	}
 
-	constructor(time: KtInt) {
+	constructor(time: KtNumber) {
 		TODO()
 	}
 
-	fun getTime(): KtInt {
+	fun getTime(): KtNumber {
 		TODO()
 	}
 
 	companion object {
-		fun now(): KtInt {
+		fun now(): KtNumber {
 			TODO()
 		}
 	}

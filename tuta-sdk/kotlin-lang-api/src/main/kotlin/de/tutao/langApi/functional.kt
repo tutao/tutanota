@@ -1,7 +1,6 @@
 package de.tutao.langApi
 
-import de.tutao.langApi.types.KtDouble
-import de.tutao.langApi.types.KtInt
+import de.tutao.langApi.types.KtNumber
 import de.tutao.langApi.types.KtString
 import kotlin.reflect.full.memberProperties
 
@@ -22,9 +21,9 @@ fun <T> assertNotNull(item: T?, message: TsString? = TsString("")): T {
 }
 
 fun assertNotNaN(
-	number: KtDouble,
+	number: KtNumber,
 	message: KtString = KtString("Found NaN when valid number is expected"),
-): KtDouble {
+): KtNumber {
 	TODO()
 }
 
@@ -68,12 +67,12 @@ fun getStringEnumValue(anyEnum: Enum<*>): KtString {
 	}
 }
 
-fun getNumericEnumValue(anyEnum: Enum<*>): KtInt {
+fun getNumericEnumValue(anyEnum: Enum<*>): KtNumber {
 	val property = anyEnum::class.memberProperties
 		.firstOrNull { it.name == "__ts_value" }
 		?: error("${anyEnum::class.simpleName} does not have a __ts_value property.")
 	return when (val result = property.getter.call(anyEnum)) {
-		is KtInt -> result
+		is KtNumber -> result
 		else -> error(
 			"${anyEnum::class.simpleName}.__ts_value must be String but was ${result?.let { it::class.simpleName } ?: "null"}"
 		)
