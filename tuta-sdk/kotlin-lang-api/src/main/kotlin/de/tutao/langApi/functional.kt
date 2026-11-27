@@ -1,5 +1,6 @@
 package de.tutao.langApi
 
+import de.tutao.langApi.types.KtDouble
 import de.tutao.langApi.types.KtInt
 import de.tutao.langApi.types.KtString
 import kotlin.reflect.full.memberProperties
@@ -18,6 +19,33 @@ fun <T> assertNotNull(item: T?, message: TsString? = TsString("")): T {
 	}
 
 	return item
+}
+
+fun assertNotNaN(
+	number: KtDouble,
+	message: KtString = KtString("Found NaN when valid number is expected"),
+): KtDouble {
+	TODO()
+}
+
+fun <T> assertNull(value: T?, message: KtString = KtString("not null")) {
+	TODO()
+}
+
+fun assert(assertion: Boolean, message: KtString) {
+	TODO()
+}
+
+fun <R> downcast(obj: Any): R {
+	TODO()
+}
+
+fun thisFunctionDoesNothing() {
+	TODO()
+}
+
+fun <T> panicOnThrow(expression: () -> T): () -> T {
+	TODO()
 }
 
 fun <T> isNotNull(item: T?): Boolean {

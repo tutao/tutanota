@@ -10,6 +10,60 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 
 	val length: KtInt get() = KtInt(inner.size)
 
+	companion object {
+		fun <T> from(vararg items: T): KtArray<T> {
+			return KtArray(mutableListOf(*items))
+		}
+	}
+
+	operator fun get(index: KtInt): T? {
+		TODO()
+	}
+
+	fun at(index: KtInt): T? {
+		TODO()
+	}
+
+	fun second(): T {
+		TODO()
+	}
+
+	fun third(): T {
+		TODO()
+	}
+
+	fun atUnchecked(index: KtInt): T {
+		TODO()
+	}
+
+	fun find(predicate: (T, KtInt, KtArray<T>) -> Boolean): T? {
+		TODO()
+	}
+
+	fun find(predicate: (T, KtInt) -> Boolean): T? {
+		TODO()
+	}
+
+	fun find(predicate: (T) -> Boolean): T? {
+		TODO()
+	}
+
+	fun indexOf(searchElement: T, from: KtInt = KtInt(0)): KtInt {
+		TODO()
+	}
+
+	fun splice(start: KtInt, deleteCount: KtInt? = null, vararg itemsToAdd: T): KtArray<T> {
+		TODO()
+	}
+
+	fun join(separator: KtString): KtString {
+		TODO()
+	}
+
+	fun reverse(): KtArray<T> {
+		TODO()
+	}
+
 	operator fun set(index: KtInt, value: T) {
 		val i = index.asKotlinInt()
 		if (i == this.inner.size) {
@@ -49,8 +103,8 @@ class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 	}
 
 
-	fun slice(from: KtInt, until: KtInt = this.length): KtArray<T> {
-		return KtArray(this.inner.subList(from.asKotlinInt(), until.asKotlinInt()))
+	fun slice(from: KtInt, until: KtInt? = null): KtArray<T> {
+		return KtArray(this.inner.subList(from.asKotlinInt(), (until ?: this.length).asKotlinInt()))
 	}
 
 	fun filter(predicate: Predicate<T>): KtArray<T> {

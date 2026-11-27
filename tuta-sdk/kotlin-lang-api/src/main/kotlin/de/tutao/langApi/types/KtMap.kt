@@ -1,17 +1,26 @@
 package de.tutao.langApi.types
 
 class KtMap<K, V> {
-	var size: KtInt = TODO()
+	val size: KtInt
+		get() = TODO()
 
-	public fun add(key: K, value: V): Unit {
+	fun set_notTheKeyword(key: K, value: V) {
 		TODO()
 	}
 
-	public fun delete(key: K): Unit {
+	fun get_notTheKeyword(key: K): V? {
 		TODO()
 	}
 
-	public fun set_notTheKeyword(key: K, value: V): Unit {
+	fun has(key: K): Boolean {
+		TODO()
+	}
+
+	fun delete(key: K): Boolean {
+		TODO()
+	}
+
+	fun clear() {
 		TODO()
 	}
 }

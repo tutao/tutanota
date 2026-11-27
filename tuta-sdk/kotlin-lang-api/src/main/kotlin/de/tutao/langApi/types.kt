@@ -20,6 +20,8 @@ typealias TsRecord<K, V> = de.tutao.langApi.types.KtRecord<K, V>
 
 typealias ReadonlyArray<T> = de.tutao.langApi.types.KtList<T>
 typealias TsList<T> = de.tutao.langApi.types.KtList<T>
+typealias TsJson = de.tutao.langApi.types.KtJson
+typealias TsBoolean = Boolean
 
 
 class TypeChecks {
@@ -31,6 +33,22 @@ class TypeChecks {
 
 		fun isNumber(item: Any): Boolean {
 			return item is Boolean
+		}
+
+		fun isBoolean(item: Any): Boolean {
+			TODO()
+		}
+
+		fun isFunction(item: Any): Boolean {
+			TODO()
+		}
+
+		fun isObject(item: Any): Boolean {
+			TODO()
+		}
+
+		fun getTypeOf(item: Any): TsString {
+			TODO()
 		}
 
 		fun hasProperty(propertyName: TsString, obj: Any? = globalThis): Boolean {

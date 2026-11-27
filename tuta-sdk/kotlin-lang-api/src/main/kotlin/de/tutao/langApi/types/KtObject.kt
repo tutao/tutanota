@@ -24,5 +24,20 @@ class KtObject {
 			return list as TsList<T>
 		}
 
+		fun <T> keys(obj: T): KtArray<KtString> {
+			TODO()
+		}
+	}
+}
+
+class KtJson {
+	companion object {
+		fun <T> stringify(obj: T): KtString {
+			TODO()
+		}
+
+		fun <T> parse(jsonString: KtString): T {
+			TODO()
+		}
 	}
 }

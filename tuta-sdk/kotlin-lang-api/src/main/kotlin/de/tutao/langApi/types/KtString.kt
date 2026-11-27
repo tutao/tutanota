@@ -1,13 +1,17 @@
 package de.tutao.langApi.types
 
-
 class KtString(private val inner: String) {
-	var length: KtInt = KtInt(inner.length)
+	companion object {
+		fun fromCharCode(vararg nums: KtInt): KtString {
+			TODO()
+		}
 
-	fun indexOf(hay: KtString, from: KtInt = KtInt(0)): KtInt {
-		// FIXME: implement
-		return KtInt(0)
+		fun fromCodePoint(vararg nums: KtInt): KtString {
+			TODO()
+		}
 	}
+
+	var length: KtInt = KtInt(inner.length)
 
 	fun asPrimitive(): String {
 		return this.inner
@@ -17,39 +21,87 @@ class KtString(private val inner: String) {
 		return this
 	}
 
-	fun substring(f: Any, s: Any? = null): KtString {
-		return null!!
+	fun at(index: KtInt): KtString? {
+		TODO()
+	}
+
+	fun charAt(index: KtInt): KtString {
+		TODO()
+	}
+
+	fun charCodeAt(index: KtInt): KtDouble {
+		TODO()
+	}
+
+	fun codePointAt(index: KtInt): KtInt? {
+		TODO()
+	}
+
+	fun concat(vararg str: KtString): KtString {
+		TODO()
+	}
+
+	fun endsWith(searchString: KtString, endPosition: KtInt? = null): Boolean {
+		TODO()
+	}
+
+	fun includes(searchString: KtString, position: KtInt = KtInt(0)): Boolean {
+		TODO()
+	}
+
+	fun indexOf(searchString: KtString, position: KtInt = KtInt(0)): KtInt {
+		TODO()
+	}
+
+	fun isWellFormed(): Boolean {
+		TODO()
+	}
+
+	fun lastIndexOf(searchString: KtString, position: KtInt = KtInt(0)): KtInt {
+		TODO()
 	}
 
 	fun match(other: KtRegex): KtString? {
-		return null
+		TODO()
 	}
 
-	fun charAt(loc: KtInt): KtString {
-		return null!!
+	fun padStart(targetLength: KtInt, padString: KtString = KtString(" ")): KtString {
+		TODO()
 	}
 
-	fun replace(f: KtRegex, r: KtString): KtString {
-		return this
+	fun repeat(count: KtInt): KtString {
+		TODO()
 	}
 
-	fun replace(f: KtString, r: KtString): KtString {
-		return this
+	fun replace(pattern: KtRegex, replacement: KtString): KtString {
+		TODO()
 	}
 
-	fun includes(substr: KtString): Boolean {
-		return true
+	fun replace(pattern: KtString, replacement: KtString): KtString {
+		TODO()
 	}
 
-	fun split(f: KtString): KtArray<KtString> {
-		return KtArray()
+	fun replaceAll(pattern: KtRegex, replacement: KtString): KtString {
+		TODO()
 	}
 
-	operator fun plus(other: KtString): KtString {
-		return KtString(this.inner.plus(other.inner))
+	fun replaceAll(pattern: KtString, replacement: KtString): KtString {
+		TODO()
 	}
 
-	fun toUpperCase(): KtString {
+	fun slice(indexStart: KtInt, indexEnd: KtInt? = null): KtString {
+		TODO()
+	}
+
+	fun split(separator: KtString, limit: KtInt = KtInt(-1)): KtArray<KtString> {
+		TODO()
+	}
+
+	fun startsWith(substring: KtString): Boolean {
+		TODO()
+	}
+
+	fun substring(indexStart: KtInt, indexEnd: KtInt? = null): KtString {
 		TODO()
 	}
 
@@ -57,15 +109,32 @@ class KtString(private val inner: String) {
 		TODO()
 	}
 
-	fun startsWith(substr: KtString): Boolean {
+	// toString() clashes with Any.toString() which returns kotlin.String
+	fun toString_notTheKeyword(): KtString {
 		TODO()
 	}
 
-	fun endsWith(substr: KtString): Boolean {
+	fun toUpperCase(): KtString {
 		TODO()
 	}
 
-	fun replaceAll(match: KtString, substitute: KtString): KtString {
+	fun toWellFormed(): KtString {
 		TODO()
+	}
+
+	fun trim(): KtString {
+		TODO()
+	}
+
+	fun trimEnd(): KtString {
+		TODO()
+	}
+
+	fun trimStart(): KtString {
+		TODO()
+	}
+
+	operator fun plus(other: KtString): KtString {
+		return KtString(this.inner.plus(other.inner))
 	}
 }

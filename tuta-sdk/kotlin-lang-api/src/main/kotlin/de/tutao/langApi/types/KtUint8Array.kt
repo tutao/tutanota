@@ -3,26 +3,45 @@ package de.tutao.langApi.types
 class KtUint8Array {
 	// Uint8Array uses unsigned values, ByteArray signed (0 to 255 vs -128 to 127)
 	var value: ByteArray = ByteArray(0)
-	val length: KtInt = TODO()
 
-	public fun fill(n: KtInt): Unit{
+	val length: KtInt
+		get() = TODO()
+
+	operator fun get(index: KtInt): KtInt? {
 		TODO()
 	}
 
-	public fun set_notTheKeyword(source: KtUint8Array): Unit {
+	operator fun set(index: KtInt, value: KtInt) {
 		TODO()
 	}
 
-	public fun subarray(start: KtInt): KtUint8Array {
+	fun subarray(begin: KtInt = KtInt(0), end: KtInt? = null): KtUint8Array {
 		TODO()
 	}
 
-	operator fun get(int: KtInt): KtInt {
+	fun set_notTheKeyword(array: KtArray<KtInt>, targetOffset: KtInt = KtInt(0)) {
 		TODO()
 	}
 
-	operator fun set(int: KtInt, value: KtInt): Unit {
+	fun set_notTheKeyword(array: KtUint8Array, targetOffset: KtInt = KtInt(0)) {
 		TODO()
 	}
 
+	fun fill(value: KtInt, start: KtInt = KtInt(0), end: KtInt? = null): KtUint8Array {
+		TODO()
+	}
+
+	companion object {
+		fun from(arrayLike: Iterable<KtInt>): KtUint8Array {
+			TODO()
+		}
+
+		fun <T> from(arrayLike: Iterable<T>, mapFn: (T) -> KtInt): KtUint8Array {
+			TODO()
+		}
+
+		fun of(vararg elements: KtInt): KtUint8Array {
+			TODO()
+		}
+	}
 }

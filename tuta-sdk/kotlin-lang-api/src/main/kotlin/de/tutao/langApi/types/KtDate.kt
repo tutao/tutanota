@@ -1,15 +1,21 @@
 package de.tutao.langApi.types
 
 class KtDate {
+	constructor() {
+		TODO()
+	}
+
 	constructor(time: KtInt) {
 		TODO()
 	}
 
-	public fun getTime(): KtInt {
+	fun getTime(): KtInt {
 		TODO()
 	}
 
-	public fun now(): KtInt {
-		TODO()
+	companion object {
+		fun now(): KtInt {
+			TODO()
+		}
 	}
 }

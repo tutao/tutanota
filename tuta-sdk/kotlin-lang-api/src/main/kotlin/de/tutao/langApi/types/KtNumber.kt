@@ -52,6 +52,14 @@ class KtInt(private val inner: Int) {
 	operator fun times(other: KtDouble): KtDouble {
 		return other.times(this)
 	}
+
+	operator fun plusAssign(other: KtInt) {
+		TODO()
+	}
+
+	operator fun minusAssign(other: KtInt) {
+		TODO()
+	}
 }
 
 class KtDouble(private val inner: Double) {
@@ -83,6 +91,10 @@ class KtDouble(private val inner: Double) {
 
 	operator fun times(other: KtInt): KtDouble {
 		return KtDouble(this.inner * other.asKotlinInt())
+	}
+
+	fun asPrimitive(): Double {
+		return this.inner
 	}
 
 }
