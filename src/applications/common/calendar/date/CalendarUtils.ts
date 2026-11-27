@@ -50,10 +50,11 @@ import { ResolvedUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFac
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
-import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
+import { EventWrapperFlags } from "../../../calendar-app/calendar/view/EventWrapperFlags"
 
 export type CalendarTimeRange = {
 	start: number

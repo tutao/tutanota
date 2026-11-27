@@ -5,18 +5,14 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { colorForBg, normalizeColorHex } from "../../../../ui/base/GuiUtils"
 import { theme } from "../../../../ui/theme"
 import { EVENT_BUBBLE_LINE_HEIGHT, EventGridData, MIN_ROW_SPAN_FOR_EVENT_BUBBLE, RowBounds } from "./CalendarTimeGrid"
-import {
-	type CalendarEventBubbleClickHandler,
-	CalendarEventBubbleKeyDownHandler,
-	EventWrapper,
-	EventWrapperFlags,
-} from "../../../calendar-app/calendar/view/CalendarViewModel"
+import { type CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { EventTextTimeOption, TabIndex } from "@tutao/app-env"
 import { EventWrapperFlagKeys, FlagKeyToIcon, getDiffIn60mIntervals, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
 import { Time } from "../Time"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { formatEventTime, formatTimeWithZoneInfo, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { EventWrapperFlags } from "../../../calendar-app/calendar/view/EventWrapperFlags"
 
 export interface RangeOverflowData {
 	start: boolean
@@ -169,7 +165,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			backgroundColor: theme.surface_container_high,
 			paddingTop: "1px",
 			paddingBottom: "1px",
-			textDecoration: eventWrapper.flags.isDeclined ? "line-through" : "none",
+			textDecoration: eventWrapper.flags.isDeclined ? "line-through" : undefined,
 		}
 
 		return {

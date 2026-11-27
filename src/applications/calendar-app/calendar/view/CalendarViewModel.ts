@@ -102,61 +102,12 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/CalendarSearchUtils"
 import { CalendarSearchModel } from "../../search/model/CalendarSearchModel"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
-
-export interface EventWrapperFlags {
-	/**
-	 * Pending invitation event.
-	 * Rendered with reduced opacity, borders, and limited interactions.
-	 */
-	isGhost?: boolean
-	/**
-	 * Declined from a user invitation event.
-	 * Rendered with reduced opacity, borders, and limited interactions.
-	 */
-	isDeclined?: boolean
-
-	/**
-	 * Emphasized event to draw attention.
-	 * Styled with icon, borders, and a success semantic color (ignores calendar color).
-	 */
-	isFeatured?: boolean
-
-	/**
-	 * Event overlaps with other events.
-	 * Styled with icon, border, and a warning semantic color (ignores calendar color).
-	 */
-	isConflict?: boolean
-
-	/**
-	 * Recurring event instance that has been modified from the original series.
-	 * Should display an indicator icon.
-	 */
-	isAlteredInstance: boolean
-
-	/**
-	 * Special event type built from a Tuta contact.
-	 * Should display an indicator icon.
-	 */
-	isBirthdayEvent?: boolean
-
-	/**
-	 * Temporary event not yet persisted to the backend.
-	 * Used during event dragging.
-	 */
-	isTransientEvent?: boolean
-
-	/**
-	 * Event has one or more alarms/reminders configured.
-	 * Should display an indicator icon to show notifications are enabled.
-	 */
-	hasAlarms: boolean
-}
+import { EventWrapperFlags } from "./EventWrapperFlags"
 
 /**
  * Wraps a CalendarEvent with display metadata for UI rendering.

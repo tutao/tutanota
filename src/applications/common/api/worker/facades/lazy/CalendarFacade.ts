@@ -48,6 +48,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { AlarmFacade } from "./AlarmFacade"
 import { EventAlarmInfoTemplatesTuple } from "../../../../calendar/import/ImportExportUtils"
+import { CalendarAttendeeStatus } from "../../../../../../entities/tutanota/Utils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -158,24 +159,42 @@ export class CalendarFacade {
 			)
 			const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 
-			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
-				event: e,
-				flags: {
-					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
-					isAlteredInstance: e.recurrenceId != null,
-					isGhost: !!e.pendingInvitation,
-				},
-				color,
-			}))
-			const longEvents: Array<EventWrapper> = longEventsResult.map((e) => ({
-				event: e,
-				flags: {
-					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
-					isAlteredInstance: e.recurrenceId != null,
-					isGhost: !!e.pendingInvitation,
-				},
-				color,
-			}))
+			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => {
+				let isDeclined = false
+				for (const attendee of e.attendees) {
+					if (attendee.address.address === "arm-premium@tutanota.de") {
+						isDeclined = attendee.status === CalendarAttendeeStatus.DECLINED
+					}
+				}
+				return {
+					event: e,
+					flags: {
+						hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
+						isAlteredInstance: e.recurrenceId != null,
+						isGhost: !!e.pendingInvitation,
+						isDeclined,
+					},
+					color,
+				}
+			})
+			const longEvents: Array<EventWrapper> = longEventsResult.map((e) => {
+				let isDeclined = false
+				for (const attendee of e.attendees) {
+					if (attendee.address.address === "arm-premium@tutanota.de") {
+						isDeclined = attendee.status === CalendarAttendeeStatus.DECLINED
+					}
+				}
+				return {
+					event: e,
+					flags: {
+						hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
+						isAlteredInstance: e.recurrenceId != null,
+						isGhost: !!e.pendingInvitation,
+						isDeclined,
+					},
+					color,
+				}
+			})
 
 			calendars.push({
 				short: shortEvents,

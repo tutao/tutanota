@@ -4,8 +4,10 @@ import { Icon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { ClickHandler, colorForBg, normalizeColorHex } from "../../../../ui/base/GuiUtils"
 import { TabIndex } from "../../../../platform-kit/app-env"
+import { EventWrapper } from "./CalendarViewModel"
 
 export type LegacyCalendarEventBubbleAttrs = {
+	eventWrapper: EventWrapper
 	text: string
 	secondLineText?: string | null
 	backgroundColor: string
@@ -51,6 +53,7 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 				(doFadeIn ? ".fade-in" : "") +
 				(attrs.noBorderLeft ? ".event-continues-left" : "") +
 				(attrs.noBorderRight ? ".event-continues-right" : ""),
+
 			{
 				style: {
 					border: attrs.border,
@@ -63,6 +66,8 @@ export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventB
 					"padding-top": px(attrs.verticalPadding || 0),
 					opacity: attrs.opacity,
 					pointerEvents: enablePointerEvents ? "auto" : "none",
+
+					textDecoration: attrs.eventWrapper.flags.isDeclined ? "line-through" : undefined,
 				},
 				tabIndex: enablePointerEvents ? TabIndex.Default : TabIndex.Programmatic,
 				onclick: (e: MouseEvent) => {

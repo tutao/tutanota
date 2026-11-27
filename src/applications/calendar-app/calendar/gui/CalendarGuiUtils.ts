@@ -777,7 +777,10 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
 	const alpha = isGhost || CalendarAttendeeStatus.DECLINED ? (isLightTheme() ? "AA" : "7F") : "FF"
 	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? DEFAULT_CALENDAR_COLOR
-	return `${color}${alpha}`
+
+	const textDecoration = CalendarAttendeeStatus.DECLINED ?? "line-through"
+
+	return `${color}${alpha}${textDecoration}`
 }
 
 export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {

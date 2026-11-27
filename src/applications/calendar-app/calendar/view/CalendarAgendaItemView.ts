@@ -18,6 +18,7 @@ export interface CalendarAgendaItemViewAttrs {
 	selected?: boolean
 	height?: number
 	id: string
+	textDecoration?: string | undefined
 }
 
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
@@ -27,10 +28,13 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
 
 		let border: string | undefined = undefined
+		//let textDecoration: string | boolean
 		let backgroundColor = CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused)
 		if (attrs.event.flags.isGhost || attrs.event.flags.isDeclined) {
 			border = attrs.selected ? "1px solid transparent" : `1px dashed ${theme.outline}`
 			backgroundColor = attrs.selected ? theme.surface_container_highest : theme.surface_container_high
+
+			//textDecoration = attrs.event.flags.isDeclined ?? "line-through"
 		}
 
 		return m(
@@ -49,6 +53,8 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 					background: backgroundColor,
 					border: border,
 					height: attrs.height ? px(attrs.height) : undefined,
+
+					textDecoration: attrs.event.flags.isDeclined ? "line-through" : undefined,
 				},
 			},
 			[

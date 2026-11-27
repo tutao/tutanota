@@ -4,7 +4,7 @@ import { listIdPart } from "@tutao/meta"
 import type { EventTextTimeOption } from "@tutao/app-env"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
 import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
-import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
+import { LegacyCalendarEventBubble, LegacyCalendarEventBubbleAttrs } from "./LegacyCalendarEventBubble"
 import { px } from "../../../../ui/size"
 import { normalizeColorHex } from "../../../../ui/base/GuiUtils"
 import { User } from "@tutao/entities/sys"
@@ -52,6 +52,7 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 			m(
 				".flex-grow.overflow-hidden",
 				m(LegacyCalendarEventBubble, {
+					eventWrapper: attrs.eventWrapper,
 					color: attrs.color,
 					border: attrs.border,
 					text: (attrs.showTime != null ? formatEventTime(attrs.eventWrapper.event, attrs.showTime, false, getTimeZone()) + " " : "") + eventTitle,
@@ -66,7 +67,7 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 					opacity: attrs.opacity,
 					enablePointerEvents: attrs.enablePointerEvents,
 					isBirthday: isBirthdayCalendar(listIdPart(attrs.eventWrapper.event._id)),
-				}),
+				} as LegacyCalendarEventBubbleAttrs),
 			),
 			attrs.endsAfter
 				? m(".event-continues-right-arrow", {

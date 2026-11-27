@@ -41,7 +41,7 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-
+import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 const LIMIT_PAST_EVENTS_YEARS = 100
 
 const TAG = "[CalendarEventRepository]"
@@ -388,12 +388,30 @@ export class CalendarEventsRepository {
 		if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
 			try {
 				const event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId!, update.instanceId])
+
+				console.log(
+					"Attendees: ",
+					event.attendees.map((attendee) => ({
+						address: attendee.address,
+						status: attendee.status,
+						isDeclined: attendee.status == CalendarAttendeeStatus.DECLINED,
+					})),
+				)
+
+				let isDeclined = false
+				for (const attendee of event.attendees) {
+					if (attendee.address.address === "arm-premium@tutanota.de") {
+						isDeclined = attendee.status === CalendarAttendeeStatus.DECLINED
+					}
+				}
+
 				const wrapper: EventWrapper = {
 					event,
 					flags: {
 						isGhost: !!event.pendingInvitation,
 						hasAlarms: isNotEmpty(event.alarmInfos),
 						isAlteredInstance: Boolean(event.recurrenceId),
+						isDeclined,
 					},
 					color: calendarInfos.get(eventOwnerGroupId)?.color ?? DEFAULT_CALENDAR_COLOR,
 				}
