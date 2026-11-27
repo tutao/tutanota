@@ -5,7 +5,7 @@ public final class SwNumber: @unchecked Sendable, EquitableIsStructural, Hashabl
   internal var inner: Double
 
   internal var int: Int {
-    Int(self.inner)
+    return Int(self.inner)
   }
 
   public init(_ value: Double) {
@@ -62,6 +62,32 @@ public final class SwNumber: @unchecked Sendable, EquitableIsStructural, Hashabl
   public static func /= (lhs: inout SwNumber, rhs: SwNumber) {
     lhs.inner /= rhs.inner
     return
+  }
+
+  @discardableResult
+  public static prefix func ++ (value: inout SwNumber) -> SwNumber {
+    value.inner += 1
+    return value
+  }
+
+  @discardableResult
+  public static postfix func ++ (value: inout SwNumber) -> SwNumber {
+    let oldValue = value
+    value.inner += 1
+    return oldValue
+  }
+
+  @discardableResult
+  public static prefix func -- (value: inout SwNumber) -> SwNumber {
+    value.inner -= 1
+    return value
+  }
+
+  @discardableResult
+  public static postfix func -- (value: inout SwNumber) -> SwNumber {
+    let oldValue = value
+    value.inner -= 1
+    return oldValue
   }
 
   public func hash(into hasher: inout Hasher) {
