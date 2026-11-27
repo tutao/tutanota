@@ -49,6 +49,8 @@ final class KtNumber(private val inner: Double) {
 		return KtNumber(this.inner.times(other.inner))
 	}
 
-
+	fun toOurString(): KtString {
+		return KtString(this.inner.toString())
+	}
 }
 

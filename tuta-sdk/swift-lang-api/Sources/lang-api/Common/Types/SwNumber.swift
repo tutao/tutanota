@@ -71,4 +71,8 @@ public final class SwNumber: @unchecked Sendable, EquitableIsStructural, Hashabl
   public func toString() -> SwString {
     return SwString(String(self.inner))
   }
+
+  public func toOurString() -> SwString {
+    return toString()
+  }
 }
