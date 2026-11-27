@@ -1,6 +1,8 @@
 public typealias TsNumber = SwNumber
-public final class SwNumber: Sendable, EquitableIsStructural, Hashable, Comparable {
-  internal let inner: Double
+public final class SwNumber: @unchecked Sendable, EquitableIsStructural, Hashable, Comparable,
+  ToString
+{
+  internal var inner: Double
 
   internal var int: Int {
     Int(self.inner)
@@ -22,6 +24,10 @@ public final class SwNumber: Sendable, EquitableIsStructural, Hashable, Comparab
     return lhs.inner == rhs.inner
   }
 
+  public static prefix func - (value: SwNumber) -> SwNumber {
+    return SwNumber(-value.inner)
+  }
+
   public static func + (lhs: SwNumber, rhs: SwNumber) -> SwNumber {
     return SwNumber(lhs.inner + rhs.inner)
   }
@@ -38,7 +44,31 @@ public final class SwNumber: Sendable, EquitableIsStructural, Hashable, Comparab
     return SwNumber(lhs.inner / rhs.inner)
   }
 
+  public static func += (lhs: inout SwNumber, rhs: SwNumber) {
+    lhs.inner += rhs.inner
+    return
+  }
+
+  public static func -= (lhs: inout SwNumber, rhs: SwNumber) {
+    lhs.inner -= rhs.inner
+    return
+  }
+
+  public static func *= (lhs: inout SwNumber, rhs: SwNumber) {
+    lhs.inner *= rhs.inner
+    return
+  }
+
+  public static func /= (lhs: inout SwNumber, rhs: SwNumber) {
+    lhs.inner /= rhs.inner
+    return
+  }
+
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.inner)
+  }
+
+  public func toString() -> SwString {
+    return SwString(String(self.inner))
   }
 }
