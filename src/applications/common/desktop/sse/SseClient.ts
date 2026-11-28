@@ -252,6 +252,10 @@ export class SseClient {
 	}
 
 	private retryConnect() {
+		//fixme is it got connected while waiting for the delayed connect?
+		if (this.state.state === ConnectionState.connected) {
+			console.log("while waiting for the delayedReconnect, it got connected")
+		}
 		if (this.state.state !== ConnectionState.delayedReconnect) {
 			throw new ProgrammingError("Invalid state: not in delayed reconnect")
 		}
