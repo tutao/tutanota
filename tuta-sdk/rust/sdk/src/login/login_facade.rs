@@ -130,12 +130,12 @@ impl LoginFacade {
 				error_message: "Salt is missing from User!".to_string(),
 			});
 		};
-		Ok(derive_user_passphrase_key(
+		derive_user_passphrase_key(
 			KdfType::try_from(user.kdfVersion)?,
 			passphrase,
 			array_cast_slice(salt, "Vec")
 				.map_err(|e| ApiCallError::internal_with_err(e, "Invalid salt"))?,
-		))
+		)
 	}
 
 	/// Initialize a session with given user id and return a new UserFacade
@@ -206,10 +206,12 @@ pub fn derive_user_passphrase_key(
 	kdf_type: KdfType,
 	passphrase: &str,
 	salt: [u8; 16],
-) -> Aes256Key {
+) -> Result<Aes256Key, ApiCallError> {
 	match kdf_type {
-		KdfType::Argon2id => generate_key_from_passphrase(passphrase, salt),
-		KdfType::Bcrypt => panic!("BCrypt not implemented"),
+		KdfType::Argon2id => Ok(generate_key_from_passphrase(passphrase, salt)),
+		KdfType::Bcrypt => Err(ApiCallError::internal(
+			"Bcrypt passphrase keys are not implemented".to_owned(),
+		)),
 	}
 }
 
@@ -223,7 +225,7 @@ mod tests {
 	use crate::entities::Entity;
 	use crate::entity_client::MockEntityClient;
 	use crate::login::credentials::{CredentialType, Credentials};
-	use crate::login::login_facade::LoginFacade;
+	use crate::login::login_facade::{derive_user_passphrase_key, KdfType, LoginFacade};
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;
 	use crate::user_facade_factory::MockUserFacadeFactory;
@@ -236,6 +238,16 @@ mod tests {
 	use crypto_primitives::aes::{Aes128Key, Aes256Key, InitializationVector};
 	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
+
+	#[test]
+	fn test_derive_user_passphrase_key_rejects_bcrypt() {
+		assert_eq!(
+			derive_user_passphrase_key(KdfType::Bcrypt, "map", [7; 16]).err(),
+			Some(crate::ApiCallError::internal(
+				"Bcrypt passphrase keys are not implemented".to_owned()
+			))
+		);
+	}
 
 	#[tokio::test]
 	async fn test_resume_session() {
