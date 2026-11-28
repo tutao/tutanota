@@ -113,6 +113,18 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
 
 		monitor.setCallback { isMetered in Task { try await MobileFacadeSendDispatcher(transport: self.bridge).connectionTypeUpdate(isMetered) } }
+
+		let fileURL = URL(fileURLWithPath:"/")
+		do {
+			let values = try fileURL.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+			if let capacity = values.volumeAvailableCapacityForImportantUsage {
+				print("Available capacity for important usage: \(capacity)")
+			} else {
+				print("Capacity is unavailable")
+			}
+		} catch {
+			print("Error retrieving capacity: \(error.localizedDescription)")
+		}
 	}
 
 	required init?(coder: NSCoder) { fatalError("Not NSCodable") }
