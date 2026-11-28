@@ -78,6 +78,10 @@ export class EphemeralCacheStorage implements CacheStorage {
 		private readonly maxElementsConfig: MaxCacheElementsConfig = DEFAULT_CACHE_MAX_ELEMENTS,
 	) {}
 
+	getDelegate(): CacheStorage {
+		return this
+	}
+
 	isInitialized(): boolean {
 		return this.userId != null
 	}

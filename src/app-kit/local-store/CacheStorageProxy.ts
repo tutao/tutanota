@@ -38,6 +38,10 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		private readonly offlineStorageProvider: () => Promise<CachingOfflineStorage | null>,
 	) {}
 
+	getDelegate(): CacheStorage {
+		return this.inner.getDelegate()
+	}
+
 	isInitialized(): boolean {
 		return this._inner?.isInitialized() ?? false
 	}

@@ -29,7 +29,7 @@ export interface MailIndexer {
 
 	init(user: User): Promise<void>
 	onEntityUpdatesReceived(events: readonly EntityUpdateData[], groupId: Id, batchId: Id): Promise<void>
-	beforeMailDeleted(mailid: IdTuple): Promise<void>
+	beforeMultipleMailsDeleted(mailids: IdTuple[]): Promise<void>
 	afterMailDeleted(mailid: IdTuple): Promise<void>
 	afterMailCreated(mailid: IdTuple): Promise<void>
 	afterMailUpdated(mailid: IdTuple): Promise<void>

@@ -1,7 +1,7 @@
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 import { OfflineStorage, Range } from "./OfflineStorage"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
-import { BlobElementEntity, getTypeString, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { BlobElementEntity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -16,6 +16,10 @@ export class CachingOfflineStorage implements CacheStorage {
 		private readonly fastCache: EphemeralCacheStorage,
 		private readonly modelMapper: ModelMapper,
 	) {}
+
+	getDelegate(): OfflineStorage {
+		return this.delegate
+	}
 
 	private shouldOnlyUseFastCache(): boolean {
 		return this.cacheSyncStatus === CacheSyncStatus.OnlineSyncOngoing

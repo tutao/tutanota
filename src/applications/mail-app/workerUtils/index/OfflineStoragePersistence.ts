@@ -1,5 +1,5 @@
 import { ArchiveDownloadRangeHeaders, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { sql } from "../../../../app-kit/local-store/Sql"
+import { MAX_SAFE_SQL_VARS, paramList, sql } from "../../../../app-kit/local-store/Sql"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
@@ -24,7 +24,7 @@ import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { delay, isEmpty, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
+import { delay, isEmpty, splitInChunks, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
@@ -264,19 +264,29 @@ export class OfflineStoragePersistence {
 		return mail.sets.map(elementIdPart).join(" ")
 	}
 
-	async deleteMailData(mailId: IdTuple): Promise<void> {
-		const rowid = await this.getRowid(MailTypeRef, mailId)
-		{
-			const { query, params } = sql`DELETE
-										  FROM mail_index
-										  WHERE rowId = ${rowid}`
-			await this.sqlCipherFacade.run(query, params)
-		}
-		{
-			const { query, params } = sql`DELETE
-										  FROM content_mail_index
-										  WHERE rowId = ${rowid}`
-			await this.sqlCipherFacade.run(query, params)
+	async deleteMultipleMailDatas(listId: Id, elementIds: Id[]): Promise<void> {
+		for (const mailIdsChunk of splitInChunks(MAX_SAFE_SQL_VARS, elementIds)) {
+			const { query, params } = sql`SELECT rowid
+							   FROM list_entities
+							   WHERE type = ${getTypeString(MailTypeRef)}
+								 AND listId = ${listId}
+								 AND elementId IN ${paramList(mailIdsChunk)}`
+
+			const rowIdsResult = await this.sqlCipherFacade.all(query, params)
+			const rowIds = rowIdsResult.map((r) => untagSqlObject(r).rowid)
+
+			{
+				const { query, params } = sql`DELETE
+											  FROM mail_index
+											  WHERE rowId IN ${paramList(rowIds)}`
+				await this.sqlCipherFacade.run(query, params)
+			}
+			{
+				const { query, params } = sql`DELETE
+											  FROM content_mail_index
+											  WHERE rowId IN ${paramList(rowIds)}`
+				await this.sqlCipherFacade.run(query, params)
+			}
 		}
 	}
 
@@ -412,14 +422,16 @@ VALUES (
 		return this.pendingEncryptedMailDetailsBlobRetrieval.then((result) => result.get(blobId) ?? null)
 	}
 
-	async deleteEncryptedBlob<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id, blobId: Id): Promise<void> {
-		const { query, params } = sql`DELETE
+	async deleteMultipleEncryptedBlobs<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id, blobIds: Id[]): Promise<void> {
+		for (const blobIdsChunk of splitInChunks(MAX_SAFE_SQL_VARS, blobIds)) {
+			const { query, params } = sql`DELETE
 									  FROM encrypted_blobs
 									  WHERE type = ${getTypeString(typeRef)}
 			                            AND archiveId = ${archiveId}
-										AND blobId = ${blobId}`
+										AND blobId IN ${paramList(blobIdsChunk)}`
 
-		await this.sqlCipherFacade.run(query, params)
+			await this.sqlCipherFacade.run(query, params)
+		}
 	}
 
 	async clearEncryptedBlobsForType<T extends BlobElementEntity>(typeRef: TypeRef<T>): Promise<void> {

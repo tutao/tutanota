@@ -2,6 +2,12 @@ import { tagSqlValue } from "./SqlValue"
 import { FormattedQuery, SqlValue, TaggedSqlValue } from "./Types"
 
 /**
+ * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
+ * it may change if the sqlite version is updated.
+ * */
+export const MAX_SAFE_SQL_VARS = 32766
+
+/**
  * this tagged template function exists because android doesn't allow us to define SQL functions, so we have made a way to inline
  * SQL fragments into queries.
  * to make it less error-prone, we automate the generation of the params array for the actual sql call.
@@ -78,4 +84,16 @@ export class SqlFragment {
 		readonly text: string,
 		readonly params: SqlValue[],
 	) {}
+}
+
+/*
+ * used to automatically create the right amount of SQL variables for selecting ids from a dynamic list.
+ * must be used within sql`<query>` template string to inline the logic into the query.
+ *
+ * It is very important that params is kept to a size such that the total amount of SQL variables is
+ * less than MAX_SAFE_SQL_VARS.
+ */
+export function paramList(params: SqlValue[]): SqlFragment {
+	const qs = params.map(() => "?").join(",")
+	return new SqlFragment(`(${qs})`, params)
 }
